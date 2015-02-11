@@ -68,7 +68,7 @@ public class DataServiceTest {
         assertEquals(1, seriesList.size());
     }
 
-    // @Test // test property could not be created
+    @Test
     public void testRetrieveProperties() throws Exception {
         GetPropertiesCommand getPropertiesCommand = new GetPropertiesCommand();
         getPropertiesCommand.setStartTime(0);
@@ -76,11 +76,11 @@ public class DataServiceTest {
 //        getPropertiesCommand.setLast(true);
         ArrayList<PropertyParameter> params = new ArrayList<PropertyParameter>();
         PropertyParameter p1 = new PropertyParameter();
-        p1.setType("disk");
-        p1.setEntity("nurswgvml007");
-        p1.setLimit("100");
+        p1.setType("ttt-type");
+        p1.setEntity("ttt-entity");
+        p1.setLimit("1");
         HashMap<String, String> keys = new HashMap<String, String>();
-        keys.put("id", "dm-0");
+        keys.put("key1", "ttt-key-1");
 //      //  p1.setKeys(keys);
         params.add(p1);
         getPropertiesCommand.setParams(params);
@@ -89,7 +89,7 @@ public class DataServiceTest {
             System.out.println("property = " + property);
         }
         assertTrue(properties.get(0) instanceof Property);
-        assertEquals(5, properties.size());
+        assertEquals(1, properties.size());
     }
 
     @Test
