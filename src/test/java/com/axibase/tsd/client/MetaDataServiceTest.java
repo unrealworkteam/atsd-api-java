@@ -23,6 +23,8 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.axibase.tsd.TestUtil.TTT_ENTITY;
+import static com.axibase.tsd.TestUtil.TTT_METRIC;
 import static org.junit.Assert.*;
 
 /**
@@ -46,17 +48,18 @@ public class MetaDataServiceTest {
         assertEquals(1, metrics.size());
     }
 
-//    @Test //API method not implemented yet
+    @Test
     public void testRetrieveMetricsByEntity() throws Exception {
-        List metrics = metaDataService.retrieveMetrics(TestUtil.TTT_ENTITY, true, "name like '*'", TagAppender.ALL, 10);
+        List metrics = metaDataService.retrieveMetrics(TTT_ENTITY, null, "name like '*'", null, 10);
         assertTrue(metrics.get(0) instanceof Metric);
         assertEquals(1, metrics.size());
     }
 
-//    @Test //API method not implemented yet
+    @Test
     public void testRetrieveMetric() throws Exception {
-        Metric active = metaDataService.retrieveMetric(TestUtil.TTT_METRIC);
-        assertNotNull(active);
+        Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
+        assertNotNull(metric);
+        assertEquals(TTT_METRIC, metric.getName());
     }
 
     @Test
@@ -74,29 +77,28 @@ public class MetaDataServiceTest {
         }
     }
 
-//    @Test //API method not implemented yet
+    @Test
     public void testRetrieveEntity() throws Exception {
-        Entity entity = metaDataService.retrieveEntity(TestUtil.TTT_ENTITY);
-        assertEquals(TestUtil.TTT_ENTITY, entity.getName());
+        Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
+        assertEquals(TTT_ENTITY, entity.getName());
     }
 
     @Test
     public void testRetrieveEntityAndTags() throws Exception {
-        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TestUtil.TTT_METRIC, null);
+        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, null);
         EntityAndTags entityAndTags = entityAndTagsList.get(0);
         assertTrue(entityAndTagsList.size() > 0);
-        assertEquals(TestUtil.TTT_ENTITY, entityAndTags.getEntityName());
+        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
         assertTrue(entityAndTags.getTags().containsKey("ttt-tag-1"));
-        assertTrue(entityAndTags.getTags().containsKey("ttt-tag-2"));
-        assertEquals(2, entityAndTags.getTags().size());
+        assertTrue(entityAndTags.getTags().size()>0);
     }
 
     @Test
     public void testRetrieveEntityAndTagsByMetricAndEntity() throws Exception {
-        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TestUtil.TTT_METRIC, TestUtil.TTT_ENTITY);
+        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, TTT_ENTITY);
         EntityAndTags entityAndTags = entityAndTagsList.get(0);
         assertTrue(entityAndTagsList.size()>0);
-        assertEquals(TestUtil.TTT_ENTITY, entityAndTags.getEntityName());
+        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
 
         try {
             metaDataService.retrieveEntityAndTags(" ", " ");
@@ -119,7 +121,7 @@ public class MetaDataServiceTest {
         assertTrue(containsTestEntityGroup);
     }
 
-//    @Test //API method not implemented yet
+    @Test
     public void testRetrieveEntityGroup() throws Exception {
         EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TestUtil.TTT_ENTITY_GROUP);
         assertEquals(TestUtil.TTT_ENTITY_GROUP, entityGroup.getName());
@@ -131,7 +133,7 @@ public class MetaDataServiceTest {
                 .retrieveGroupEntities(TestUtil.TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
         Entity entity = entityList.get(0);
         assertEquals(1, entityList.size());
-        assertEquals(TestUtil.TTT_ENTITY, entity.getName());
+        assertEquals(TTT_ENTITY, entity.getName());
     }
 
     @After

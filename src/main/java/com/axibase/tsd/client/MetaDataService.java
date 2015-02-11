@@ -48,8 +48,10 @@ public class MetaDataService {
         QueryPart<Metric> query = new Query<Metric>("metrics")
                 .param("active", active)
                 .param("expression", expression)
-                .param("tags", tagAppender.getTags())
                 .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
         return httpClientManager.requestMetaDataList(Metric.class, query);
     }
 
@@ -74,8 +76,10 @@ public class MetaDataService {
                 .path("metrics")
                 .param("active", active)
                 .param("expression", expression)
-                .param("tags", tagAppender.getTags())
                 .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
         return httpClientManager.requestMetaDataList(Metric.class, query);
     }
 
@@ -109,8 +113,10 @@ public class MetaDataService {
         QueryPart<Entity> query = new Query<Entity>("entities")
                 .param("active", active)
                 .param("expression", expression)
-                .param("tags", tagAppender.getTags())
                 .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
         return httpClientManager.requestMetaDataList(Entity.class, query);
     }
 
@@ -187,8 +193,10 @@ public class MetaDataService {
                 .path("entities")
                 .param("active", active)
                 .param("expression", expression)
-                .param("tags", tagAppender.getTags())
                 .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
         return httpClientManager.requestMetaDataList(Entity.class, query);
     }
 

@@ -59,7 +59,7 @@ public class DataServiceTest {
         assertTrue(seriesList.size() > 0);
     }
 
-    //    @Test // not fixed yet (#735)
+    @Test
     public void testRetrieveLastSeries() throws Exception {
         GetSeriesCommand c1 = createTestGetTestCommand();
         List<GetSeriesResult> seriesList = dataService.retrieveLastSeries(c1);
