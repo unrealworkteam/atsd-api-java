@@ -15,7 +15,6 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
-import com.axibase.tsd.model.system.RequestBodyBuilder;
 import com.axibase.tsd.query.QueryPart;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -53,7 +52,7 @@ public class HttpClientManager {
         try {
             return httpClient.requestMetaDataList(clazz, query);
         } finally {
-            objectPoolAtomicReference.get().returnObject(httpClient);
+            returnClient(httpClient);
         }
     }
 
@@ -62,18 +61,36 @@ public class HttpClientManager {
         try {
             return httpClient.requestMetaDataObject(clazz, query);
         } finally {
-            objectPoolAtomicReference.get().returnObject(httpClient);
+            returnClient(httpClient);
+        }
+    }
+
+     public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            return httpClient.updateMetaData(query, requestProcessor);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
+
+    public <E> boolean updateData(QueryPart query, RequestProcessor<E> requestProcessor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            return httpClient.updateData(query, requestProcessor);
+        } finally {
+            returnClient(httpClient);
         }
     }
 
 
 
-    public <T,E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestBodyBuilder<E> requestBodyBuilder) {
+    public <T,E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         HttpClient httpClient = borrowClient();
         try {
-            return httpClient.requestDataList(clazz, query, requestBodyBuilder);
+            return httpClient.requestDataList(clazz, query, requestProcessor);
         } finally {
-            objectPoolAtomicReference.get().returnObject(httpClient);
+            returnClient(httpClient);
         }
     }
 
@@ -87,6 +104,10 @@ public class HttpClientManager {
             throw new AtsdClientException("Could not borrow http client from pool", e);
         }
         return httpClient;
+    }
+
+    private void returnClient(HttpClient httpClient) {
+        objectPoolAtomicReference.get().returnObject(httpClient);
     }
 
     private GenericObjectPool<HttpClient> createObjectPool() {

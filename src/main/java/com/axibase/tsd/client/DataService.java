@@ -18,7 +18,7 @@ import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.GetAlertHistoryCommand;
 import com.axibase.tsd.model.data.command.GetPropertiesCommand;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
-import com.axibase.tsd.model.system.RequestBodyBuilder;
+import com.axibase.tsd.model.data.command.InsertPropertiesCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
@@ -45,18 +45,27 @@ public class DataService {
                 .param("endTime", endTime)
                 .param("interval", interval)
                 .param("limit", limit);
-        return httpClientManager.requestDataList(GetSeriesResult.class, query, new RequestBodyBuilder<GetSeriesCommand>(seriesQueries));
+        return httpClientManager.requestDataList(GetSeriesResult.class, query,
+                RequestProcessor.post(seriesQueries));
     }
 
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("last");
-        return httpClientManager.requestDataList(GetSeriesResult.class, query, new RequestBodyBuilder<GetSeriesCommand>(seriesQueries));
+        return httpClientManager.requestDataList(GetSeriesResult.class, query,
+                RequestProcessor.post(seriesQueries));
     }
 
     public List<Property> retrieveProperties(GetPropertiesCommand getPropertiesCommand) {
         QueryPart<Property> query = new Query<Property>("properties");
-        return httpClientManager.requestDataList(Property.class, query, new RequestBodyBuilder<GetPropertiesCommand>(getPropertiesCommand));
+        return httpClientManager.requestDataList(Property.class, query,
+                RequestProcessor.post(getPropertiesCommand));
+    }
+
+    public boolean insertProperties(InsertPropertiesCommand insertPropertiesCommand) {
+        QueryPart<Property> query = new Query<Property>("properties")
+                .path("insert");
+        return httpClientManager.updateData(query, RequestProcessor.post(insertPropertiesCommand));
     }
 
     public List<Alert> retrieveAlerts(
@@ -83,7 +92,8 @@ public class DataService {
     public List<AlertHistory> retrieveAlertHystory(GetAlertHistoryCommand getAlertHistoryCommand) {
         QueryPart<AlertHistory> query = new Query<AlertHistory>("alerts")
                 .path("history");
-        return httpClientManager.requestDataList(AlertHistory.class, query, new RequestBodyBuilder<GetAlertHistoryCommand>(getAlertHistoryCommand));
+        return httpClientManager.requestDataList(AlertHistory.class, query,
+                RequestProcessor.post(getAlertHistoryCommand));
     }
 
     public QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
@@ -94,4 +104,5 @@ public class DataService {
         }
         return query;
     }
+
 }

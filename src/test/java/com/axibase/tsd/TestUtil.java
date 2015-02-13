@@ -23,8 +23,11 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  * @author Nikolay Malevanny.
  */
 public class TestUtil {
+    public static final String TTT_TYPE = "ttt-type";
+    public static final String NNN_TYPE = "java-nnn-type";
     public static final String TTT_ENTITY = "ttt-entity";
     public static final String TTT_METRIC = "ttt-metric";
+    public static final String NNN_METRIC = "java-nnn-metric";
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";
 
     // To overwrite client properties use Maven properties like:

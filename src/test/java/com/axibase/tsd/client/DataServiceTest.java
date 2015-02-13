@@ -16,9 +16,7 @@ package com.axibase.tsd.client;
 
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.model.data.*;
-import com.axibase.tsd.model.data.command.GetAlertHistoryCommand;
-import com.axibase.tsd.model.data.command.GetPropertiesCommand;
-import com.axibase.tsd.model.data.command.GetSeriesCommand;
+import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.PropertyParameter;
 import org.junit.After;
 import org.junit.Before;
@@ -30,8 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.axibase.tsd.TestUtil.TTT_ENTITY;
-import static com.axibase.tsd.TestUtil.TTT_METRIC;
+import static com.axibase.tsd.TestUtil.*;
 import static junit.framework.Assert.*;
 
 public class DataServiceTest {
@@ -76,9 +73,9 @@ public class DataServiceTest {
 //        getPropertiesCommand.setLast(true);
         ArrayList<PropertyParameter> params = new ArrayList<PropertyParameter>();
         PropertyParameter p1 = new PropertyParameter();
-        p1.setType("ttt-type");
-        p1.setEntity("ttt-entity");
-        p1.setLimit("1");
+        p1.setType(TTT_TYPE);
+        p1.setEntityName(TTT_ENTITY);
+//        p1.setLimit("1");
         HashMap<String, String> keys = new HashMap<String, String>();
         keys.put("key1", "ttt-key-1");
 //      //  p1.setKeys(keys);
@@ -91,6 +88,55 @@ public class DataServiceTest {
         assertTrue(properties.get(0) instanceof Property);
         assertEquals(1, properties.size());
     }
+
+    // @Test
+    public void testInsertProperties() throws Exception {
+        long lastObjectTimestamp = 0;
+        {
+            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+//            assertEquals(0, properties.size());
+        }
+        {
+            InsertPropertiesCommand insertPropertiesCommand;
+            insertPropertiesCommand = new InsertPropertiesCommand();
+            PutPropertyCommand putPropertyCommand = new PutPropertyCommand();
+            putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1","nnn-test-key-value-1"));
+            putPropertyCommand.setValues("nnn-name", "nnn-value");
+            insertPropertiesCommand.setPuts(Arrays.asList(putPropertyCommand));
+            boolean result = dataService.insertProperties(insertPropertiesCommand);
+            assertTrue(result);
+        }
+        {
+            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+            lastObjectTimestamp = properties.get(0).getTimestamp();
+//            assertEquals(1, properties.size());
+        }
+        {
+            InsertPropertiesCommand insertPropertiesCommand = new InsertPropertiesCommand();
+            DeletePropertyCommand deletePropertyCommand = new DeletePropertyCommand();
+            deletePropertyCommand.setKeys(Arrays.asList("nnn-test-key-1"));
+            deletePropertyCommand.setTimestamp(lastObjectTimestamp);
+            insertPropertiesCommand.setDelete(deletePropertyCommand);
+            boolean result = dataService.insertProperties(insertPropertiesCommand);
+            assertTrue(result);
+        }
+        {
+            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+            assertEquals(0, properties.size());
+        }
+    }
+
+    public GetPropertiesCommand createGetNewPropCommand() {
+        GetPropertiesCommand getPropertiesCommand = new GetPropertiesCommand();
+        getPropertiesCommand.setStartTime(0);
+        getPropertiesCommand.setEndTime(Long.MAX_VALUE);
+        PropertyParameter propertyParameter = new PropertyParameter();
+        propertyParameter.setEntityName(TTT_ENTITY);
+        propertyParameter.setType(NNN_TYPE);
+        getPropertiesCommand.setParams(propertyParameter);
+        return getPropertiesCommand;
+    }
+
 
     @Test
     public void testRetrieveAlerts() throws Exception {

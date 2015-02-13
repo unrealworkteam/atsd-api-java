@@ -14,6 +14,8 @@
 */
 package com.axibase.tsd.model.meta;
 
+import com.axibase.tsd.util.AtsdUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -167,6 +169,11 @@ public class Metric {
 
     public void setTags(Map<String, String> tags) {
         this.tags = tags;
+    }
+
+    @JsonIgnore
+    public void setTags(String... tagNamesAndValues) {
+        setTags(AtsdUtil.toMap(tagNamesAndValues));
     }
 
     @Override

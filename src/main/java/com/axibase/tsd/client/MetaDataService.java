@@ -19,7 +19,12 @@ import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
+
+import static com.axibase.tsd.client.RequestProcessor.delete;
+import static com.axibase.tsd.client.RequestProcessor.post;
+import static com.axibase.tsd.client.RequestProcessor.put;
 
 /**
  * @author Nikolay Malevanny.
@@ -94,6 +99,14 @@ public class MetaDataService {
         check(metricName, "Metric name is empty");
         return httpClientManager.requestMetaDataObject(Metric.class, new Query<Metric>("metrics")
                 .path(metricName));
+    }
+
+    public boolean updateMetric(Metric metric) {
+        String metricName = metric.getName();
+        check(metricName, "Metric name is empty");
+        QueryPart<Metric> queryPart = new Query<Metric>("metrics")
+                .path(metricName);
+        return httpClientManager.updateMetaData(queryPart, put(metric));
     }
 
     /**
@@ -178,7 +191,7 @@ public class MetaDataService {
      *                        positive {@code lastInsertTime} are included in the response.
      * @param expression      Specify EL expression.
      * @param tagAppender     Specify entity tags to be included in the response.
-     * @return List of entities (short info) for an entity group.
+     * @return List of entities for an entity group.
      * @throws AtsdClientException
      * @throws AtsdServerException
      */
@@ -200,6 +213,78 @@ public class MetaDataService {
         return httpClientManager.requestMetaDataList(Entity.class, query);
     }
 
+ /**
+     * @param entityGroupName Entity group name.
+     * @return List of entities for an entity group.
+     * @throws AtsdClientException
+     * @throws AtsdServerException
+     */
+    public List<Entity> retrieveGroupEntities(String entityGroupName)
+            throws AtsdClientException, AtsdServerException {
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities");
+            query = query.param("tags", TagAppender.ALL.getTags());
+        return httpClientManager.requestMetaDataList(Entity.class, query);
+    }
+
+    /**
+     * Add specified entities to entity group.
+     *
+     * @param entityGroupName Entity group name.
+     * @param createEntities  Automatically create new entities from the submitted list if such entities don't already exist.
+     * @param entities        Entities to create.
+     * @return {@code true} if entities added.
+     * @throws AtsdClientException if there is any client problem
+     * @throws AtsdServerException if there is any server problem
+     */
+    public boolean addGroupEntities(String entityGroupName, Boolean createEntities, Entity... entities) {
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities")
+                .param("createEntities", createEntities);
+        return httpClientManager.updateMetaData(query, post(Arrays.asList(entities)));
+    }
+
+    /**
+     * Replace entities in the entity group with the specified collection.
+     * All existing entities that are not included in the collection will be removed.
+     * If the specified collection is empty, all entities are removed from the group (replace with empty collection).
+     *
+     * @param entityGroupName Entity group name.
+     * @param createEntities  Automatically create new entities from the submitted list if such entities don't already exist.
+     * @param entities        Entities to replace.
+     * @return {@code true} if entities replaced.
+     * @throws AtsdClientException if there is any client problem
+     * @throws AtsdServerException if there is any server problem
+     */
+    public boolean replaceGroupEntities(String entityGroupName, Boolean createEntities, Entity... entities) {
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities")
+                .param("createEntities", createEntities);
+        return httpClientManager.updateMetaData(query, put(Arrays.asList(entities)));
+    }
+
+    /**
+     * Delete entities from entity group.
+     *
+     * @param entityGroupName Entity group name.
+     * @param entities        Entities to replace.
+     * @return {@code true} if entities added.
+     * @throws AtsdClientException if there is any client problem
+     * @throws AtsdServerException if there is any server problem
+     */
+    public boolean deleteGroupEntities(String entityGroupName, Entity... entities) {
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities");
+        return httpClientManager.updateMetaData(query, delete(Arrays.asList(entities)));
+    }
 
     private void check(String value, String errorMessage) {
         if (StringUtils.isBlank(value)) {

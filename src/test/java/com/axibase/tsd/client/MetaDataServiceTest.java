@@ -23,8 +23,7 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.axibase.tsd.TestUtil.TTT_ENTITY;
-import static com.axibase.tsd.TestUtil.TTT_METRIC;
+import static com.axibase.tsd.TestUtil.*;
 import static org.junit.Assert.*;
 
 /**
@@ -62,6 +61,32 @@ public class MetaDataServiceTest {
         assertEquals(TTT_METRIC, metric.getName());
     }
 
+    // @Test // non implemented yet
+    public void testCreateMetric() throws Exception {
+        Metric nonExists = metaDataService.retrieveMetric(NNN_METRIC);
+        assertNull(nonExists);
+        Metric newTestMetric = createNewTestMetric();
+
+        boolean updateResult = metaDataService.updateMetric(newTestMetric);
+
+    }
+
+    public Metric createNewTestMetric() {
+        Metric newMetric = new Metric();
+        newMetric.setName(NNN_METRIC);
+        newMetric.setDataType(DataType.INTEGER);
+        newMetric.setDescription("test");
+        newMetric.setEnabled(false);
+        newMetric.setMaxValue(1D);
+        newMetric.setMinValue(3D);
+        newMetric.setTags(
+                "nnn-tag-1", "nnn-tag-value-1",
+                "nnn-tag-2", "nnn-tag-value-2"
+        );
+        newMetric.setTimePrecision(TimePrecision.SECONDS);
+        return newMetric;
+    }
+
     @Test
     public void testRetrieveEntities() throws Exception {
         {
@@ -90,7 +115,7 @@ public class MetaDataServiceTest {
         assertTrue(entityAndTagsList.size() > 0);
         assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
         assertTrue(entityAndTags.getTags().containsKey("ttt-tag-1"));
-        assertTrue(entityAndTags.getTags().size()>0);
+        assertTrue(entityAndTags.getTags().size() > 0);
     }
 
     @Test
@@ -116,24 +141,41 @@ public class MetaDataServiceTest {
         boolean containsTestEntityGroup = false;
         for (Iterator<EntityGroup> iterator = entityGroups.iterator(); iterator.hasNext() && !containsTestEntityGroup; ) {
             EntityGroup entityGroup = iterator.next();
-            containsTestEntityGroup = TestUtil.TTT_ENTITY_GROUP.equals(entityGroup.getName());
+            containsTestEntityGroup = TTT_ENTITY_GROUP.equals(entityGroup.getName());
         }
         assertTrue(containsTestEntityGroup);
     }
 
     @Test
     public void testRetrieveEntityGroup() throws Exception {
-        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TestUtil.TTT_ENTITY_GROUP);
-        assertEquals(TestUtil.TTT_ENTITY_GROUP, entityGroup.getName());
+        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
     }
 
-    @Test
+    //@Test
     public void testRetrieveGroupEntities() throws Exception {
         List<Entity> entityList = metaDataService
-                .retrieveGroupEntities(TestUtil.TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
+                .retrieveGroupEntities(TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
         Entity entity = entityList.get(0);
         assertEquals(1, entityList.size());
         assertEquals(TTT_ENTITY, entity.getName());
+    }
+
+    //@Test
+    public void testManageGroupEntities() throws Exception {
+        {
+            List<Entity> entityList = metaDataService
+                    .retrieveGroupEntities(TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
+            Entity entity = entityList.get(0);
+            assertEquals(1, entityList.size());
+            assertEquals(TTT_ENTITY, entity.getName());
+        }
+        assertEquals(1, metaDataService.retrieveGroupEntities(TTT_ENTITY_GROUP).size());
+        assertTrue(metaDataService.addGroupEntities(TTT_ENTITY_GROUP, true, new Entity("java-uuu-entity")));
+        assertEquals(2, metaDataService.retrieveGroupEntities(TTT_ENTITY_GROUP).size());
+        assertTrue(metaDataService.replaceGroupEntities(TTT_ENTITY_GROUP, true, new Entity(TTT_ENTITY), new Entity("java-sss-entity")));
+        assertTrue(metaDataService.deleteGroupEntities(TTT_ENTITY_GROUP, new Entity("java-sss-entity")));
+        assertEquals(1, metaDataService.retrieveGroupEntities(TTT_ENTITY_GROUP).size());
     }
 
     @After

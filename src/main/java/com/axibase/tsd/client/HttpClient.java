@@ -15,9 +15,9 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
-import com.axibase.tsd.model.system.RequestBodyBuilder;
 import com.axibase.tsd.model.system.ServerError;
 import com.axibase.tsd.query.QueryPart;
+import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -45,7 +44,7 @@ class HttpClient {
     private static final Logger log = LoggerFactory.getLogger(HttpClient.class);
     private final static java.util.logging.Logger legacyLogger = java.util.logging.Logger.getLogger(HttpClient.class.getName());
     public static final int HTTP_STATUS_OK = 200;
-    public static final String JSON = MediaType.APPLICATION_JSON;
+    public static final int HTTP_STATUS_FAIL = 400;
 
     private ClientConfiguration clientConfiguration;
     private final Client client;
@@ -80,14 +79,21 @@ class HttpClient {
         return requestObject(clientConfiguration.getMetaDataUrl(), clazz, query);
     }
 
-
-    public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestBodyBuilder<E> requestBodyBuilder) {
-        String url = clientConfiguration.getDataUrl();
-        return requestList(url, clazz, query, requestBodyBuilder);
+    public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
+        return update(clientConfiguration.getMetaDataUrl(), query, requestProcessor);
     }
 
-    private <T, E> List<T> requestList(String url, Class<T> resultClass, QueryPart<T> query, RequestBodyBuilder<E> requestBodyBuilder) {
-        Response response = doRequest(url, query, requestBodyBuilder);
+    public <E> boolean updateData(QueryPart query, RequestProcessor<E> requestProcessor) {
+        return update(clientConfiguration.getDataUrl(), query, requestProcessor);
+    }
+
+    public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        String url = clientConfiguration.getDataUrl();
+        return requestList(url, clazz, query, requestProcessor);
+    }
+
+    private <T, E> List<T> requestList(String url, Class<T> resultClass, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        Response response = doRequest(url, query, requestProcessor);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return response.readEntity(listType(resultClass));
         } else {
@@ -104,36 +110,43 @@ class HttpClient {
         }
     }
 
+    private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor) {
+        Response response = doRequest(url, query, requestProcessor);
+        if (response.getStatus() == HTTP_STATUS_OK) {
+            return true;
+        } else if (response.getStatus() == HTTP_STATUS_FAIL) {
+            return false;
+        } else {
+            throw buildException(response);
+        }
+    }
+
     private AtsdServerException buildException(Response response) {
         ServerError serverError = null;
         try {
-            if (response.getHeaderString("Content-Type").startsWith(JSON))
+            if (response.getHeaderString("Content-Type").startsWith(AtsdUtil.JSON))
             serverError = response.readEntity(ServerError.class);
             log.warn("Server error: {}", serverError);
         } catch (Throwable e) {
             log.warn("Couldn't read error message", e);
         }
         return new AtsdServerException(response.getStatusInfo().getReasonPhrase() + " (" + response.getStatus() + ")" +
-                ((serverError == null) ? "" : (", error: " + serverError.getMessage()))
+                ((serverError == null) ? "" : (", " + serverError.getMessage()))
         );
     }
 
-    private <T, E> Response doRequest(String url, QueryPart<T> query, RequestBodyBuilder<E> requestBodyBuilder) {
+    private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         WebTarget target = client.target(url);
         target = query.fill(target);
         log.info("url = {}", target.getUri());
-        Invocation.Builder request = target.request(JSON);
-        Response response;
+        Invocation.Builder request = target.request(AtsdUtil.JSON);
+
+        Response response = null;
         try {
-            if (requestBodyBuilder == null) {
+            if (requestProcessor == null) {
                 response = request.get();
             } else {
-                E command = requestBodyBuilder.getCommand();
-                if (command == null) {
-                    response = request.accept(JSON).post(Entity.entity(requestBodyBuilder.getCommands(), JSON));
-                } else {
-                    response = request.accept(JSON).post(Entity.entity(command, JSON));
-                }
+                response = requestProcessor.process(request);
             }
         } catch (Throwable e) {
             throw new AtsdClientException("Error while processing the request", e);

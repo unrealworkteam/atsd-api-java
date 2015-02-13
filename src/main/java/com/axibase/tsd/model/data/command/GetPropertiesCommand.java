@@ -15,9 +15,11 @@
 package com.axibase.tsd.model.data.command;
 
 import com.axibase.tsd.model.data.PropertyParameter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -67,6 +69,11 @@ public class GetPropertiesCommand {
 
     public void setParams(List<PropertyParameter> params) {
         this.params = params;
+    }
+
+    @JsonIgnore
+    public void setParams(PropertyParameter... params) {
+        this.params = Arrays.asList(params);
     }
 
     @Override

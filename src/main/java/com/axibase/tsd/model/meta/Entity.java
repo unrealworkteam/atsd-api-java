@@ -16,6 +16,7 @@ package com.axibase.tsd.model.meta;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -24,17 +25,22 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Entity {
     @JsonProperty
     private String name;
     @JsonProperty
     private Boolean enabled;
-    @JsonProperty("last_insert_time")
+    @JsonProperty
     private Long lastInsertTime;
     @JsonProperty
     private Map<String, String> tags;
 
     public Entity() {
+    }
+
+    public Entity(String name) {
+        this.name = name;
     }
 
     public String getName() {

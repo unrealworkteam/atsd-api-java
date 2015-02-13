@@ -14,6 +14,7 @@
 */
 package com.axibase.tsd.model.data;
 
+import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -34,15 +35,9 @@ public class PropertyKey {
     }
 
     public PropertyKey(String type, String entityName, String... keysAndValues) {
-        if (keysAndValues.length % 2 == 1) {
-            throw new IllegalArgumentException("Last key value is missing");
-        }
         this.type = type;
         this.entityName = entityName;
-        this.keyValues = new HashMap<String, String>();
-        for (int i = 0; i < keysAndValues.length; i++) {
-            keyValues.put(keysAndValues[i++], keysAndValues[i]);
-        }
+        this.keyValues = AtsdUtil.toMap(keysAndValues);
     }
 
     public String getType() {

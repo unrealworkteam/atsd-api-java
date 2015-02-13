@@ -21,7 +21,7 @@ import javax.ws.rs.client.WebTarget;
 /**
  * @author Nikolay Malevanny.
  */
-public class Query<T> implements QueryPart<T> {
+public class Query<T> extends AbstractQueryPart<T>  {
     private final String path;
     private QueryPart<T> previous = null;
 
@@ -43,20 +43,4 @@ public class Query<T> implements QueryPart<T> {
         }
     }
 
-    @Override
-    public QueryPart<T> param(String name, Object value) {
-        if (value != null) {
-            return new QueryParam<T>(name, value, this);
-        } else {
-            return this;
-        }
-    }
-
-    @Override
-    public QueryPart<T> path(String path) {
-        if (StringUtils.isBlank(path)) {
-            throw new IllegalArgumentException("Path element is empty");
-        }
-        return new Query<T>(path, this);
-    }
 }

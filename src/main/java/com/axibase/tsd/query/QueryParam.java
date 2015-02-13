@@ -19,7 +19,7 @@ import javax.ws.rs.client.WebTarget;
 /**
  * @author Nikolay Malevanny.
  */
-public class QueryParam<T> implements QueryPart<T> {
+public class QueryParam<T>  extends AbstractQueryPart<T>  {
     private final String name;
     private final Object value;
     private final QueryPart previous;
@@ -38,16 +38,9 @@ public class QueryParam<T> implements QueryPart<T> {
         Object paramValue = value;
         if (value instanceof ParamValue) {
             paramValue = ((ParamValue ) value).toParamValue();
+        } else if (value instanceof Boolean) {
+            paramValue = ((Boolean) value)? "true":"false";
         }
         return (previous.fill(target)).queryParam(name, paramValue);
-    }
-
-    public QueryPart<T> param(String name, Object value) {
-        return new QueryParam<T>(name, value, this);
-    }
-
-    @Override
-    public QueryPart<T> path(String path) {
-        return new Query<T>(path, this);
     }
 }
