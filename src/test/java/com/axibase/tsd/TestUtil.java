@@ -17,7 +17,11 @@ package com.axibase.tsd;
 import com.axibase.tsd.client.ClientConfigurationFactory;
 import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * @author Nikolay Malevanny.
@@ -44,5 +48,9 @@ public class TestUtil {
         httpClientManager.setObjectPoolConfig(objectPoolConfig);
         httpClientManager.setBorrowMaxWaitMillis(10000);
         return httpClientManager;
+    }
+
+    public static MultivaluedMap<String,String> toMVM(String... tagNamesAndValues) {
+        return new MultivaluedHashMap<String, String>(AtsdUtil.toMap(tagNamesAndValues));
     }
 }

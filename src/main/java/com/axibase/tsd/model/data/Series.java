@@ -27,6 +27,11 @@ public class Series {
     public Series() {
     }
 
+    public Series(long t, double v) {
+        this.t = t;
+        this.v = v;
+    }
+
     public long getT() {
         return t;
     }

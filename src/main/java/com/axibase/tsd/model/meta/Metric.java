@@ -17,6 +17,7 @@ package com.axibase.tsd.model.meta;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Metric {
     private String name;
     private String label;

@@ -1,4 +1,4 @@
-package com.axibase.tsd.model.data.command;
+package com.axibase.tsd.model.meta.command;
 
 import com.axibase.tsd.model.meta.Entity;
 import com.axibase.tsd.util.AtsdUtil;

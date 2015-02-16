@@ -52,6 +52,12 @@ public class GetSeriesCommand {
     public GetSeriesCommand() {
     }
 
+    public GetSeriesCommand(String entityName, String metricName, MultivaluedMap<String, String> tags) {
+        this.entityName = entityName;
+        this.metricName = metricName;
+        this.tags = tags;
+    }
+
     public String getEntityName() {
         return entityName;
     }

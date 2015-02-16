@@ -57,6 +57,38 @@ public class DataServiceTest {
     }
 
     @Test
+    public void testInsertSeries() throws Exception {
+        long ct = System.currentTimeMillis();
+        AddSeriesCommand c1 = new AddSeriesCommand(TTT_ENTITY, TTT_METRIC, "ttt-tag-1", "ttt-tag-value-1");
+        int testCnt = 10;
+        for (int i = 0; i < testCnt; i++) {
+            c1.addSeries(
+                    new Series(ct + i, i)
+            );
+        }
+        AddSeriesCommand c2 = new AddSeriesCommand(TTT_ENTITY, TTT_METRIC
+                , "ttt-tag-1", "ttt-tag-value-1"
+                , "ttt-tag-2", "ttt-tag-value-2"
+        );
+        for (int i = 0; i < testCnt; i++) {
+            c2.addSeries(
+                    new Series(ct + i, i * i)
+            );
+        }
+        dataService.addSeries(c1, c2);
+
+
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, null, 20,
+                new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
+                new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM(
+                         "ttt-tag-1", "ttt-tag-value-1"
+                        , "ttt-tag-2", "ttt-tag-value-2"))
+                );
+
+        assertEquals(2, getSeriesResults.size());
+    }
+
+    @Test
     public void testRetrieveLastSeries() throws Exception {
         GetSeriesCommand c1 = createTestGetTestCommand();
         List<GetSeriesResult> seriesList = dataService.retrieveLastSeries(c1);
@@ -93,7 +125,7 @@ public class DataServiceTest {
     public void testInsertProperties() throws Exception {
         long lastObjectTimestamp = 0;
         {
-            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+            List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
             assertEquals(0, properties.size());
         }
         {
@@ -104,7 +136,7 @@ public class DataServiceTest {
             assertTrue(result);
         }
         {
-            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+            List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
             lastObjectTimestamp = properties.get(0).getTimestamp();
             assertEquals(1, properties.size());
         }
@@ -119,14 +151,14 @@ public class DataServiceTest {
             assertTrue(result);
         }
         {
-            List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
+            List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
             assertEquals(0, properties.size());
         }
     }
 
     public List<PutPropertyCommand> createPuts() {
         PutPropertyCommand putPropertyCommand = new PutPropertyCommand();
-        putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1","nnn-test-key-value-1"));
+        putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1", "nnn-test-key-value-1"));
         putPropertyCommand.setValues("nnn-name", "nnn-value");
         return Arrays.asList(putPropertyCommand);
     }

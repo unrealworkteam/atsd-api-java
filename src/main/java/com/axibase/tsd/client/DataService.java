@@ -15,13 +15,11 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.data.*;
-import com.axibase.tsd.model.data.command.GetAlertHistoryCommand;
-import com.axibase.tsd.model.data.command.GetPropertiesCommand;
-import com.axibase.tsd.model.data.command.GetSeriesCommand;
-import com.axibase.tsd.model.data.command.PatchPropertiesCommand;
+import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,6 +45,13 @@ public class DataService {
                 .param("limit", limit);
         return httpClientManager.requestDataList(GetSeriesResult.class, query,
                 RequestProcessor.post(seriesQueries));
+    }
+
+    public boolean addSeries(AddSeriesCommand... addSeriesCommands) {
+        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
+                .path("insert");
+        return httpClientManager.updateData(query,
+                RequestProcessor.post(Arrays.asList(addSeriesCommands)));
     }
 
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
