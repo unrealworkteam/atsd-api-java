@@ -89,41 +89,46 @@ public class DataServiceTest {
         assertEquals(1, properties.size());
     }
 
-    // @Test
+    // @Test //  under construction
     public void testInsertProperties() throws Exception {
         long lastObjectTimestamp = 0;
         {
             List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
-//            assertEquals(0, properties.size());
+            assertEquals(0, properties.size());
         }
         {
-            InsertPropertiesCommand insertPropertiesCommand;
-            insertPropertiesCommand = new InsertPropertiesCommand();
-            PutPropertyCommand putPropertyCommand = new PutPropertyCommand();
-            putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1","nnn-test-key-value-1"));
-            putPropertyCommand.setValues("nnn-name", "nnn-value");
-            insertPropertiesCommand.setPuts(Arrays.asList(putPropertyCommand));
-            boolean result = dataService.insertProperties(insertPropertiesCommand);
+            PatchPropertiesCommand patchPropertiesCommand;
+            patchPropertiesCommand = new PatchPropertiesCommand();
+            patchPropertiesCommand.setPuts(createPuts());
+            boolean result = dataService.insertProperties(patchPropertiesCommand);
             assertTrue(result);
         }
         {
             List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
             lastObjectTimestamp = properties.get(0).getTimestamp();
-//            assertEquals(1, properties.size());
+            assertEquals(1, properties.size());
         }
         {
-            InsertPropertiesCommand insertPropertiesCommand = new InsertPropertiesCommand();
+            PatchPropertiesCommand patchPropertiesCommand = new PatchPropertiesCommand();
             DeletePropertyCommand deletePropertyCommand = new DeletePropertyCommand();
             deletePropertyCommand.setKeys(Arrays.asList("nnn-test-key-1"));
-            deletePropertyCommand.setTimestamp(lastObjectTimestamp);
-            insertPropertiesCommand.setDelete(deletePropertyCommand);
-            boolean result = dataService.insertProperties(insertPropertiesCommand);
+            deletePropertyCommand.setTimestamp(lastObjectTimestamp + 100000L);
+            patchPropertiesCommand.setPuts(createPuts());
+            patchPropertiesCommand.setDelete(deletePropertyCommand);
+            boolean result = dataService.insertProperties(patchPropertiesCommand);
             assertTrue(result);
         }
         {
             List<Property>  properties = dataService.retrieveProperties(createGetNewPropCommand());
             assertEquals(0, properties.size());
         }
+    }
+
+    public List<PutPropertyCommand> createPuts() {
+        PutPropertyCommand putPropertyCommand = new PutPropertyCommand();
+        putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1","nnn-test-key-value-1"));
+        putPropertyCommand.setValues("nnn-name", "nnn-value");
+        return Arrays.asList(putPropertyCommand);
     }
 
     public GetPropertiesCommand createGetNewPropCommand() {

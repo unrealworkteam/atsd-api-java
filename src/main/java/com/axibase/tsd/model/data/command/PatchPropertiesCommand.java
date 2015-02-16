@@ -8,11 +8,11 @@ import java.util.List;
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class InsertPropertiesCommand {
+public class PatchPropertiesCommand {
     private List<PutPropertyCommand> puts;
     private DeletePropertyCommand delete;
 
-    public InsertPropertiesCommand() {
+    public PatchPropertiesCommand() {
     }
 
     public List<PutPropertyCommand> getPuts() {

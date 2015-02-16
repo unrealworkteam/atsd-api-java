@@ -35,12 +35,17 @@ class RequestProcessor<T> {
     }
 
     public Response process(Invocation.Builder request) {
-        return request.accept(JSON).method(type.name(), Entity.entity(command, JSON));
+        if (type == Type.DELETE) {
+            return request.accept(JSON).delete();
+        } else {
+            return request.accept(JSON).method(type.name(), Entity.entity(command, JSON));
+        }
     }
 
     public static enum Type {
         POST,
         PUT,
+        PATCH,
         DELETE
     }
 
@@ -52,7 +57,11 @@ class RequestProcessor<T> {
         return new RequestProcessor<T>(Type.PUT, command);
     }
 
-    public static <T> RequestProcessor<T> delete(T command) {
-        return new RequestProcessor<T>(Type.DELETE, command);
+    public static <T> RequestProcessor<T> patch(T command) {
+        return new RequestProcessor<T>(Type.PATCH, command);
+    }
+
+    public static <T> RequestProcessor<T> delete() {
+        return new RequestProcessor<T>(Type.DELETE, null);
     }
 }

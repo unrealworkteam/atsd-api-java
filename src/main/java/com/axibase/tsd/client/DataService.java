@@ -18,7 +18,7 @@ import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.GetAlertHistoryCommand;
 import com.axibase.tsd.model.data.command.GetPropertiesCommand;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
-import com.axibase.tsd.model.data.command.InsertPropertiesCommand;
+import com.axibase.tsd.model.data.command.PatchPropertiesCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
@@ -62,10 +62,10 @@ public class DataService {
                 RequestProcessor.post(getPropertiesCommand));
     }
 
-    public boolean insertProperties(InsertPropertiesCommand insertPropertiesCommand) {
+    public boolean insertProperties(PatchPropertiesCommand patchPropertiesCommand) {
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
-        return httpClientManager.updateData(query, RequestProcessor.post(insertPropertiesCommand));
+        return httpClientManager.updateData(query, RequestProcessor.post(patchPropertiesCommand));
     }
 
     public List<Alert> retrieveAlerts(

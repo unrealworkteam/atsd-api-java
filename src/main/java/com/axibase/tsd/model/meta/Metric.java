@@ -26,34 +26,19 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class Metric {
-    @JsonProperty
     private String name;
-    @JsonProperty
     private String label;
-    @JsonProperty
     private Boolean enabled;
-    @JsonProperty("data_type")
     private DataType dataType;
-    @JsonProperty("time_precision")
     private TimePrecision timePrecision;
-    @JsonProperty
     private Boolean persistent;
-    @JsonProperty
     private String filter;
-    @JsonProperty("min_value")
     private Double minValue;
-    @JsonProperty("max_value")
     private Double maxValue;
-    @JsonProperty("invalid_action")
     private InvalidAction invalidAction;
-    @JsonProperty
     private String description;
-    @JsonProperty("retention_interval")
     private Integer retentionInterval;
-    @JsonProperty("last_insert_time")
     private Long lastInsertTime;
-    @JsonProperty
-
     private Map<String, String> tags;
 
     public Metric() {

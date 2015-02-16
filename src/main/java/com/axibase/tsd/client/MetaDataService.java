@@ -14,6 +14,8 @@
 */
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.model.data.command.AddEntitiesCommand;
+import com.axibase.tsd.model.data.command.DeleteEntitiesCommand;
 import com.axibase.tsd.model.meta.*;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
@@ -24,6 +26,7 @@ import java.util.List;
 
 import static com.axibase.tsd.client.RequestProcessor.delete;
 import static com.axibase.tsd.client.RequestProcessor.post;
+import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.put;
 
 /**
@@ -245,7 +248,8 @@ public class MetaDataService {
                 .path(entityGroupName)
                 .path("entities")
                 .param("createEntities", createEntities);
-        return httpClientManager.updateMetaData(query, post(Arrays.asList(entities)));
+        AddEntitiesCommand addEntitiesCommand = new AddEntitiesCommand(createEntities, Arrays.asList(entities));
+        return httpClientManager.updateMetaData(query, patch(Arrays.asList(addEntitiesCommand)));
     }
 
     /**
@@ -273,17 +277,18 @@ public class MetaDataService {
      * Delete entities from entity group.
      *
      * @param entityGroupName Entity group name.
-     * @param entities        Entities to replace.
-     * @return {@code true} if entities added.
+     * @param deleteAll If deleteAll is set to true, all entities are removed from the entity-group regardless of the 'entities' collection
+     * @param entities        Entities to replace.  @return {@code true} if entities added.
      * @throws AtsdClientException if there is any client problem
      * @throws AtsdServerException if there is any server problem
      */
-    public boolean deleteGroupEntities(String entityGroupName, Entity... entities) {
+    public boolean deleteGroupEntities(String entityGroupName, Boolean deleteAll, Entity... entities) {
         check(entityGroupName, "Entity group name is empty");
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");
-        return httpClientManager.updateMetaData(query, delete(Arrays.asList(entities)));
+        DeleteEntitiesCommand deleteEntitiesCommand = new DeleteEntitiesCommand(deleteAll, Arrays.asList(entities));
+        return httpClientManager.updateMetaData(query, patch(Arrays.asList(deleteEntitiesCommand)));
     }
 
     private void check(String value, String errorMessage) {

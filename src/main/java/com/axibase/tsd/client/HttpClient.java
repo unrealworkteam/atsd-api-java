@@ -21,9 +21,11 @@ import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.client.spi.ConnectorProvider;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,10 @@ class HttpClient {
                 .register(RequestBodyLogger.class)
                 .register(HttpAuthenticationFeature.basic(clientConfiguration.getUserName(), clientConfiguration.getPassword()))
         ;
+
+        ConnectorProvider connectorProvider = new ApacheConnectorProvider();
+        clientConfig.connectorProvider(connectorProvider);
+
 
         if (log.isDebugEnabled()) {
             clientConfig.register(new LoggingFilter(legacyLogger, true));
