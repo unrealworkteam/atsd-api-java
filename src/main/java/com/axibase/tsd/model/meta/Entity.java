@@ -25,7 +25,7 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
-//@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Entity {
     @JsonProperty
     private String name;

@@ -11,19 +11,12 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeleteEntitiesCommand extends AbstractEntitiesCommand {
-    private Boolean deleteAll;
-
     public DeleteEntitiesCommand() {
         super(AtsdUtil.DELETE_COMMAND);
     }
 
-    public DeleteEntitiesCommand(Boolean deleteAll, List<Entity> entities) {
+    public DeleteEntitiesCommand(List<Entity> entities) {
         this();
-        this.deleteAll = deleteAll;
         this.entities = entities;
-    }
-
-    public Boolean getDeleteAll() {
-        return deleteAll;
     }
 }

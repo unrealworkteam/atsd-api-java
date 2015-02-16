@@ -17,6 +17,7 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.meta.command.AddEntitiesCommand;
 import com.axibase.tsd.model.meta.command.DeleteEntitiesCommand;
 import com.axibase.tsd.model.meta.*;
+import com.axibase.tsd.model.meta.command.SimpleCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 import com.axibase.tsd.util.AtsdUtil;
@@ -149,6 +150,14 @@ public class MetaDataService {
         return httpClientManager.requestMetaDataObject(Entity.class, query);
     }
 
+    public boolean updateEntity(Entity entity) {
+        String entityName = entity.getName();
+        check(entityName, "Entity name is empty");
+        QueryPart<Entity> queryPart = new Query<Entity>("entities")
+                .path(entityName);
+        return httpClientManager.updateMetaData(queryPart, put(entity));
+    }
+
     /**
      * @param metricName Metric name.
      * @param entityName Entity name.
@@ -276,17 +285,31 @@ public class MetaDataService {
      * Delete entities from entity group.
      *
      * @param entityGroupName Entity group name.
-     * @param deleteAll If deleteAll is set to true, all entities are removed from the entity-group regardless of the 'entities' collection
      * @param entities        Entities to replace.  @return {@code true} if entities added.
      * @throws AtsdClientException if there is any client problem
      * @throws AtsdServerException if there is any server problem
      */
-    public boolean deleteGroupEntities(String entityGroupName, Boolean deleteAll, Entity... entities) {
+    public boolean deleteGroupEntities(String entityGroupName, Entity... entities) {
         check(entityGroupName, "Entity group name is empty");
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");
-        DeleteEntitiesCommand deleteEntitiesCommand = new DeleteEntitiesCommand(deleteAll, Arrays.asList(entities));
+        DeleteEntitiesCommand deleteEntitiesCommand = new DeleteEntitiesCommand(Arrays.asList(entities));
         return httpClientManager.updateMetaData(query, patch(Arrays.asList(deleteEntitiesCommand)));
+    }
+
+    /**
+     * Delete all entities from entity group.
+     *
+     * @param entityGroupName Entity group name.
+     * @throws AtsdClientException if there is any client problem
+     * @throws AtsdServerException if there is any server problem
+     */
+    public boolean deleteAllGroupEntities(String entityGroupName) {
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities");
+        return httpClientManager.updateMetaData(query, patch(Arrays.asList(new SimpleCommand("delete-all"))));
     }
 }

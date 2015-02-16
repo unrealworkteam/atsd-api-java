@@ -148,9 +148,12 @@ class HttpClient {
     private AtsdServerException buildException(Response response) {
         ServerError serverError = null;
         try {
-            if (response.getHeaderString("Content-Type").startsWith(JSON))
-            serverError = response.readEntity(ServerError.class);
-            log.warn("Server error: {}", serverError);
+            if (response.getHeaderString("Content-Type").startsWith(JSON)) {
+                serverError = response.readEntity(ServerError.class);
+                log.warn("Server error: {}", serverError);
+            } else {
+                log.warn(String.valueOf(response.getEntity()));
+            }
         } catch (Throwable e) {
             log.warn("Couldn't read error message", e);
         }
