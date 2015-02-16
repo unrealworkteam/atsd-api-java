@@ -1,5 +1,7 @@
 package com.axibase.tsd.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.ws.rs.core.MediaType;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,5 +29,11 @@ public class AtsdUtil {
             result.put(tagNamesAndValues[i],tagNamesAndValues[++i]);
         }
         return result;
+    }
+
+    public static void check(String value, String errorMessage) {
+        if (StringUtils.isBlank(value)) {
+            throw new IllegalArgumentException(errorMessage);
+        }
     }
 }

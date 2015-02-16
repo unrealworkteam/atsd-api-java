@@ -32,12 +32,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+
+import static com.axibase.tsd.util.AtsdUtil.JSON;
 
 /**
  * @author Nikolay Malevanny.
@@ -93,6 +96,10 @@ class HttpClient {
         return update(clientConfiguration.getDataUrl(), query, requestProcessor);
     }
 
+    public boolean updateData(QueryPart query, String data) {
+        return update(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN);
+    }
+
     public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         String url = clientConfiguration.getDataUrl();
         return requestList(url, clazz, query, requestProcessor);
@@ -127,10 +134,21 @@ class HttpClient {
         }
     }
 
+    private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor, String mediaType) {
+        Response response = doRequest(url, query, requestProcessor, mediaType);
+        if (response.getStatus() == HTTP_STATUS_OK) {
+            return true;
+        } else if (response.getStatus() == HTTP_STATUS_FAIL) {
+            return false;
+        } else {
+            throw buildException(response);
+        }
+    }
+
     private AtsdServerException buildException(Response response) {
         ServerError serverError = null;
         try {
-            if (response.getHeaderString("Content-Type").startsWith(AtsdUtil.JSON))
+            if (response.getHeaderString("Content-Type").startsWith(JSON))
             serverError = response.readEntity(ServerError.class);
             log.warn("Server error: {}", serverError);
         } catch (Throwable e) {
@@ -142,17 +160,21 @@ class HttpClient {
     }
 
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        return doRequest(url, query, requestProcessor, JSON);
+    }
+
+    private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor, String mediaType) {
         WebTarget target = client.target(url);
         target = query.fill(target);
         log.info("url = {}", target.getUri());
-        Invocation.Builder request = target.request(AtsdUtil.JSON);
+        Invocation.Builder request = target.request(mediaType);
 
         Response response = null;
         try {
             if (requestProcessor == null) {
                 response = request.get();
             } else {
-                response = requestProcessor.process(request);
+                response = requestProcessor.process(request, mediaType);
             }
         } catch (Throwable e) {
             throw new AtsdClientException("Error while processing the request", e);

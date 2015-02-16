@@ -18,10 +18,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Response;
 
-import java.util.List;
-
-import static com.axibase.tsd.util.AtsdUtil.JSON;
-
 /**
  * @author Nikolay Malevanny.
  */
@@ -34,11 +30,11 @@ class RequestProcessor<T> {
         this.command = command;
     }
 
-    public Response process(Invocation.Builder request) {
+    public Response process(Invocation.Builder request, String mediaType) {
         if (type == Type.DELETE) {
-            return request.accept(JSON).delete();
+            return request.accept(mediaType).delete();
         } else {
-            return request.accept(JSON).method(type.name(), Entity.entity(command, JSON));
+            return request.accept(mediaType).method(type.name(), Entity.entity(command, mediaType));
         }
     }
 

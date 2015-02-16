@@ -74,7 +74,7 @@ public class HttpClientManager {
         }
     }
 
-    public <E> boolean updateData(QueryPart query, RequestProcessor<E> requestProcessor) {
+    public boolean updateData(QueryPart query, RequestProcessor requestProcessor) {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.updateData(query, requestProcessor);
@@ -83,7 +83,14 @@ public class HttpClientManager {
         }
     }
 
-
+    public boolean updateData(QueryPart query, String data) {
+        HttpClient httpClient = borrowClient();
+        try {
+            return httpClient.updateData(query, data);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
 
     public <T,E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         HttpClient httpClient = borrowClient();

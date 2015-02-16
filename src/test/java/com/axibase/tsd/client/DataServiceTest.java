@@ -77,15 +77,33 @@ public class DataServiceTest {
         }
         dataService.addSeries(c1, c2);
 
-
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, null, 20,
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM(
                          "ttt-tag-1", "ttt-tag-value-1"
                         , "ttt-tag-2", "ttt-tag-value-2"))
                 );
-
         assertEquals(2, getSeriesResults.size());
+        assertEquals(10, getSeriesResults.get(0).getData().size());
+        assertEquals(10, getSeriesResults.get(1).getData().size());
+    }
+
+    //@Test // under construction
+    public void testInsertSeriesCsv() throws Exception {
+        long ct = System.currentTimeMillis();
+        StringBuilder sb = new StringBuilder("time, ").append(TTT_METRIC).append('\n');
+        int testCnt = 10;
+        for (int i = 0; i < testCnt; i++) {
+            sb.append(ct + i).append(",").append(i * i * i).append('\n');
+        }
+
+        dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
+
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, null, 10,
+                new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
+        );
+        assertEquals(1, getSeriesResults.size());
+        assertEquals(10, getSeriesResults.get(0).getData().size());
     }
 
     @Test
@@ -197,7 +215,7 @@ public class DataServiceTest {
         getAlertHistoryCommand.setEntityName(TTT_ENTITY);
         getAlertHistoryCommand.setMetricName(TTT_METRIC);
 
-        List<AlertHistory> alertHistoryList = dataService.retrieveAlertHystory(getAlertHistoryCommand);
+        List<AlertHistory> alertHistoryList = dataService.retrieveAlertHistory(getAlertHistoryCommand);
         assertTrue(alertHistoryList.get(0) instanceof AlertHistory);
         assertTrue(alertHistoryList.size() > 0);
     }

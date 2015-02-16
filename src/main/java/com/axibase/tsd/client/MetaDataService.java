@@ -19,13 +19,14 @@ import com.axibase.tsd.model.meta.command.DeleteEntitiesCommand;
 import com.axibase.tsd.model.meta.*;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
-import org.apache.commons.lang3.StringUtils;
+import com.axibase.tsd.util.AtsdUtil;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.put;
+import static com.axibase.tsd.util.AtsdUtil.check;
 
 /**
  * @author Nikolay Malevanny.
@@ -287,11 +288,5 @@ public class MetaDataService {
                 .path("entities");
         DeleteEntitiesCommand deleteEntitiesCommand = new DeleteEntitiesCommand(deleteAll, Arrays.asList(entities));
         return httpClientManager.updateMetaData(query, patch(Arrays.asList(deleteEntitiesCommand)));
-    }
-
-    private void check(String value, String errorMessage) {
-        if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException(errorMessage);
-        }
     }
 }

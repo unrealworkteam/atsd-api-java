@@ -22,6 +22,8 @@ import com.axibase.tsd.query.QueryPart;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.axibase.tsd.util.AtsdUtil.check;
+
 /**
  * @author Nikolay Malevanny.
  */
@@ -52,6 +54,23 @@ public class DataService {
                 .path("insert");
         return httpClientManager.updateData(query,
                 RequestProcessor.post(Arrays.asList(addSeriesCommands)));
+    }
+
+    public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
+        check(entityName, "Entity name is empty");
+        check(data, "Data is empty");
+        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
+                .path("csv")
+                .path(entityName);
+        if (tagNamesAndValues!=null) {
+            if (tagNamesAndValues.length % 2 == 1) {
+                throw new IllegalArgumentException("Tag without value");
+            }
+            for (int i = 0; i < tagNamesAndValues.length; i++) {
+                query = query.param(tagNamesAndValues[i], tagNamesAndValues[++i]);
+            }
+        }
+        return httpClientManager.updateData(query, data);
     }
 
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
@@ -94,7 +113,7 @@ public class DataService {
         return httpClientManager.requestDataList(Alert.class, query, null);
     }
 
-    public List<AlertHistory> retrieveAlertHystory(GetAlertHistoryCommand getAlertHistoryCommand) {
+    public List<AlertHistory> retrieveAlertHistory(GetAlertHistoryCommand getAlertHistoryCommand) {
         QueryPart<AlertHistory> query = new Query<AlertHistory>("alerts")
                 .path("history");
         return httpClientManager.requestDataList(AlertHistory.class, query,
