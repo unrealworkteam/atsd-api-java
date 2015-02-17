@@ -34,6 +34,7 @@ public class TestUtil {
     public static final String TTT_METRIC = "ttt-metric";
     public static final String NNN_METRIC = "java-nnn-metric";
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";
+    public static final String NNN_ENTITY_GROUP = "nnn-entity-group";
 
     // To overwrite client properties use Maven properties like:
     // -DargLine="-Daxibase.tsd.api.server.name=10.100.10.5 -Daxibase.tsd.api.server.port=8888"

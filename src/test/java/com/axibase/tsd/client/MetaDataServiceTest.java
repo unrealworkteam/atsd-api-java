@@ -191,33 +191,22 @@ public class MetaDataServiceTest {
         assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
     }
 
+    //    @Test // under construction
+    public void testCreateAndDeleteEntityGroup() throws Exception {
+        assertNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
 
-    @Test
-    public void testRetrieveEntityAndTags() throws Exception {
-        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, null);
-        EntityAndTags entityAndTags = entityAndTagsList.get(0);
-        assertTrue(entityAndTagsList.size() > 0);
-        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
-        assertTrue(entityAndTags.getTags().containsKey("ttt-tag-1"));
-        assertTrue(entityAndTags.getTags().size() > 0);
+        EntityGroup entityGroup = new EntityGroup(NNN_ENTITY_GROUP);
+        entityGroup.setTags("nnn-test-tag-1", "nnn-test-tag-value-1");
+        metaDataService.updateEntityGroup(entityGroup);
+
+        assertNotNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
+
+        metaDataService.deleteEntityGroup(entityGroup);
+
+        assertNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
     }
 
     @Test
-    public void testRetrieveEntityAndTagsByMetricAndEntity() throws Exception {
-        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, TTT_ENTITY);
-        EntityAndTags entityAndTags = entityAndTagsList.get(0);
-        assertTrue(entityAndTagsList.size() > 0);
-        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
-
-        try {
-            metaDataService.retrieveEntityAndTags(" ", " ");
-            fail();
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
-    }
-
-    @Test // under construction
     public void testRetrieveGroupEntities() throws Exception {
         assertTrue(metaDataService.deleteGroupEntities(TTT_ENTITY_GROUP
                 , new Entity("java-uuu-entity")
@@ -245,6 +234,31 @@ public class MetaDataServiceTest {
         assertTrue(metaDataService.deleteGroupEntities(TTT_ENTITY_GROUP
                 , new Entity("java-sss-entity")));
         assertEquals(1, metaDataService.retrieveGroupEntities(TTT_ENTITY_GROUP).size());
+    }
+
+    @Test
+    public void testRetrieveEntityAndTags() throws Exception {
+        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, null);
+        EntityAndTags entityAndTags = entityAndTagsList.get(0);
+        assertTrue(entityAndTagsList.size() > 0);
+        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
+        assertTrue(entityAndTags.getTags().containsKey("ttt-tag-1"));
+        assertTrue(entityAndTags.getTags().size() > 0);
+    }
+
+    @Test
+    public void testRetrieveEntityAndTagsByMetricAndEntity() throws Exception {
+        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, TTT_ENTITY);
+        EntityAndTags entityAndTags = entityAndTagsList.get(0);
+        assertTrue(entityAndTagsList.size() > 0);
+        assertEquals(TTT_ENTITY, entityAndTags.getEntityName());
+
+        try {
+            metaDataService.retrieveEntityAndTags(" ", " ");
+            fail();
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
     }
 
     @Test

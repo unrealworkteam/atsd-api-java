@@ -14,6 +14,8 @@
 */
 package com.axibase.tsd.model.meta;
 
+import com.axibase.tsd.util.AtsdUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,6 +34,10 @@ public class EntityGroup {
     private Map<String, String> tags;
 
     public EntityGroup() {
+    }
+
+    public EntityGroup(String name) {
+        this.name = name;
     }
 
     /**
@@ -65,6 +71,11 @@ public class EntityGroup {
 
     public void setTags(Map<String, String> tags) {
         this.tags = tags;
+    }
+
+    @JsonIgnore
+    public void setTags(String... tagNamesAndValues) {
+        setTags(AtsdUtil.toMap(tagNamesAndValues));
     }
 
     @Override

@@ -222,6 +222,14 @@ public class MetaDataService {
         return httpClientManager.updateMetaData(query, put(entityGroup));
     }
 
+    public boolean deleteEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
+        String entityGroupName = entityGroup.getName();
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
+                .path(entityGroupName);
+        return httpClientManager.updateMetaData(query, delete());
+    }
+
     /**
      * @param entityGroupName Entity group name.
      * @param active          Filter entities by {@code lastInsertTime}. If active = {@code true}, only entities with
