@@ -15,21 +15,7 @@ the ability to read and write time-series values and statistics, properties, ale
 - Data API
     - Series
         - QUERY
-```js
-POST /api/v1/series
-```
         - INSERT
-```java
-        long ct = System.currentTimeMillis();
-        AddSeriesCommand command = new AddSeriesCommand("sample-entity", "sample-metric", "sample-tag", "sample-tag-value");
-        int testCnt = 10;
-        for (int i = 0; i < testCnt; i++) {
-            c1.addSeries(
-                    new Series(ct + i, i)
-            );
-        }
-        dataService.addSeries(command);
-```
         - CSV INSERT
     - Properties
         - QUERY
@@ -38,6 +24,7 @@ POST /api/v1/series
         - QUERY
     - Alerts History
         - QUERY
+
 - Meta Data API
     - Metrics
         - Get Metrics
