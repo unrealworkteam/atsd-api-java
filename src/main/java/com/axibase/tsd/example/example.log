@@ -1,0 +1,185 @@
+Getting Started with Axibase TSD
+===Metric MetaData===
+Metric: disk_used_percent
+
+===Entity MetaData===
+Entity: nurswgvml007
+===Tags===
+	file_system : /dev/mapper/vg_nurswgvml007-lv_root
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml007,tags={file_system=/dev/mapper/vg_nurswgvml007-lv_root, mount_point=/}]
+2015-02-17T14:30:11Z	55.9646
+2015-02-17T14:30:26Z	55.968
+2015-02-17T14:30:41Z	55.971
+
+===Entity MetaData===
+Entity: nurswgvml006
+===Tags===
+	file_system : /dev/mapper/vg_nurswgvml006-lv_root
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml006,tags={file_system=/dev/mapper/vg_nurswgvml006-lv_root, mount_point=/}]
+2015-02-17T14:30:00Z	51.4512
+2015-02-17T14:30:15Z	51.4514
+2015-02-17T14:30:30Z	51.4514
+2015-02-17T14:30:45Z	51.4512
+
+===Entity MetaData===
+Entity: nurswgvml006
+===Tags===
+	file_system : /dev/sdb1
+	mount_point : /media/datadrive
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml006,tags={file_system=/dev/sdb1, mount_point=/media/datadrive}]
+2015-02-17T14:30:00Z	52.4216
+2015-02-17T14:30:15Z	52.0607
+2015-02-17T14:30:30Z	52.0609
+2015-02-17T14:30:45Z	52.0613
+
+===Entity MetaData===
+Entity: nurswgvml003
+===Tags===
+	file_system : /dev/sdb1
+	mount_point : /home/store
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml003,tags={file_system=/dev/sdb1, mount_point=/home/store}]
+2015-02-17T14:30:10Z	77.5911
+2015-02-17T14:30:25Z	77.5911
+2015-02-17T14:30:40Z	77.5911
+
+===Entity MetaData===
+Entity: nurswgvml003
+===Tags===
+	file_system : rootfs
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml003,tags={file_system=rootfs, mount_point=/}]
+2015-02-17T14:30:10Z	8.76712
+2015-02-17T14:30:25Z	8.76712
+2015-02-17T14:30:40Z	8.76712
+
+===Entity MetaData===
+Entity: nurswgvml003
+===Tags===
+	file_system : /dev/disk/by-uuid/28b8099a-f2fd-4b72-826c-4b270404deff
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml003,tags={file_system=/dev/disk/by-uuid/28b8099a-f2fd-4b72-826c-4b270404deff, mount_point=/}]
+2015-02-17T14:30:10Z	8.76712
+2015-02-17T14:30:25Z	8.76712
+2015-02-17T14:30:40Z	8.76712
+
+===Entity MetaData===
+Entity: nurswgvml102
+===Tags===
+	file_system : rootfs
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml102,tags={file_system=rootfs, mount_point=/}]
+2015-02-17T14:30:10Z	6.57199
+2015-02-17T14:30:25Z	6.57199
+2015-02-17T14:30:40Z	6.57199
+
+===Entity MetaData===
+Entity: nurswgvml102
+===Tags===
+	file_system : /dev/disk/by-uuid/8a5a178f-4dba-4282-803a-1fe43fc6220a
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml102,tags={file_system=/dev/disk/by-uuid/8a5a178f-4dba-4282-803a-1fe43fc6220a, mount_point=/}]
+2015-02-17T14:30:10Z	6.57199
+2015-02-17T14:30:25Z	6.57199
+2015-02-17T14:30:40Z	6.57199
+
+===Entity MetaData===
+Entity: nurswgvml010
+===Tags===
+	file_system : /dev/sda1
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml010,tags={file_system=/dev/sda1, mount_point=/}]
+2015-02-17T14:30:02Z	36.8312
+2015-02-17T14:30:17Z	36.8312
+2015-02-17T14:30:32Z	36.8312
+2015-02-17T14:30:47Z	36.8313
+
+===Entity MetaData===
+Entity: nurswgvml010
+===Tags===
+	file_system : none
+	mount_point : /sys/fs/cgroup
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml010,tags={file_system=none, mount_point=/sys/fs/cgroup}]
+2015-02-17T14:30:02Z	0.0
+2015-02-17T14:30:17Z	0.0
+2015-02-17T14:30:32Z	0.0
+2015-02-17T14:30:47Z	0.0
+
+===Entity MetaData===
+Entity: nurswgvml010
+===Tags===
+	file_system : /dev/sdb1
+	mount_point : /app
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml010,tags={file_system=/dev/sdb1, mount_point=/app}]
+2015-02-17T14:30:02Z	51.3556
+2015-02-17T14:30:17Z	51.3556
+2015-02-17T14:30:32Z	51.3556
+2015-02-17T14:30:47Z	51.3556
+
+===Entity MetaData===
+Entity: nurswgvml011
+===Tags===
+	file_system : /dev/sda1
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=nurswgvml011,tags={file_system=/dev/sda1, mount_point=/}]
+2015-02-17T14:30:09Z	49.6966
+2015-02-17T14:30:24Z	49.6966
+2015-02-17T14:30:39Z	49.6966
+2015-02-17T14:30:54Z	49.6967
+
+===Entity MetaData===
+Entity: awsswgvml001
+===Tags===
+	file_system : none
+	mount_point : /sys/fs/cgroup
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=awsswgvml001,tags={file_system=none, mount_point=/sys/fs/cgroup}]
+2015-02-17T14:30:12Z	0.0
+2015-02-17T14:30:27Z	0.0
+2015-02-17T14:30:42Z	0.0
+
+===Entity MetaData===
+Entity: awsswgvml001
+===Tags===
+	file_system : /dev/xvda1
+	mount_point : /
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=awsswgvml001,tags={file_system=/dev/xvda1, mount_point=/}]
+2015-02-17T14:30:12Z	15.587
+2015-02-17T14:30:27Z	15.587
+2015-02-17T14:30:42Z	15.587
+
+===Entity MetaData===
+Entity: awsswgvml001
+===Tags===
+	file_system : /dev/xvdh1
+	mount_point : /data
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=awsswgvml001,tags={file_system=/dev/xvdh1, mount_point=/data}]
+2015-02-17T14:30:12Z	37.7002
+2015-02-17T14:30:27Z	37.7002
+2015-02-17T14:30:42Z	37.7002
+
+===Entity MetaData===
+Entity: awsswgvml001
+===Tags===
+	file_system : /dev/xvdf
+	mount_point : /backup
+===Last Series===
+Time Series Key: [metric=disk_used_percent,entity=awsswgvml001,tags={file_system=/dev/xvdf, mount_point=/backup}]
+2015-02-17T14:30:12Z	70.6288
+2015-02-17T14:30:27Z	70.6288
+2015-02-17T14:30:42Z	70.6288
