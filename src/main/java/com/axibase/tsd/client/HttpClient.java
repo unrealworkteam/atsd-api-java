@@ -38,6 +38,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 
 import static com.axibase.tsd.util.AtsdUtil.JSON;
@@ -50,6 +51,7 @@ class HttpClient {
     private final static java.util.logging.Logger legacyLogger = java.util.logging.Logger.getLogger(HttpClient.class.getName());
     public static final int HTTP_STATUS_OK = 200;
     public static final int HTTP_STATUS_FAIL = 400;
+    public static final int HTTP_STATUS_NOT_FOUND = 404;
 
     private ClientConfiguration clientConfiguration;
     private final Client client;
@@ -109,6 +111,8 @@ class HttpClient {
         Response response = doRequest(url, query, requestProcessor);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return response.readEntity(listType(resultClass));
+        } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {
+            return Collections.emptyList();
         } else {
             throw buildException(response);
         }
@@ -118,6 +122,8 @@ class HttpClient {
         Response response = doRequest(url, query, null);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return response.readEntity(resultClass);
+        } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {
+            return null;
         } else {
             throw buildException(response);
         }

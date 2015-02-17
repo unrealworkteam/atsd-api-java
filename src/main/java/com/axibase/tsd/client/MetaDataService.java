@@ -25,6 +25,7 @@ import com.axibase.tsd.util.AtsdUtil;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.axibase.tsd.client.RequestProcessor.delete;
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.put;
 import static com.axibase.tsd.util.AtsdUtil.check;
@@ -112,6 +113,14 @@ public class MetaDataService {
         return httpClientManager.updateMetaData(queryPart, put(metric));
     }
 
+    public boolean deleteMetric(Metric metric) {
+        String metricName = metric.getName();
+        check(metricName, "Metric name is empty");
+        QueryPart<Metric> queryPart = new Query<Metric>("metrics")
+                .path(metricName);
+        return httpClientManager.updateMetaData(queryPart, delete());
+    }
+
     /**
      * @param active      Filter entities by {@code lastInsertTime}. If active = {@code true}, only entities with
      *                    positive {@code lastInsertTime} are included in the response.
@@ -156,6 +165,14 @@ public class MetaDataService {
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.updateMetaData(queryPart, put(entity));
+    }
+
+    public boolean deleteEntity(Entity entity) {
+        String entityName = entity.getName();
+        check(entityName, "Entity name is empty");
+        QueryPart<Entity> queryPart = new Query<Entity>("entities")
+                .path(entityName);
+        return httpClientManager.updateMetaData(queryPart, delete());
     }
 
     /**

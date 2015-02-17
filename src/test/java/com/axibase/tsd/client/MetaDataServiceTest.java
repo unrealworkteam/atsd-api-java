@@ -50,13 +50,6 @@ public class MetaDataServiceTest {
     }
 
     @Test
-    public void testRetrieveMetricsByEntity() throws Exception {
-        List metrics = metaDataService.retrieveMetrics(TTT_ENTITY, null, "name like '*'", null, 10);
-        assertTrue(metrics.get(0) instanceof Metric);
-        assertEquals(1, metrics.size());
-    }
-
-    @Test
     public void testRetrieveMetric() throws Exception {
         Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
         assertNotNull(metric);
@@ -83,32 +76,16 @@ public class MetaDataServiceTest {
         assertEquals(DataType.DOUBLE, metric.getDataType());
     }
 
-    // @Test // non implemented yet
-    public void testCreateMetric() throws Exception {
-        Metric nonExists = metaDataService.retrieveMetric(NNN_METRIC);
-        assertNull(nonExists);
-        Metric newTestMetric = createNewTestMetric();
+    //@Test // non implemented yet
+    public void testCreateAndDeleteMetric() throws Exception {
+        assertNull(metaDataService.retrieveMetric(NNN_METRIC));
 
-        boolean updateResult = metaDataService.updateMetric(newTestMetric);
+        Metric newTestMetric = createNewTestMetric();
+        assertTrue(metaDataService.updateMetric(newTestMetric));
         assertNotNull(metaDataService.retrieveMetric(NNN_METRIC));
 
-        // delete metrics
-    }
-
-    public Metric createNewTestMetric() {
-        Metric newMetric = new Metric();
-        newMetric.setName(NNN_METRIC);
-        newMetric.setDataType(DataType.INTEGER);
-        newMetric.setDescription("test");
-        newMetric.setEnabled(false);
-        newMetric.setMaxValue(1D);
-        newMetric.setMinValue(3D);
-        newMetric.setTags(
-                "nnn-tag-1", "nnn-tag-value-1",
-                "nnn-tag-2", "nnn-tag-value-2"
-        );
-        newMetric.setTimePrecision(TimePrecision.SECONDS);
-        return newMetric;
+        assertTrue(metaDataService.deleteMetric(newTestMetric));
+        assertNull(metaDataService.retrieveMetric(NNN_METRIC));
     }
 
     @Test
@@ -136,6 +113,7 @@ public class MetaDataServiceTest {
     public void testUpdateEntity() throws Exception {
         Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
+        assertFalse(entity.getTags().containsKey("uuu-tag-1"));
 
         Map<String, String> tags = entity.getTags();
         Map<String, String> savedTags = new HashMap<String, String>(tags);
@@ -153,6 +131,21 @@ public class MetaDataServiceTest {
         entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
         assertFalse(entity.getTags().containsKey("uuu-tag-1"));
+    }
+
+//    @Test // under construction
+    public void testCreateAndDeleteEntity() throws Exception {
+        assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
+
+        Entity entity = new Entity(NNN_ENTITY);
+        entity.setTags("nnn-test-tag-1", "nnn-test-tag-value-1");
+        metaDataService.updateEntity(entity);
+
+        assertNotNull(metaDataService.retrieveEntity(NNN_ENTITY));
+
+        metaDataService.deleteEntity(entity);
+
+        assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
     }
 
     @Test
@@ -229,8 +222,31 @@ public class MetaDataServiceTest {
         assertEquals(1, metaDataService.retrieveGroupEntities(TTT_ENTITY_GROUP).size());
     }
 
+    @Test
+    public void testRetrieveMetricsByEntity() throws Exception {
+        List metrics = metaDataService.retrieveMetrics(TTT_ENTITY, null, "name like '*'", null, 10);
+        assertTrue(metrics.get(0) instanceof Metric);
+        assertEquals(1, metrics.size());
+    }
+
     @After
     public void tearDown() {
         httpClientManager.close();
+    }
+
+    private Metric createNewTestMetric() {
+        Metric newMetric = new Metric();
+        newMetric.setName(NNN_METRIC);
+        newMetric.setDataType(DataType.INTEGER);
+        newMetric.setDescription("test");
+        newMetric.setEnabled(false);
+        newMetric.setMaxValue(1D);
+        newMetric.setMinValue(3D);
+        newMetric.setTags(
+                "nnn-tag-1", "nnn-tag-value-1",
+                "nnn-tag-2", "nnn-tag-value-2"
+        );
+        newMetric.setTimePrecision(TimePrecision.SECONDS);
+        return newMetric;
     }
 }
