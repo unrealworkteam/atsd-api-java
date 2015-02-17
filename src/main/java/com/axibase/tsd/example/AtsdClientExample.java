@@ -12,25 +12,13 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.meta.command;
-
-import com.axibase.tsd.model.meta.Entity;
-import com.axibase.tsd.util.AtsdUtil;
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-import java.util.List;
+package com.axibase.tsd.example;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class AbstractEntitiesCommand extends SimpleCommand {
-    protected List<Entity> entities;
+public class AtsdClientExample {
+    public static void main(String[] args) {
 
-    public AbstractEntitiesCommand(String action) {
-        super(action);
-    }
-
-    public List<Entity> getEntities() {
-        return entities;
     }
 }
