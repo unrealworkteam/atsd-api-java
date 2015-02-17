@@ -48,7 +48,6 @@ public class DataServiceTest {
         GetSeriesCommand c1 = createTestGetTestCommand();
         List<GetSeriesResult> seriesList = dataService.retrieveSeries(0L,
                 System.currentTimeMillis(),
-                null,
                 100,
                 c1);
 
@@ -77,7 +76,7 @@ public class DataServiceTest {
         }
         dataService.addSeries(c1, c2);
 
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, null, 20,
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, 20,
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM(
                          "ttt-tag-1", "ttt-tag-value-1"
@@ -99,7 +98,7 @@ public class DataServiceTest {
 
         dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
 
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, null, 10,
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, 10,
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
         );
         assertEquals(1, getSeriesResults.size());

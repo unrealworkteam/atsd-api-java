@@ -27,7 +27,6 @@ import java.util.Map;
 public class EntityAndTags {
     @JsonProperty ("entity")
     private String entityName;
-    @JsonProperty ("last_insert_time")
     private Long lastInsertTime;
     @JsonProperty
     private Map<String, String> tags;

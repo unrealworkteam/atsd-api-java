@@ -60,7 +60,7 @@ public class ClientConfigurationFactory {
     }
 
     public static ClientConfigurationFactory getInstance(String clientPropertiesFileName) {
-        log.info("Load client properties from file: {}", clientPropertiesFileName);
+        log.debug("Load client properties from file: {}", clientPropertiesFileName);
         Properties clientProperties = new Properties();
         try {
             InputStream stream = ClientConfigurationFactory.class.getResourceAsStream(clientPropertiesFileName);

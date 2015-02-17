@@ -17,11 +17,13 @@ package com.axibase.tsd.model.data.command;
 import com.axibase.tsd.model.data.IntervalUnit;
 import com.axibase.tsd.model.data.RateUnit;
 import com.axibase.tsd.model.data.SeriesType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
@@ -56,6 +58,12 @@ public class GetSeriesCommand {
         this.entityName = entityName;
         this.metricName = metricName;
         this.tags = tags;
+    }
+
+    public GetSeriesCommand(String entityName, String metricName, Map<String, String> tags) {
+        this.entityName = entityName;
+        this.metricName = metricName;
+        this.tags = new MultivaluedHashMap<String, String>(tags);
     }
 
     public String getEntityName() {
@@ -138,6 +146,11 @@ public class GetSeriesCommand {
         this.multipleSeries = multipleSeries;
     }
 
+    @JsonIgnore
+    public void setInterval(IntervalUnit unit, int count) {
+        setIntervalUnit(unit);
+        setIntervalCount(count);
+    }
     @Override
     public String toString() {
         return "Series{" +

@@ -30,19 +30,35 @@ import static com.axibase.tsd.util.AtsdUtil.check;
 public class DataService {
     private HttpClientManager httpClientManager;
 
+    public DataService() {
+    }
+
+    public DataService(HttpClientManager httpClientManager) {
+        this.httpClientManager = httpClientManager;
+    }
+
     public void setHttpClientManager(HttpClientManager httpClientManager) {
         this.httpClientManager = httpClientManager;
     }
 
     public List<GetSeriesResult> retrieveSeries(Long startTime,
                                                 Long endTime,
-                                                Interval interval,
                                                 Integer limit,
                                                 GetSeriesCommand... seriesQueries) {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .param("json", "true")
                 .param("startTime", startTime)
                 .param("endTime", endTime)
+                .param("limit", limit);
+        return httpClientManager.requestDataList(GetSeriesResult.class, query,
+                RequestProcessor.post(seriesQueries));
+    }
+
+    public List<GetSeriesResult> retrieveSeries(Interval interval,
+                                                Integer limit,
+                                                GetSeriesCommand... seriesQueries) {
+        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
+                .param("json", "true")
                 .param("interval", interval)
                 .param("limit", limit);
         return httpClientManager.requestDataList(GetSeriesResult.class, query,

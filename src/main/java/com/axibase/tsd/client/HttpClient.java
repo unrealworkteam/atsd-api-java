@@ -171,7 +171,7 @@ class HttpClient {
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor, String mediaType) {
         WebTarget target = client.target(url);
         target = query.fill(target);
-        log.info("url = {}", target.getUri());
+        log.debug("url = {}", target.getUri());
         Invocation.Builder request = target.request(mediaType);
 
         Response response = null;

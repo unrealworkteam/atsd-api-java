@@ -36,6 +36,13 @@ import static com.axibase.tsd.util.AtsdUtil.check;
 public class MetaDataService {
     private HttpClientManager httpClientManager;
 
+    public MetaDataService() {
+    }
+
+    public MetaDataService(HttpClientManager httpClientManager) {
+        this.httpClientManager = httpClientManager;
+    }
+
     public void setHttpClientManager(HttpClientManager httpClientManager) {
         this.httpClientManager = httpClientManager;
     }
@@ -177,7 +184,7 @@ public class MetaDataService {
 
     /**
      * @param metricName Metric name.
-     * @param entityName Entity name.
+     * @param entityName Filter entities by entity name.
      * @return List of entities and tags for metric.
      * @throws AtsdClientException
      * @throws AtsdServerException

@@ -113,7 +113,9 @@ public class MetaDataServiceTest {
     public void testUpdateEntity() throws Exception {
         Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
-        assertFalse(entity.getTags().containsKey("uuu-tag-1"));
+        if(entity.getTags().containsKey("uuu-tag-1")) {
+            entity.getTags().remove("uuu-tag-1");
+        }
 
         Map<String, String> tags = entity.getTags();
         Map<String, String> savedTags = new HashMap<String, String>(tags);

@@ -16,6 +16,8 @@ package com.axibase.tsd.model.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.List;
 import java.util.Map;
@@ -117,6 +119,14 @@ public class GetSeriesResult {
 
     public void setData(List<Series> data) {
         this.data = data;
+    }
+
+    public String getTimeSeriesKey() {
+        return new StringBuilder("[").
+                append("metric=").append(metricName).
+                append(",entity=").append(entityName).
+                append(",tags=").append(tags).
+                append("]").toString();
     }
 
     @Override

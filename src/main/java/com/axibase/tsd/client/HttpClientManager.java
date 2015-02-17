@@ -29,11 +29,26 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Nikolay Malevanny.
  */
 public class HttpClientManager {
+    public static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
+    public static final int DEFAULT_MAX_TOTAL = 100;
+    public static final int DEFAULT_MAX_IDLE = 100;
+
     private ClientConfiguration clientConfiguration;
-    private GenericObjectPoolConfig objectPoolConfig = new GenericObjectPoolConfig();
+    private GenericObjectPoolConfig objectPoolConfig;
 
     private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReference = new AtomicReference<GenericObjectPool<HttpClient>>();
-    private int borrowMaxWaitMillis = 1000;
+    private int borrowMaxWaitMillis = DEFAULT_BORROW_MAX_TIME_MS;
+
+    public HttpClientManager() {
+        objectPoolConfig = new GenericObjectPoolConfig();
+        objectPoolConfig.setMaxTotal(DEFAULT_MAX_TOTAL);
+        objectPoolConfig.setMaxIdle(DEFAULT_MAX_IDLE);
+    }
+
+    public HttpClientManager(ClientConfiguration clientConfiguration) {
+        this();
+        this.clientConfiguration = clientConfiguration;
+    }
 
     public void setClientConfiguration(ClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
