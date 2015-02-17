@@ -59,10 +59,12 @@ Install the ATSD Client - Using Maven is the recommended way to install the ATSD
 
 Building From Source - You can build ATSD Client by checking out the code from GitHub using Maven.
 
+```
 git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
 java -cp "atsd-api-java-1.0-SNAPSHOT.jar:dependency/*" com.axibase.tsd.example.AtsdClientExample
+```
 
 ## Examples
 
