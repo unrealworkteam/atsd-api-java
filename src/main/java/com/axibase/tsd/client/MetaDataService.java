@@ -208,9 +208,18 @@ public class MetaDataService {
      * @throws AtsdServerException
      */
     public EntityGroup retrieveEntityGroup(String entityGroupName) throws AtsdClientException, AtsdServerException {
+        check(entityGroupName, "Entity group name is empty");
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
                 .path(entityGroupName);
         return httpClientManager.requestMetaDataObject(EntityGroup.class, query);
+    }
+
+    public boolean updateEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
+        String entityGroupName = entityGroup.getName();
+        check(entityGroupName, "Entity group name is empty");
+        QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
+                .path(entityGroupName);
+        return httpClientManager.updateMetaData(query, put(entityGroup));
     }
 
     /**

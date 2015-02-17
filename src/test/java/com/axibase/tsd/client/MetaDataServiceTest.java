@@ -149,6 +149,50 @@ public class MetaDataServiceTest {
     }
 
     @Test
+    public void testRetrieveEntityGroups() throws Exception {
+        List<EntityGroup> entityGroups = metaDataService.retrieveEntityGroups();
+        assertTrue(entityGroups.get(0) instanceof EntityGroup);
+        assertTrue(entityGroups.size() > 0);
+        boolean containsTestEntityGroup = false;
+        for (Iterator<EntityGroup> iterator = entityGroups.iterator(); iterator.hasNext() && !containsTestEntityGroup; ) {
+            EntityGroup entityGroup = iterator.next();
+            containsTestEntityGroup = TTT_ENTITY_GROUP.equals(entityGroup.getName());
+        }
+        assertTrue(containsTestEntityGroup);
+    }
+
+    @Test
+    public void testRetrieveEntityGroup() throws Exception {
+        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
+    }
+
+    @Test
+    public void testUpdateEntityGroup() throws Exception {
+        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
+        assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
+
+        Map<String, String> tags = entityGroup.getTags();
+        Map<String, String> savedTags = new HashMap<String, String>(tags);
+        tags.put("uuu-tag-1", "uuu-tag-value-1");
+        entityGroup.setTags(tags);
+        assertTrue(metaDataService.updateEntityGroup(entityGroup));
+
+        EntityGroup updatedEntityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertEquals(TTT_ENTITY_GROUP, updatedEntityGroup.getName());
+        assertTrue(updatedEntityGroup.getTags().containsKey("uuu-tag-1"));
+
+        updatedEntityGroup.setTags(savedTags);
+        metaDataService.updateEntityGroup(updatedEntityGroup);
+
+        entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
+        assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
+    }
+
+
+    @Test
     public void testRetrieveEntityAndTags() throws Exception {
         List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(TTT_METRIC, null);
         EntityAndTags entityAndTags = entityAndTagsList.get(0);
@@ -171,25 +215,6 @@ public class MetaDataServiceTest {
         } catch (IllegalArgumentException e) {
             // OK
         }
-    }
-
-    @Test
-    public void testRetrieveEntityGroups() throws Exception {
-        List<EntityGroup> entityGroups = metaDataService.retrieveEntityGroups();
-        assertTrue(entityGroups.get(0) instanceof EntityGroup);
-        assertTrue(entityGroups.size() > 0);
-        boolean containsTestEntityGroup = false;
-        for (Iterator<EntityGroup> iterator = entityGroups.iterator(); iterator.hasNext() && !containsTestEntityGroup; ) {
-            EntityGroup entityGroup = iterator.next();
-            containsTestEntityGroup = TTT_ENTITY_GROUP.equals(entityGroup.getName());
-        }
-        assertTrue(containsTestEntityGroup);
-    }
-
-    @Test
-    public void testRetrieveEntityGroup() throws Exception {
-        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
-        assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
     }
 
     @Test // under construction
