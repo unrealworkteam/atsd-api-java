@@ -75,7 +75,7 @@ class HttpClient {
         client = ClientBuilder.newBuilder().withConfig(clientConfig).build();
 
         client.property(ClientProperties.CONNECT_TIMEOUT, 3000);
-        client.property(ClientProperties.READ_TIMEOUT,    3000);
+        client.property(ClientProperties.READ_TIMEOUT, 3000);
 
         this.clientConfiguration = clientConfiguration;
     }
@@ -148,12 +148,8 @@ class HttpClient {
     private AtsdServerException buildException(Response response) {
         ServerError serverError = null;
         try {
-            if (response.getHeaderString("Content-Type").startsWith(JSON)) {
-                serverError = response.readEntity(ServerError.class);
-                log.warn("Server error: {}", serverError);
-            } else {
-                log.warn(String.valueOf(response.getEntity()));
-            }
+            serverError = response.readEntity(ServerError.class);
+            log.warn("Server error: {}", serverError);
         } catch (Throwable e) {
             log.warn("Couldn't read error message", e);
         }

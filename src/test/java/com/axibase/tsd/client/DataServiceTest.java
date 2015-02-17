@@ -139,7 +139,7 @@ public class DataServiceTest {
         assertEquals(1, properties.size());
     }
 
-    // @Test //  under construction
+//    @Test //  under construction
     public void testInsertProperties() throws Exception {
         long lastObjectTimestamp = 0;
         {
