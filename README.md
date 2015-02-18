@@ -68,7 +68,7 @@ java -cp "atsd-api-java-1.0-SNAPSHOT.jar:dependency/*" com.axibase.tsd.example.A
 
 ## Examples
 
-See [Example][atsd-example]
+See [AtsdClientReadExample][atsd-read-example] [AtsdClientWriteExample][atsd-write-example]
 
 ### Client Configuration
 ```java
@@ -107,4 +107,5 @@ See [Example][atsd-example]
 [atsd-api]:https://axibase.com/products/axibase-time-series-database/reading-data/java/
 [atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/untagged-0901a806a9372ef24c51/v0.3-alpha.zip
 [atsd-issues]:https://www.axibase.com/support.htm
-[atsd-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientWriterExample.java
+[atsd-read-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientReadExample.java
+[atsd-write-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientWriteExample.java
