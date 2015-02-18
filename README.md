@@ -1,16 +1,16 @@
 # Axibase Time-Series Database Client for Java
 
-The **ATSD Client for Java** enables Java developers to easily read and write statistics and meta-data from
-[Axibase Time-Series Database][atsd] and build reporting, analytics, and alerting solutions with minimal effort.
-You can get start using this API for Java using **Maven** or by downloading a [zip file].
+The **ATSD Client for Java** enables Java developers to easily read and write statistics and metadata from
+[Axibase Time-Series Database][atsd]. Build reporting, analytics, and alerting solutions with minimal effort.
+Get started using this API for Java using **Maven** or by downloading a [zip file][].
 
 * [Documentation][atsd-api]
 * [Issues][atsd-issues]
 
 ## Implemented Methods
 
-Provides easy-to-use client for interfacing with ATSD Meta Data and Data REST API services including
-the ability to read and write time-series values and statistics, properties, alerts and messages.
+**The ATSD Client for Java** provides an easy-to-use client for interfacing with **ATSD** metadata and data REST API services.
+It has the ability to read and write time-series values, statistics, properties, alerts, and messages.
 
 - Data API
     - Series
@@ -51,13 +51,13 @@ the ability to read and write time-series values and statistics, properties, ale
 
 ## Getting Started
 Install ATSD - Before you begin, you need to install your own copy of the [Axibase Time-Series Database][atsd].
-You can download the latest ATSD release available for your Linux distribution.
+Download the latest version of ATSD available for your Linux distribution.
 
-Minimum requirements - You need Java 1.6+ to run the ATSD Client.
+Minimum requirements - Java 1.6+ is needed to run the ATSD Client.
 
-Install the ATSD Client - Using Maven is the recommended way to install the ATSD Client for Java.
+Install the ATSD Client - We recommend installing the ATSD Client for Java by using Maven.
 
-Building From Source - You can build ATSD Client by checking out the code from GitHub using Maven.
+Building from the Source – After checking out the code from GitHub, you can build the ATSD Client using Maven.
 
 ```
 git clone https://github.com/axibase/atsd-api-java.git
@@ -76,7 +76,7 @@ See [Example][atsd-example]
         atsdClientExample.configure();
 ```
 
-### Meta Data Processing
+### Metadata Processing
 ```java
         Metric metric = metaDataService.retrieveMetric(metricExample);
         if (metric == null) {
@@ -105,5 +105,6 @@ See [Example][atsd-example]
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
 [atsd-api]:https://axibase.com/products/axibase-time-series-database/reading-data/java/
+[atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/untagged-0901a806a9372ef24c51/v0.3-alpha.zip
 [atsd-issues]:https://www.axibase.com/support.htm
 [atsd-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientExample.java
