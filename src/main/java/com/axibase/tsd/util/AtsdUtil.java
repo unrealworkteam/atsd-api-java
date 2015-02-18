@@ -14,12 +14,11 @@
 */
 package com.axibase.tsd.util;
 
+import com.axibase.tsd.model.data.Series;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.MediaType;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Nikolay Malevanny.
@@ -29,7 +28,7 @@ public class AtsdUtil {
     public static final String ADD_COMMAND = "add";
     public static final String DELETE_COMMAND = "delete";
 
-    public static Map<String, String> toMap(String[] tagNamesAndValues) {
+    public static Map<String, String> toMap(String... tagNamesAndValues) {
         if (tagNamesAndValues==null || tagNamesAndValues.length==0) {
             return Collections.emptyMap();
         }

@@ -21,6 +21,7 @@ import com.axibase.tsd.query.QueryPart;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.axibase.tsd.util.AtsdUtil.check;
 

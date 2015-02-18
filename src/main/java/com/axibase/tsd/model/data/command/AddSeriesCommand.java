@@ -45,6 +45,12 @@ public class AddSeriesCommand {
         this.tags = AtsdUtil.toMap(tagNamesAndValues);
     }
 
+    public static AddSeriesCommand createSingle(String entityName, String metricName, long time, double value, String... tagNamesAndValues) {
+        AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, tagNamesAndValues);
+        addSeriesCommand.addSeries(new Series(time, value));
+        return addSeriesCommand;
+    }
+
     public String getEntityName() {
         return entityName;
     }

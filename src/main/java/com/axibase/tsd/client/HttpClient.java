@@ -21,6 +21,8 @@ import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.util.EntityUtils;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -36,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
+import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -131,6 +134,7 @@ class HttpClient {
 
     private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
+        fixApacheHttpClientBlocking(response);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return true;
         } else if (response.getStatus() == HTTP_STATUS_FAIL) {
@@ -142,6 +146,7 @@ class HttpClient {
 
     private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor, String mediaType) {
         Response response = doRequest(url, query, requestProcessor, mediaType);
+        fixApacheHttpClientBlocking(response);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return true;
         } else if (response.getStatus() == HTTP_STATUS_FAIL) {
@@ -208,6 +213,13 @@ class HttpClient {
     void close() {
         if (client != null) {
             client.close();
+        }
+    }
+
+    private static void fixApacheHttpClientBlocking(Response response) {
+        Object entity = response.getEntity();
+        if (entity instanceof InputStream) {
+            IOUtils.closeQuietly((InputStream) entity);
         }
     }
 }
