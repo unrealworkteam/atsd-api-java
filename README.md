@@ -107,4 +107,4 @@ See [Example][atsd-example]
 [atsd-api]:https://axibase.com/products/axibase-time-series-database/reading-data/java/
 [atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/untagged-0901a806a9372ef24c51/v0.3-alpha.zip
 [atsd-issues]:https://www.axibase.com/support.htm
-[atsd-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientExample.java
+[atsd-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientWriterExample.java
