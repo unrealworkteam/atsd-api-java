@@ -50,12 +50,12 @@ It has the ability to read and write time-series values, statistics, properties,
 
 
 ## Getting Started
-Install ATSD - Before you begin, you need to install your own copy of the [Axibase Time-Series Database][atsd].
+Installing ATSD - Before you begin, you need to install your own copy of the [Axibase Time-Series Database][atsd].
 Download the latest version of ATSD available for your Linux distribution.
 
 Minimum requirements - Java 1.6+ is needed to run the ATSD Client.
 
-Install the ATSD Client - We recommend installing the ATSD Client for Java by using Maven.
+Installing the ATSD Client - We recommend installing the ATSD Client for Java by using Maven.
 
 Building from the Source – After checking out the code from GitHub, you can build the ATSD Client using Maven.
 
