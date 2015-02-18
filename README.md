@@ -25,7 +25,7 @@ It has the ability to read and write time-series values, statistics, properties,
     - Alerts History
         - QUERY
 
-- Meta Data API
+- Metadata API
     - Metrics
         - Get Metrics
         - Get Metric
