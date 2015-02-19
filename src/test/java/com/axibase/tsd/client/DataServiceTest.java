@@ -100,6 +100,8 @@ public class DataServiceTest {
 
         dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
 
+        Thread.sleep(1000);
+
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(ct, ct + 9, 10,
                 new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
         );
