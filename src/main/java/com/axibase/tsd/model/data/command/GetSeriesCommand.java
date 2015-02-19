@@ -34,32 +34,34 @@ public class GetSeriesCommand {
     private String entityName;
     @JsonProperty("metric")
     private String metricName;
-    @JsonProperty
     private MultivaluedMap<String, String> tags = new MultivaluedHashMap<String, String>();
-    @JsonProperty
     private SeriesType type;
-    @JsonProperty
     private Integer intervalCount;
-    @JsonProperty
     private IntervalUnit intervalUnit;
-    @JsonProperty
     private Integer rateCount;
-    @JsonProperty
     private RateUnit rateUnit;
-    @JsonProperty
     private String statistics;
-    @JsonProperty
     private boolean multipleSeries;
 
     public GetSeriesCommand() {
     }
 
+    /**
+     * @param entityName
+     * @param metricName
+     * @param tags
+     */
     public GetSeriesCommand(String entityName, String metricName, MultivaluedMap<String, String> tags) {
         this.entityName = entityName;
         this.metricName = metricName;
         this.tags = tags;
     }
 
+    /**
+     * @param entityName
+     * @param metricName
+     * @param tags
+     */
     public GetSeriesCommand(String entityName, String metricName, Map<String, String> tags) {
         this.entityName = entityName;
         this.metricName = metricName;
@@ -94,6 +96,9 @@ public class GetSeriesCommand {
         return type;
     }
 
+    /**
+     * @param type
+     */
     public void setType(SeriesType type) {
         this.type = type;
     }
@@ -102,6 +107,9 @@ public class GetSeriesCommand {
         return intervalCount;
     }
 
+    /**
+     * @param intervalCount
+     */
     public void setIntervalCount(Integer intervalCount) {
         this.intervalCount = intervalCount;
     }
@@ -110,6 +118,9 @@ public class GetSeriesCommand {
         return intervalUnit;
     }
 
+    /**
+     * @param intervalUnit
+     */
     public void setIntervalUnit(IntervalUnit intervalUnit) {
         this.intervalUnit = intervalUnit;
     }
@@ -118,6 +129,9 @@ public class GetSeriesCommand {
         return rateCount;
     }
 
+    /**
+     * @param rateCount
+     */
     public void setRateCount(Integer rateCount) {
         this.rateCount = rateCount;
     }
@@ -126,6 +140,9 @@ public class GetSeriesCommand {
         return rateUnit;
     }
 
+    /**
+     * @param rateUnit
+     */
     public void setRateUnit(RateUnit rateUnit) {
         this.rateUnit = rateUnit;
     }
@@ -134,6 +151,9 @@ public class GetSeriesCommand {
         return statistics;
     }
 
+    /**
+     * @param statistics
+     */
     public void setStatistics(String statistics) {
         this.statistics = statistics;
     }
@@ -142,6 +162,9 @@ public class GetSeriesCommand {
         return multipleSeries;
     }
 
+    /**
+     * @param multipleSeries
+     */
     public void setMultipleSeries(boolean multipleSeries) {
         this.multipleSeries = multipleSeries;
     }

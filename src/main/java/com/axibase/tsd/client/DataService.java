@@ -46,6 +46,13 @@ public class DataService {
         this.httpClientManager = httpClientManager;
     }
 
+    /**
+     * @param startTime     start of the selection interval, specified in Unix (epoch) milliseconds. If startTime is not specified, its set to current server time minus 1 hour.
+     * @param endTime       end of the selection interval, specified in Unix (epoch) milliseconds. If endTime is not specified, its set to current server time.
+     * @param limit         maximum number of data samples returned. The limit is applied to each series in the response separately.
+     * @param seriesQueries queries with details, each query property overrides common one in the request parameters
+     * @return list of {@code GetSeriesResult}
+     */
     public List<GetSeriesResult> retrieveSeries(Long startTime,
                                                 Long endTime,
                                                 Integer limit,
@@ -59,6 +66,12 @@ public class DataService {
                 post(seriesQueries));
     }
 
+    /**
+     * @param interval      replaces startTime - endTime values with endTime = now, startTime = now - interval. Format: interval=intervalCount-intervalUnit. Example: Interval=1-hour
+     * @param limit         maximum number of data samples returned. The limit is applied to each series in the response separately.
+     * @param seriesQueries queries with details, each query property overrides common one in the request parameters
+     * @return list of {@code GetSeriesResult}
+     */
     public List<GetSeriesResult> retrieveSeries(Interval interval,
                                                 Integer limit,
                                                 GetSeriesCommand... seriesQueries) {
@@ -70,6 +83,10 @@ public class DataService {
                 post(seriesQueries));
     }
 
+    /**
+     * @param addSeriesCommands commands that contains time-series which are added
+     * @return true if success
+     */
     public boolean addSeries(AddSeriesCommand... addSeriesCommands) {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("insert");
@@ -77,13 +94,19 @@ public class DataService {
                 post(Arrays.asList(addSeriesCommands)));
     }
 
+    /**
+     * @param entityName entity name
+     * @param data CSV as String
+     * @param tagNamesAndValues entity tags
+     * @return true if success
+     */
     public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
         check(entityName, "Entity name is empty");
         check(data, "Data is empty");
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("csv")
                 .path(entityName);
-        if (tagNamesAndValues!=null) {
+        if (tagNamesAndValues != null) {
             if (tagNamesAndValues.length % 2 == 1) {
                 throw new IllegalArgumentException("Tag without value");
             }
@@ -94,6 +117,10 @@ public class DataService {
         return httpClientManager.updateData(query, data);
     }
 
+    /**
+     * @param seriesQueries queries with details
+     * @return list of {@code GetSeriesResult}
+     */
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("last");
@@ -101,23 +128,43 @@ public class DataService {
                 post(seriesQueries));
     }
 
+    /**
+     * @param getPropertiesCommand command with property filter parameters
+     * @return list of {@code Property}
+     */
     public List<Property> retrieveProperties(GetPropertiesCommand getPropertiesCommand) {
         QueryPart<Property> query = new Query<Property>("properties");
         return httpClientManager.requestDataList(Property.class, query,
                 post(getPropertiesCommand));
     }
 
+    /**
+     * @param properties list of {@code Property} to add.
+     * @return true if success
+     */
     public boolean insertProperties(Property... properties) {
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(properties)));
     }
 
+    /**
+     * @param batchPropertyCommands list of batch commands to mass update properties
+     * @return true if success
+     */
     public boolean batchUpdateProperties(BatchPropertyCommand... batchPropertyCommands) {
         QueryPart<Property> query = new Query<Property>("properties");
         return httpClientManager.updateData(query, patch(batchPropertyCommands));
     }
 
+    /**
+     * @param metricNames metric filter, multiple values allowed
+     * @param entityNames entity filter, multiple values allowed
+     * @param ruleNames rule filter, multiple values allowed
+     * @param severities severity filter, multiple values allowed
+     * @param minSeverity minimal severity filter
+     * @return list of {@code Alert}
+     */
     public List<Alert> retrieveAlerts(
             List<String> metricNames,
             List<String> entityNames,
@@ -139,6 +186,10 @@ public class DataService {
         return httpClientManager.requestDataList(Alert.class, query, null);
     }
 
+    /**
+     * @param getAlertHistoryCommand command with alert history selection details
+     * @return list of  {@code AlertHistory}
+     */
     public List<AlertHistory> retrieveAlertHistory(GetAlertHistoryCommand getAlertHistoryCommand) {
         QueryPart<AlertHistory> query = new Query<AlertHistory>("alerts")
                 .path("history");
@@ -146,7 +197,7 @@ public class DataService {
                 post(getAlertHistoryCommand));
     }
 
-    public QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
+    private static  QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
         if (paramValueList != null) {
             for (String paramValue : paramValueList) {
                 query = query.param(paramName, paramValue);
@@ -154,5 +205,4 @@ public class DataService {
         }
         return query;
     }
-
 }
