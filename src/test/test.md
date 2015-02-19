@@ -1,12 +1,12 @@
-# Axibase Time-Series Database Client for Java
+# Axibase Time-Series Database Client for PHP
 
 The **ATSD Client for PHP** enables PHP developers to easily read and write statistics and metadata from
 [Axibase Time-Series Database][atsd]. Build reporting, analytics, and alerting solutions with minimal effort.
-Get started using this API for PHP using **Composer** or by downloading a [zip file][atsd-zip].//WHAT?
+Get started using this API for PHP using **Composer** or by downloading a [zip file][atsd-zip].
 
 * [Documentation][atsd-api]
 * [Issues][atsd-issues]
-* [testurl][test-doc]
+
 ## Implemented Methods
 
 **The ATSD Client for PHP** provides an easy-to-use client for interfacing with **ATSD** metadata and data REST API services.
@@ -47,31 +47,41 @@ Installing the ATSD Client
 git clone https://github.com/axibase/atsd-api-php.git
 mv atsd-api-php /{your_documentroot_folder}/
 cd /{you_documentroot_folder}/atsd-api-php/examples
-firefox *.php 
+firefox *.php
 ```
 ## Composer
 Inside of composer.json specify the following:
+```
 {
 "require": {
     "axbase/atsd-api-php": "dev-master"
     }
 }
+```
 ## Examples
 
-See 
-[AtsdClientAlertsExample][atsd-alerts-example] 
-[AtsdClientAlertsHistoryExample][atsd-alertsHistory-example] 
-[AtsdClientEntitiesExample][atsd-entities-example] 
-[AtsdClientEntityAndTagsExample][atsd-entitiesEndTags-example] 
-[AtsdClientEntityGroupsExample][atsd-entityGroup-example] 
-[AtsdClientMetricsExample][atsd-metrics-example] 
-[AtsdClientPropertiesExample][atsd-properties-example] 
+See
+[AtsdClientAlertsExample][atsd-alerts-example]
+
+[AtsdClientAlertsHistoryExample][atsd-alertsHistory-example]
+
+[AtsdClientEntitiesExample][atsd-entities-example]
+
+[AtsdClientEntityAndTagsExample][atsd-entitiesEndTags-example]
+
+[AtsdClientEntityGroupsExample][atsd-entityGroup-example]
+
+[AtsdClientMetricsExample][atsd-metrics-example]
+
+[AtsdClientPropertiesExample][atsd-properties-example]
+
 [AtsdClientSeriesExample][atsd-properties-example]
+
 
 ### Client Configuration
 
 ```php
-    $iniArray = parse_ini_file("atsd.ini");
+$iniArray = parse_ini_file("atsd.ini");
 ```
 
 ### Metadata Processing
@@ -93,7 +103,6 @@ $viewConfig = new ViewConfiguration('Entities for expression: ' . $expression . 
 $entitiesTable = Utils::arrayAsHtmlTable($entitiesResponse, $viewConfig);
 
 Utils::render(array($entitiesTable));
-
 
 $client->close();
 ```
@@ -133,7 +142,6 @@ $tables[] = Utils::seriesAsHtml($series->getSeries('s-detail'));
 
 Utils::render($tables);
 $client->close();
-
 ```
 
 
@@ -143,11 +151,10 @@ $client->close();
 [atsd-issues]:https://www.axibase.com/support.htm
 
 [atsd-alerts-example]:./examples/AlertsExample.html
-[atsd-alertsHistory-example]:https://github.com/axibase/atsd-api-php/examples/AlertsHistoryExample.html
-[atsd-entities-example]:https://github.com/axibase/atsd-api-php/examples/EntitiesExample.html
-[atsd-entitiesEndTags-example]:https://github.com/axibase/atsd-api-php/examples/EntityAndTagsExample.html
-[atsd-entityGroup-example]:https://github.com/axibase/atsd-api-php/examples/
-[atsd-metrics-example]:https://github.com/axibase/atsd-api-php/examples/
-[atsd-properties-example]:https://github.com/axibase/atsd-api-php/examples/
-[atsd-properties-example]:https://github.com/axibase/atsd-api-php/examples/
-[test-doc]:./resources/logback.xml
+[atsd-alertsHistory-example]:./examples/AlertsHistoryExample.html
+[atsd-entities-example]:./examples/EntitiesExample.html
+[atsd-entitiesEndTags-example]:./examples/EntityAndTagsExample.html
+[atsd-entityGroup-example]:./examples/EntityGroupsExample.html
+[atsd-metrics-example]:./examples/MetricsExample.html
+[atsd-properties-example]:./examples/PropertiesExample.html
+[atsd-properties-example]:./examples/SeriesExample.html
