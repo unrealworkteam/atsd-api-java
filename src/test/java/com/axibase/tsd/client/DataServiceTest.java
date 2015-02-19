@@ -142,7 +142,7 @@ public class DataServiceTest {
         assertEquals(1, properties.size());
     }
 
-    // @Test // under construction
+    @Test
     public void testInsertProperties() throws Exception {
         PropertyKey nnnKey = new PropertyKey(NNN_TYPE, NNN_ENTITY, "nnn-test-key-1", "nnn-test-key-value-1");
         { // check that new property does not exist

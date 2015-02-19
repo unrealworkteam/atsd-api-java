@@ -15,6 +15,8 @@
 package com.axibase.tsd.client;
 
 /**
+ * Thrown if an error is returned from the ATSD server.
+ *
  * @author Nikolay Malevanny.
  */
 public class AtsdServerException extends RuntimeException {
