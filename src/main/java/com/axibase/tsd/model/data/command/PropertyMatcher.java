@@ -14,42 +14,46 @@
 */
 package com.axibase.tsd.model.data.command;
 
+import com.axibase.tsd.model.data.PropertyKey;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
-import java.util.List;
 
 /**
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PatchPropertiesCommand {
-    private List<PutPropertyCommand> puts;
-    private DeletePropertyCommand delete;
+public class PropertyMatcher {
+    private PropertyKey key;
+    private Long createdBeforeTime;
 
-    public PatchPropertiesCommand() {
+    public PropertyMatcher() {
     }
 
-    public List<PutPropertyCommand> getPuts() {
-        return puts;
+    public PropertyMatcher(PropertyKey key, Long createdBeforeTime) {
+        this.key = key;
+        this.createdBeforeTime = createdBeforeTime;
     }
 
-    public void setPuts(List<PutPropertyCommand> puts) {
-        this.puts = puts;
+    public PropertyKey getKey() {
+        return key;
     }
 
-    public DeletePropertyCommand getDelete() {
-        return delete;
+    public void setKey(PropertyKey key) {
+        this.key = key;
     }
 
-    public void setDelete(DeletePropertyCommand delete) {
-        this.delete = delete;
+    public Long getCreatedBeforeTime() {
+        return createdBeforeTime;
+    }
+
+    public void setCreatedBeforeTime(Long createdBeforeTime) {
+        this.createdBeforeTime = createdBeforeTime;
     }
 
     @Override
     public String toString() {
-        return "PropertyBatchUpdateCommand{" +
-                "puts=" + puts +
-                ", delete=" + delete +
+        return "PropertyMatcher{" +
+                "key=" + key +
+                ", createdBeforeTime=" + createdBeforeTime +
                 '}';
     }
 }

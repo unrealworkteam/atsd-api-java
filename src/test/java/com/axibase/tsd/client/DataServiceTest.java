@@ -89,7 +89,7 @@ public class DataServiceTest {
         assertEquals(10, getSeriesResults.get(1).getData().size());
     }
 
-    //@Test // under construction
+    @Test
     public void testInsertSeriesCsv() throws Exception {
         long ct = System.currentTimeMillis();
         StringBuilder sb = new StringBuilder("time, ").append(TTT_METRIC).append('\n');
@@ -140,46 +140,43 @@ public class DataServiceTest {
         assertEquals(1, properties.size());
     }
 
-//    @Test //  under construction
+    // @Test // under construction
     public void testInsertProperties() throws Exception {
-        long lastObjectTimestamp = 0;
-        {
+        PropertyKey nnnKey = new PropertyKey(NNN_TYPE, NNN_ENTITY, "nnn-test-key-1", "nnn-test-key-value-1");
+        { // check that new property does not exist
             List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
             assertEquals(0, properties.size());
         }
-        {
-            PatchPropertiesCommand patchPropertiesCommand;
-            patchPropertiesCommand = new PatchPropertiesCommand();
-            patchPropertiesCommand.setPuts(createPuts());
-            boolean result = dataService.insertProperties(patchPropertiesCommand);
-            assertTrue(result);
+        { // create new property
+            assertTrue(dataService.insertProperties(new Property(nnnKey, "nnn-name", "nnn-value")));
         }
-        {
+        { // check that new property exists
             List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
-            lastObjectTimestamp = properties.get(0).getTimestamp();
             assertEquals(1, properties.size());
         }
-        {
-            PatchPropertiesCommand patchPropertiesCommand = new PatchPropertiesCommand();
-            DeletePropertyCommand deletePropertyCommand = new DeletePropertyCommand();
-            deletePropertyCommand.setKeys(Arrays.asList("nnn-test-key-1"));
-            deletePropertyCommand.setTimestamp(lastObjectTimestamp + 100000L);
-            patchPropertiesCommand.setPuts(createPuts());
-            patchPropertiesCommand.setDelete(deletePropertyCommand);
-            boolean result = dataService.insertProperties(patchPropertiesCommand);
-            assertTrue(result);
+        { // delete property
+            BatchPropertyCommand deletePropertyCommand = BatchPropertyCommand.createDeleteCommand(
+                    new Property(nnnKey, "nnn-name", "nnn-value")
+            );
+            assertTrue(dataService.batchUpdateProperties(deletePropertyCommand));
         }
-        {
+        { // check that new property does not exist
             List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
             assertEquals(0, properties.size());
         }
-    }
-
-    public List<PutPropertyCommand> createPuts() {
-        PutPropertyCommand putPropertyCommand = new PutPropertyCommand();
-        putPropertyCommand.setKey(new PropertyKey(NNN_TYPE, TTT_ENTITY, "nnn-test-key-1", "nnn-test-key-value-1"));
-        putPropertyCommand.setValues("nnn-name", "nnn-value");
-        return Arrays.asList(putPropertyCommand);
+        { // create new property
+            assertTrue(dataService.insertProperties(new Property(nnnKey, "nnn-name", "nnn-value")));
+        }
+        { // delete property using matcher
+            BatchPropertyCommand deletePropertyCommand = BatchPropertyCommand.createDeleteMatchCommand(
+                    new PropertyMatcher(nnnKey, Long.MAX_VALUE)
+            );
+            assertTrue(dataService.batchUpdateProperties(deletePropertyCommand));
+        }
+        { // check that new property does not exist
+            List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
+            assertEquals(0, properties.size());
+        }
     }
 
     public GetPropertiesCommand createGetNewPropCommand() {
@@ -187,7 +184,7 @@ public class DataServiceTest {
         getPropertiesCommand.setStartTime(0);
         getPropertiesCommand.setEndTime(Long.MAX_VALUE);
         PropertyParameter propertyParameter = new PropertyParameter();
-        propertyParameter.setEntityName(TTT_ENTITY);
+        propertyParameter.setEntityName(NNN_ENTITY);
         propertyParameter.setType(NNN_TYPE);
         getPropertiesCommand.setParams(propertyParameter);
         return getPropertiesCommand;

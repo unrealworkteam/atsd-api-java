@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.axibase.tsd.client.RequestProcessor.patch;
+import static com.axibase.tsd.client.RequestProcessor.post;
 import static com.axibase.tsd.util.AtsdUtil.check;
 
 /**
@@ -54,7 +56,7 @@ public class DataService {
                 .param("endTime", endTime)
                 .param("limit", limit);
         return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                RequestProcessor.post(seriesQueries));
+                post(seriesQueries));
     }
 
     public List<GetSeriesResult> retrieveSeries(Interval interval,
@@ -65,14 +67,14 @@ public class DataService {
                 .param("interval", interval)
                 .param("limit", limit);
         return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                RequestProcessor.post(seriesQueries));
+                post(seriesQueries));
     }
 
     public boolean addSeries(AddSeriesCommand... addSeriesCommands) {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("insert");
         return httpClientManager.updateData(query,
-                RequestProcessor.post(Arrays.asList(addSeriesCommands)));
+                post(Arrays.asList(addSeriesCommands)));
     }
 
     public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
@@ -96,19 +98,24 @@ public class DataService {
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("last");
         return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                RequestProcessor.post(seriesQueries));
+                post(seriesQueries));
     }
 
     public List<Property> retrieveProperties(GetPropertiesCommand getPropertiesCommand) {
         QueryPart<Property> query = new Query<Property>("properties");
         return httpClientManager.requestDataList(Property.class, query,
-                RequestProcessor.post(getPropertiesCommand));
+                post(getPropertiesCommand));
     }
 
-    public boolean insertProperties(PatchPropertiesCommand patchPropertiesCommand) {
+    public boolean insertProperties(Property... properties) {
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
-        return httpClientManager.updateData(query, RequestProcessor.post(patchPropertiesCommand));
+        return httpClientManager.updateData(query, post(Arrays.asList(properties)));
+    }
+
+    public boolean batchUpdateProperties(BatchPropertyCommand... batchPropertyCommands) {
+        QueryPart<Property> query = new Query<Property>("properties");
+        return httpClientManager.updateData(query, patch(batchPropertyCommands));
     }
 
     public List<Alert> retrieveAlerts(
@@ -136,7 +143,7 @@ public class DataService {
         QueryPart<AlertHistory> query = new Query<AlertHistory>("alerts")
                 .path("history");
         return httpClientManager.requestDataList(AlertHistory.class, query,
-                RequestProcessor.post(getAlertHistoryCommand));
+                post(getAlertHistoryCommand));
     }
 
     public QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {

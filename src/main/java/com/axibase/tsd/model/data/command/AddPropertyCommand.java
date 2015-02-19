@@ -26,13 +26,18 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PutPropertyCommand {
+public class AddPropertyCommand {
     private PropertyKey key;
     @JsonProperty("values")
     private Map<String,String> values;
     private long timestamp;
 
-    public PutPropertyCommand() {
+    public AddPropertyCommand() {
+    }
+
+    public AddPropertyCommand(PropertyKey key, String... namesAndValues) {
+        this.key = key;
+        this.values = AtsdUtil.toMap(namesAndValues);
     }
 
     public PropertyKey getKey() {

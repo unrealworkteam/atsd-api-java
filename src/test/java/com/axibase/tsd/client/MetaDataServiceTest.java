@@ -76,7 +76,7 @@ public class MetaDataServiceTest {
         assertEquals(DataType.DOUBLE, metric.getDataType());
     }
 
-    //@Test // non implemented yet
+    @Test
     public void testCreateAndDeleteMetric() throws Exception {
         assertNull(metaDataService.retrieveMetric(NNN_METRIC));
 
@@ -135,7 +135,7 @@ public class MetaDataServiceTest {
         assertFalse(entity.getTags().containsKey("uuu-tag-1"));
     }
 
-//    @Test // under construction
+    @Test
     public void testCreateAndDeleteEntity() throws Exception {
         assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
 
@@ -193,7 +193,7 @@ public class MetaDataServiceTest {
         assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
     }
 
-    //    @Test // under construction
+    @Test
     public void testCreateAndDeleteEntityGroup() throws Exception {
         assertNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
 

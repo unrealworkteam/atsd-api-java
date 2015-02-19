@@ -32,7 +32,7 @@ public class PropertyParameter {
     @JsonProperty
     private String limit;
     @JsonProperty
-    private Map<String, String> keys;
+    private Map<String, String> keyValues;
     @JsonProperty
     private List<String> names;
 
@@ -61,14 +61,6 @@ public class PropertyParameter {
 
     public void setLimit(String limit) {
         this.limit = limit;
-    }
-
-    public Map<String, String> getKeys() {
-        return keys;
-    }
-
-    public void setKeys(Map<String, String> keys) {
-        this.keys = keys;
     }
 
     public List<String> getNames() {

@@ -21,6 +21,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -30,12 +32,13 @@ import java.util.Properties;
 public class ClientConfigurationFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConfigurationFactory.class);
 
-    public static final String DEFAULT_PROTOCOL = "http";
-    public static final int DEFAULT_CONNECT_TIMEOUT_MS = 1000;
-    public static final int DEFAULT_READ_TIMEOUT_MS = 1000;
-    public static final String DEFAULT_CLIENT_PROPERTIES_FILE_NAME = "/client.properties";
-    public static final String AXIBASE_TSD_API_DOMAIN = "axibase.tsd.api";
-    public static final String DEFAULT_API_PATH = "/api/v1";
+    private static final String DEFAULT_PROTOCOL = "http";
+    private static final int DEFAULT_CONNECT_TIMEOUT_MS = 1000;
+    private static final int DEFAULT_READ_TIMEOUT_MS = 1000;
+    private static final String DEFAULT_CLIENT_PROPERTIES_FILE_NAME = "/client.properties";
+    private static final String AXIBASE_TSD_API_DOMAIN = "axibase.tsd.api";
+    private static final String DEFAULT_API_PATH = "/api/v1";
+    private static final String CLASSPATH_PREFIX = "classpath:";
 
     private String serverName;
     private String serverPort;
@@ -51,19 +54,28 @@ public class ClientConfigurationFactory {
     }
 
     public static ClientConfigurationFactory getInstance() {
-        String defaultClientPropertiesFileName = DEFAULT_CLIENT_PROPERTIES_FILE_NAME;
+        String clientPropertiesFileName = DEFAULT_CLIENT_PROPERTIES_FILE_NAME;
         String sysPropertiesFileName = System.getProperty(AXIBASE_TSD_API_DOMAIN + ".client.properties");
         if (StringUtils.isNotBlank(sysPropertiesFileName)) {
-            defaultClientPropertiesFileName = sysPropertiesFileName;
+            clientPropertiesFileName = sysPropertiesFileName;
         }
-        return getInstance(defaultClientPropertiesFileName);
+        return getInstance(clientPropertiesFileName);
     }
 
     public static ClientConfigurationFactory getInstance(String clientPropertiesFileName) {
         log.debug("Load client properties from file: {}", clientPropertiesFileName);
         Properties clientProperties = new Properties();
         try {
-            InputStream stream = ClientConfigurationFactory.class.getResourceAsStream(clientPropertiesFileName);
+            InputStream stream = null;
+            if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
+                String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
+                log.info("Load properties from classpath: {}", resourcePath);
+                stream = ClientConfigurationFactory.class.getResourceAsStream(resourcePath);
+            } else {
+                File file = new File(clientPropertiesFileName);
+                log.info("Load properties from file: {}", file.getAbsolutePath());
+                stream = new FileInputStream(file);
+            }
             clientProperties.load(stream);
             IOUtils.closeQuietly(stream);
         } catch (Throwable e) {

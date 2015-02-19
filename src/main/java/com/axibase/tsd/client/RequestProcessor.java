@@ -16,6 +16,7 @@ package com.axibase.tsd.client;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -32,9 +33,9 @@ class RequestProcessor<T> {
 
     public Response process(Invocation.Builder request, String mediaType) {
         if (type == Type.DELETE) {
-            return request.accept(mediaType).delete();
+            return request.accept(MediaType.APPLICATION_JSON, mediaType).delete();
         } else {
-            return request.accept(mediaType).method(type.name(), Entity.entity(command, mediaType));
+            return request.accept(MediaType.APPLICATION_JSON, mediaType).method(type.name(), Entity.entity(command, mediaType));
         }
     }
 
