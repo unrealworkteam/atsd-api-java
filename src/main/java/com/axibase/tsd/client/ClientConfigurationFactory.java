@@ -35,7 +35,7 @@ public class ClientConfigurationFactory {
     private static final String DEFAULT_PROTOCOL = "http";
     private static final int DEFAULT_CONNECT_TIMEOUT_MS = 1000;
     private static final int DEFAULT_READ_TIMEOUT_MS = 1000;
-    private static final String DEFAULT_CLIENT_PROPERTIES_FILE_NAME = "/client.properties";
+    private static final String DEFAULT_CLIENT_PROPERTIES_FILE_NAME = "classpath:/client.properties";
     private static final String AXIBASE_TSD_API_DOMAIN = "axibase.tsd.api";
     private static final String DEFAULT_API_PATH = "/api/v1";
     private static final String CLASSPATH_PREFIX = "classpath:";
