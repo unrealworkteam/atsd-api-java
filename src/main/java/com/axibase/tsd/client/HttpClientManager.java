@@ -26,12 +26,14 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * Manages http client. Provides low-level API to request and update Data and Metadata ATSD objects.
+ *
  * @author Nikolay Malevanny.
  */
 public class HttpClientManager {
-    public static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
-    public static final int DEFAULT_MAX_TOTAL = 100;
-    public static final int DEFAULT_MAX_IDLE = 100;
+    private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
+    private static final int DEFAULT_MAX_TOTAL = 100;
+    private static final int DEFAULT_MAX_IDLE = 100;
 
     private ClientConfiguration clientConfiguration;
     private GenericObjectPoolConfig objectPoolConfig;

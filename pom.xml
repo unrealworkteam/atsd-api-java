@@ -22,8 +22,19 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Development</name>
+            <email>no_reply@axibase.com</email>
+            <organization>Axibase Corporation</organization>
+            <organizationUrl>https://axibase.com</organizationUrl>
+        </developer>
+    </developers>
+
     <scm>
-        <url>https://github.com/axibase/atsd-api-java</url>
+        <connection>scm:git:git@github.com:axibase/atsd-api-java.git</connection>
+        <developerConnection>scm:git:git@github.com:axibase/atsd-api-java.git</developerConnection>
+        <url>git@github.com:axibase/atsd-api-java.git</url>
     </scm>
 
     <distributionManagement>
@@ -147,6 +158,20 @@
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>
