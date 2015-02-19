@@ -17,12 +17,10 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.model.system.ServerError;
 import com.axibase.tsd.query.QueryPart;
-import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.util.EntityUtils;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -66,7 +64,7 @@ class HttpClient {
                 .register(JsonParseExceptionMapper.class)
                 .register(JacksonJaxbJsonProvider.class, new Class[]{MessageBodyReader.class, MessageBodyWriter.class})
                 .register(RequestBodyLogger.class)
-                .register(HttpAuthenticationFeature.basic(clientConfiguration.getUserName(), clientConfiguration.getPassword()))
+                .register(HttpAuthenticationFeature.basic(clientConfiguration.getUsername(), clientConfiguration.getPassword()))
         ;
 
         ConnectorProvider connectorProvider = new ApacheConnectorProvider();
@@ -86,15 +84,15 @@ class HttpClient {
     }
 
     <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
-        return requestList(clientConfiguration.getMetaDataUrl(), clazz, query, null);
+        return requestList(clientConfiguration.getMetadataUrl(), clazz, query, null);
     }
 
     public <T> T requestMetaDataObject(Class<T> clazz, QueryPart<T> query) {
-        return requestObject(clientConfiguration.getMetaDataUrl(), clazz, query);
+        return requestObject(clientConfiguration.getMetadataUrl(), clazz, query);
     }
 
     public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
-        return update(clientConfiguration.getMetaDataUrl(), query, requestProcessor);
+        return update(clientConfiguration.getMetadataUrl(), query, requestProcessor);
     }
 
     public <E> boolean updateData(QueryPart query, RequestProcessor<E> requestProcessor) {

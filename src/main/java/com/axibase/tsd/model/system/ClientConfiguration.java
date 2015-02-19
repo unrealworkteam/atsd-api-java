@@ -15,35 +15,43 @@
 package com.axibase.tsd.model.system;
 
 /**
+ * Contains client configuration parameters.
+ *
  * @author Nikolay Malevanny.
  */
 public class ClientConfiguration {
     public static final int DEFAULT_TIMEOUT = 1000;
 
-    private final String metaDataUrl;
+    private final String metadataUrl;
     private final String dataUrl;
-    private final String userName;
+    private final String username;
     private final String password;
     private int connectTimeout = DEFAULT_TIMEOUT;
     private int readTimeout = DEFAULT_TIMEOUT;
 
-    public ClientConfiguration(String metaDataUrl, String timeSeriesUrl, String userName, String password) {
-        this.metaDataUrl = metaDataUrl;
-        this.dataUrl = timeSeriesUrl;
-        this.userName = userName;
+    /**
+     * @param metadataUrl full URL to Metadata ATSD API
+     * @param dataUrl full URL to Data ATSD API
+     * @param username user name to login
+     * @param password password to login
+     */
+    public ClientConfiguration(String metadataUrl, String dataUrl, String username, String password) {
+        this.metadataUrl = metadataUrl;
+        this.dataUrl = dataUrl;
+        this.username = username;
         this.password = password;
     }
 
-    public String getMetaDataUrl() {
-        return metaDataUrl;
+    public String getMetadataUrl() {
+        return metadataUrl;
     }
 
     public String getDataUrl() {
         return dataUrl;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
     public String getPassword() {

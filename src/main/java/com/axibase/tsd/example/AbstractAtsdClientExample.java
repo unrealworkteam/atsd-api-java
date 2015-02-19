@@ -37,7 +37,7 @@ public abstract class AbstractAtsdClientExample {
     protected void configure() {
         System.out.println("Getting Started with Axibase TSD");
         ClientConfiguration clientConfiguration = ClientConfigurationFactory.getInstance().createClientConfiguration();
-        System.out.println("Connecting to ATSD: " + clientConfiguration.getMetaDataUrl());
+        System.out.println("Connecting to ATSD: " + clientConfiguration.getMetadataUrl());
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
         dataService = new DataService(httpClientManager);
         metaDataService = new MetaDataService(httpClientManager);
