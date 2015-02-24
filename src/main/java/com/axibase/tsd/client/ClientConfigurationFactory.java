@@ -42,29 +42,29 @@ public class ClientConfigurationFactory {
     private static final String DEFAULT_API_PATH = "/api/v1";
     private static final String CLASSPATH_PREFIX = "classpath:";
 
+    private String protocol;
     private String serverName;
     private String serverPort;
-    private String username;
-    private String password;
     private String metadataPath;
     private String dataPath;
-    private String protocol;
+    private String username;
+    private String password;
     private int connectTimeout;
     private int readTimeout;
 
     private ClientConfigurationFactory() {
     }
 
-    public static ClientConfigurationFactory getInstance() {
+    public static ClientConfigurationFactory createInstance() {
         String clientPropertiesFileName = DEFAULT_CLIENT_PROPERTIES_FILE_NAME;
         String sysPropertiesFileName = System.getProperty(AXIBASE_TSD_API_DOMAIN + ".client.properties");
         if (StringUtils.isNotBlank(sysPropertiesFileName)) {
             clientPropertiesFileName = sysPropertiesFileName;
         }
-        return getInstance(clientPropertiesFileName);
+        return createInstance(clientPropertiesFileName);
     }
 
-    public static ClientConfigurationFactory getInstance(String clientPropertiesFileName) {
+    public static ClientConfigurationFactory createInstance(String clientPropertiesFileName) {
         log.debug("Load client properties from file: {}", clientPropertiesFileName);
         Properties clientProperties = new Properties();
         try {
@@ -99,6 +99,20 @@ public class ClientConfigurationFactory {
         configurationFactory.readTimeout = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
                 , clientProperties, DEFAULT_READ_TIMEOUT_MS);
         return configurationFactory;
+    }
+
+    public ClientConfigurationFactory(String protocol, String serverName, String serverPort, String metadataPath, String dataPath, String username, String password,
+                                      int connectTimeout,
+                                      int readTimeout) {
+        this.serverName = serverName;
+        this.serverPort = serverPort;
+        this.username = username;
+        this.password = password;
+        this.metadataPath = metadataPath;
+        this.dataPath = dataPath;
+        this.protocol = protocol;
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
     }
 
     public ClientConfiguration createClientConfiguration() {

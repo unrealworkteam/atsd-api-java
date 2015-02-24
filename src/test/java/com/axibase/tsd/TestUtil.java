@@ -40,7 +40,7 @@ public class TestUtil {
     // -DargLine="-Daxibase.tsd.api.server.name=10.100.10.5 -Daxibase.tsd.api.server.port=8888"
     public static HttpClientManager buildHttpClientManager() {
         // Use -Daxibase.tsd.api.client.properties=<filename> to change default properties file name
-        ClientConfigurationFactory configurationFactory = ClientConfigurationFactory.getInstance();
+        ClientConfigurationFactory configurationFactory = ClientConfigurationFactory.createInstance();
         ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
         HttpClientManager httpClientManager = new HttpClientManager();
         httpClientManager.setClientConfiguration(clientConfiguration);
