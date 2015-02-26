@@ -14,8 +14,6 @@
 */
 package com.axibase.tsd.query;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.ws.rs.client.WebTarget;
 
 /**

@@ -14,11 +14,12 @@
 */
 package com.axibase.tsd.util;
 
-import com.axibase.tsd.model.data.Series;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.MediaType;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.

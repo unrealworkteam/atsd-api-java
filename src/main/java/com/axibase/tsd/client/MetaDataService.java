@@ -14,20 +14,17 @@
 */
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.model.meta.*;
 import com.axibase.tsd.model.meta.command.AddEntitiesCommand;
 import com.axibase.tsd.model.meta.command.DeleteEntitiesCommand;
-import com.axibase.tsd.model.meta.*;
 import com.axibase.tsd.model.meta.command.SimpleCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
-import com.axibase.tsd.util.AtsdUtil;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.axibase.tsd.client.RequestProcessor.delete;
-import static com.axibase.tsd.client.RequestProcessor.patch;
-import static com.axibase.tsd.client.RequestProcessor.put;
+import static com.axibase.tsd.client.RequestProcessor.*;
 import static com.axibase.tsd.util.AtsdUtil.check;
 
 /**

@@ -15,15 +15,17 @@
 package com.axibase.tsd.example;
 
 import com.axibase.tsd.client.SeriesCommandPreparer;
-import com.axibase.tsd.model.data.command.AggregateMatcher;
-import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
+import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.util.AtsdUtil;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Nikolay Malevanny.

@@ -15,8 +15,8 @@
 package com.axibase.tsd.example;
 
 import com.axibase.tsd.model.data.command.AggregateMatcher;
-import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
+import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.meta.EntityAndTags;
 import com.axibase.tsd.model.meta.Metric;
 
