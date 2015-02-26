@@ -51,6 +51,7 @@ public class ClientConfigurationFactory {
     private String password;
     private int connectTimeout;
     private int readTimeout;
+    boolean ignoreSSLCertificateErrors;
 
     private ClientConfigurationFactory() {
     }
@@ -98,12 +99,14 @@ public class ClientConfigurationFactory {
                 , clientProperties, DEFAULT_CONNECT_TIMEOUT_MS);
         configurationFactory.readTimeout = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
                 , clientProperties, DEFAULT_READ_TIMEOUT_MS);
+        configurationFactory.ignoreSSLCertificateErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
+                , clientProperties, "false").toLowerCase().trim());
         return configurationFactory;
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, String serverPort, String metadataPath, String dataPath, String username, String password,
                                       int connectTimeout,
-                                      int readTimeout) {
+                                      int readTimeout, boolean ignoreSSLCertificateErrors) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -113,6 +116,7 @@ public class ClientConfigurationFactory {
         this.protocol = protocol;
         this.connectTimeout = connectTimeout;
         this.readTimeout = readTimeout;
+        this.ignoreSSLCertificateErrors = ignoreSSLCertificateErrors;
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -122,6 +126,7 @@ public class ClientConfigurationFactory {
                 password);
         clientConfiguration.setConnectTimeout(connectTimeout);
         clientConfiguration.setReadTimeout(readTimeout);
+        clientConfiguration.setIgnoreSSLErrors(ignoreSSLCertificateErrors);
         return clientConfiguration;
     }
 

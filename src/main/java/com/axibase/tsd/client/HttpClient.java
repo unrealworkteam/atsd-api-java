@@ -21,6 +21,18 @@ import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.StrictHostnameVerifier;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.SslConfigurator;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -30,6 +42,9 @@ import org.glassfish.jersey.filter.LoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -42,6 +57,10 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.KeyManagementException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,13 +89,14 @@ class HttpClient {
                 .register(HttpAuthenticationFeature.basic(clientConfiguration.getUsername(), clientConfiguration.getPassword()))
         ;
 
-        ConnectorProvider connectorProvider = new ApacheConnectorProvider();
-        clientConfig.connectorProvider(connectorProvider);
-
-
         if (log.isDebugEnabled()) {
             clientConfig.register(new LoggingFilter(legacyLogger, true));
         }
+
+        configureHttps(clientConfiguration, clientConfig);
+
+        ConnectorProvider connectorProvider = new ApacheConnectorProvider();
+        clientConfig.connectorProvider(connectorProvider);
 
         client = ClientBuilder.newBuilder().withConfig(clientConfig).build();
 
@@ -84,6 +104,52 @@ class HttpClient {
         client.property(ClientProperties.READ_TIMEOUT, 3000);
 
         this.clientConfiguration = clientConfiguration;
+    }
+
+    private void configureHttps(ClientConfiguration clientConfiguration, ClientConfig clientConfig) {
+        SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
+        SSLContext sslContext = sslConfig.createSSLContext();
+        X509HostnameVerifier hostnameVerifier;
+        if (clientConfiguration.isIgnoreSSLErrors()) {
+            ignoreSslCertificateErrorInit(sslContext);
+            hostnameVerifier = new AllowAllHostnameVerifier();
+        } else {
+            hostnameVerifier = new StrictHostnameVerifier();
+        }
+
+        LayeredConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+                sslContext,
+                hostnameVerifier);
+
+        final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", sslSocketFactory)
+                .build();
+        clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER, new PoolingHttpClientConnectionManager(registry));
+        clientConfig.property(ApacheClientProperties.SSL_CONFIG, sslConfig);
+    }
+
+    private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
+        try {
+            sslContext.init(null, new TrustManager[] {
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        }
+
+                        @Override
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            }, new SecureRandom());
+        } catch (KeyManagementException e) {
+            log.warn("SSL context initialization error: ", e);
+        }
     }
 
     <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {

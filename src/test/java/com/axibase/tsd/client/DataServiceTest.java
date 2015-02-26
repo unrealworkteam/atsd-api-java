@@ -120,7 +120,7 @@ public class DataServiceTest {
         assertEquals(10, getSeriesResults.get(0).getData().size());
     }
 
-    // @Test // in progress
+    @Test
     public void testRetrieveLastSeries() throws Exception {
         GetSeriesCommand c1 = createTestGetTestCommand();
         c1.setAggregateMatcher(null);

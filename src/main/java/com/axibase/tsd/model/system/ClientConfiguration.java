@@ -28,6 +28,8 @@ public class ClientConfiguration {
     private final String password;
     private int connectTimeout = DEFAULT_TIMEOUT;
     private int readTimeout = DEFAULT_TIMEOUT;
+    private boolean ignoreSSLErrors = false;
+
 
     /**
      * @param metadataUrl full URL to Metadata ATSD API
@@ -62,15 +64,23 @@ public class ClientConfiguration {
         return connectTimeout;
     }
 
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
-    }
-
     public int getReadTimeout() {
         return readTimeout;
     }
 
+    public boolean isIgnoreSSLErrors() {
+        return ignoreSSLErrors;
+    }
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public void setIgnoreSSLErrors(boolean ignoreSSLErrors) {
+        this.ignoreSSLErrors = ignoreSSLErrors;
     }
 }
