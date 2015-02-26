@@ -88,7 +88,7 @@ class HttpClient {
     }
 
     public <T> T requestMetaDataObject(Class<T> clazz, QueryPart<T> query) {
-        return requestObject(clientConfiguration.getMetadataUrl(), clazz, query);
+        return requestObject(clientConfiguration.getMetadataUrl(), clazz, query, null);
     }
 
     public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
@@ -108,6 +108,11 @@ class HttpClient {
         return requestList(url, clazz, query, requestProcessor);
     }
 
+    public <T, E> T requestData(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        String url = clientConfiguration.getDataUrl();
+        return requestObject(url, clazz, query, requestProcessor);
+    }
+
     private <T, E> List<T> requestList(String url, Class<T> resultClass, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
         if (response.getStatus() == HTTP_STATUS_OK) {
@@ -119,8 +124,8 @@ class HttpClient {
         }
     }
 
-    private <T> T requestObject(String url, Class<T> resultClass, QueryPart<T> query) {
-        Response response = doRequest(url, query, null);
+    private <T, E> T requestObject(String url, Class<T> resultClass, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        Response response = doRequest(url, query, requestProcessor);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return response.readEntity(resultClass);
         } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {

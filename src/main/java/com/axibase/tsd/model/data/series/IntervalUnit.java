@@ -12,29 +12,18 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.data;
+package com.axibase.tsd.model.data.series;
 
 /**
  * @author Nikolay Malevanny.
  */
-public enum SeriesType {
-    DETAIL,
-    COUNT,
-    MIN,
-    MAX,
-    AVG,
-    SUM,
-    PERCENTILE_999,
-    PERCENTILE_995,
-    PERCENTILE_99,
-    PERCENTILE_95,
-    PERCENTILE_90,
-    PERCENTILE_75,
-    PERCENTILE_50,
-    STANDARD_DEVIATION,
-    FIRST,
-    LAST,
-    DELTA,
-    WAVG,
-    WTAVG
+public enum IntervalUnit {
+    SECOND,
+    MINUTE,
+    HOUR,
+    DAY,
+    WEEK,
+    MONTH,
+    QUARTER,
+    YEAR
 }

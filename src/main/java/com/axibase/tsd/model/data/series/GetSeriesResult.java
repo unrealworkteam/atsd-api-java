@@ -12,13 +12,13 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.data;
+package com.axibase.tsd.model.data.series;
 
+import com.axibase.tsd.model.data.SeriesType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,94 +27,96 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class GetSeriesResult {
-    @JsonProperty
-    private String id;
-    @JsonProperty
+    private Long startTime;
+    private Long endTime;
     private String requestId;
     @JsonProperty("entity")
     private String entityName;
     @JsonProperty("metric")
     private String metricName;
-    @JsonProperty
     private Map<String, String> tags;
-    @JsonProperty
     private SeriesType type;
-    @JsonProperty
-    private Integer intervalCount;
-    @JsonProperty
-    private IntervalUnit intervalUnit;
-    @JsonProperty
+    private Rate rate;
+    private Aggregate aggregate;
     private List<Series> data;
 
     public GetSeriesResult() {
     }
 
-    public String getId() {
-        return id;
+    public Long getStartTime() {
+        return startTime;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public Long getEndTime() {
+        return endTime;
     }
 
     public String getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
     public String getEntityName() {
         return entityName;
-    }
-
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
     }
 
     public String getMetricName() {
         return metricName;
     }
 
-    public void setMetricName(String metricName) {
-        this.metricName = metricName;
-    }
-
     public Map<String, String> getTags() {
         return tags;
-    }
-
-    public void setTags(Map<String, String> tags) {
-        this.tags = tags;
     }
 
     public SeriesType getType() {
         return type;
     }
 
-    public void setType(SeriesType type) {
-        this.type = type;
+    public Rate getRate() {
+        return rate;
     }
 
-    public Integer getIntervalCount() {
-        return intervalCount;
-    }
-
-    public void setIntervalCount(Integer intervalCount) {
-        this.intervalCount = intervalCount;
-    }
-
-    public IntervalUnit getIntervalUnit() {
-        return intervalUnit;
-    }
-
-    public void setIntervalUnit(IntervalUnit intervalUnit) {
-        this.intervalUnit = intervalUnit;
+    public Aggregate getAggregate() {
+        return aggregate;
     }
 
     public List<Series> getData() {
         return data;
+    }
+
+    public void setStartTime(Long startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(Long endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public void setMetricName(String metricName) {
+        this.metricName = metricName;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+
+    public void setType(SeriesType type) {
+        this.type = type;
+    }
+
+    public void setRate(Rate rate) {
+        this.rate = rate;
+    }
+
+    public void setAggregate(Aggregate aggregate) {
+        this.aggregate = aggregate;
     }
 
     public void setData(List<Series> data) {
@@ -132,14 +134,15 @@ public class GetSeriesResult {
     @Override
     public String toString() {
         return "GetSeriesResult{" +
-                "id='" + id + '\'' +
+                "startTime=" + startTime +
+                ", endTime=" + endTime +
                 ", requestId='" + requestId + '\'' +
                 ", entityName='" + entityName + '\'' +
                 ", metricName='" + metricName + '\'' +
                 ", tags=" + tags +
                 ", type=" + type +
-                ", intervalCount=" + intervalCount +
-                ", intervalUnit=" + intervalUnit +
+                ", rate=" + rate +
+                ", aggregate=" + aggregate +
                 ", data=" + data +
                 '}';
     }

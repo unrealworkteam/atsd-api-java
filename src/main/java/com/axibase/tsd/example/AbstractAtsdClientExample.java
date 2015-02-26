@@ -18,8 +18,8 @@ import com.axibase.tsd.client.ClientConfigurationFactory;
 import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.client.MetaDataService;
-import com.axibase.tsd.model.data.GetSeriesResult;
-import com.axibase.tsd.model.data.Series;
+import com.axibase.tsd.model.data.series.GetSeriesResult;
+import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 

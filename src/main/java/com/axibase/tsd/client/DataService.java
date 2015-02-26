@@ -14,14 +14,18 @@
 */
 package com.axibase.tsd.client;
 
-import com.axibase.tsd.model.data.*;
+import com.axibase.tsd.model.data.Alert;
+import com.axibase.tsd.model.data.AlertHistory;
+import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.Severity;
 import com.axibase.tsd.model.data.command.*;
+import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
+import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
@@ -33,6 +37,8 @@ import static com.axibase.tsd.util.AtsdUtil.check;
  * @author Nikolay Malevanny.
  */
 public class DataService {
+    public static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();
+
     private HttpClientManager httpClientManager;
 
     public DataService() {
@@ -47,40 +53,23 @@ public class DataService {
     }
 
     /**
-     * @param startTime     start of the selection interval, specified in Unix (epoch) milliseconds. If startTime is not specified, its set to current server time minus 1 hour.
-     * @param endTime       end of the selection interval, specified in Unix (epoch) milliseconds. If endTime is not specified, its set to current server time.
-     * @param limit         maximum number of data samples returned. The limit is applied to each series in the response separately.
      * @param seriesQueries queries with details, each query property overrides common one in the request parameters
      * @return list of {@code GetSeriesResult}
      */
-    public List<GetSeriesResult> retrieveSeries(Long startTime,
-                                                Long endTime,
-                                                Integer limit,
-                                                GetSeriesCommand... seriesQueries) {
-        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
-                .param("json", "true")
-                .param("startTime", startTime)
-                .param("endTime", endTime)
-                .param("limit", limit);
-        return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                post(seriesQueries));
+    public List<GetSeriesResult> retrieveSeries(GetSeriesCommand... seriesQueries) {
+        QueryPart<GetSeriesBatchResult> query = new Query<GetSeriesBatchResult>("series");
+        GetSeriesBatchResult seriesBatchResult = httpClientManager.requestData(GetSeriesBatchResult.class, query,
+                post(new GetSeriesBatchCommand(Arrays.asList(seriesQueries))));
+        return seriesBatchResult.getSeriesResults();
     }
 
-    /**
-     * @param interval      replaces startTime - endTime values with endTime = now, startTime = now - interval. Format: interval=intervalCount-intervalUnit. Example: Interval=1-hour
-     * @param limit         maximum number of data samples returned. The limit is applied to each series in the response separately.
-     * @param seriesQueries queries with details, each query property overrides common one in the request parameters
-     * @return list of {@code GetSeriesResult}
-     */
-    public List<GetSeriesResult> retrieveSeries(Interval interval,
-                                                Integer limit,
-                                                GetSeriesCommand... seriesQueries) {
-        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
-                .param("json", "true")
-                .param("interval", interval)
-                .param("limit", limit);
-        return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                post(seriesQueries));
+    public List<GetSeriesResult> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesCommand... seriesQueries) {
+        if (preparer != null) {
+            for (GetSeriesCommand seriesQuery : seriesQueries) {
+                preparer.prepare(seriesQuery);
+            }
+        }
+        return retrieveSeries(seriesQueries);
     }
 
     /**
@@ -122,10 +111,7 @@ public class DataService {
      * @return list of {@code GetSeriesResult}
      */
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
-        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
-                .path("last");
-        return httpClientManager.requestDataList(GetSeriesResult.class, query,
-                post(seriesQueries));
+        return retrieveSeries(LAST_PREPARER, seriesQueries);
     }
 
     /**
@@ -204,5 +190,12 @@ public class DataService {
             }
         }
         return query;
+    }
+
+    private static class LastPreparer implements SeriesCommandPreparer {
+        @Override
+        public void prepare(GetSeriesCommand command) {
+            command.setLast(true);
+        }
     }
 }

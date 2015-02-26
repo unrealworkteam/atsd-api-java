@@ -118,6 +118,15 @@ public class HttpClientManager {
         }
     }
 
+    public <T,E> T requestData(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            return httpClient.requestData(clazz, query, requestProcessor);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
+
     private HttpClient borrowClient() {
         GenericObjectPool<HttpClient> objectPool = createObjectPool();
         HttpClient httpClient;

@@ -12,9 +12,11 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.data;
+package com.axibase.tsd.model.data.series;
 
 import com.axibase.tsd.query.ParamValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Nikolay Malevanny.
@@ -23,9 +25,24 @@ public class Interval implements ParamValue {
     private final int count;
     private final IntervalUnit unit;
 
-    public Interval(int count, IntervalUnit unit) {
+    @JsonCreator
+    public Interval(@JsonProperty("count") int count, @JsonProperty("unit") IntervalUnit unit) {
         this.count = count;
         this.unit = unit;
+    }
+
+    /**
+     * Number of aggregation intervals
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * Aggregation interval unit: SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, YEAR
+     */
+    public IntervalUnit getUnit() {
+        return unit;
     }
 
     @Override

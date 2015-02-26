@@ -14,10 +14,9 @@
 */
 package com.axibase.tsd.example;
 
-import com.axibase.tsd.model.data.GetSeriesResult;
-import com.axibase.tsd.model.data.Interval;
-import com.axibase.tsd.model.data.IntervalUnit;
-import com.axibase.tsd.model.data.Series;
+import com.axibase.tsd.client.SeriesCommandPreparer;
+import com.axibase.tsd.model.data.command.AggregateMatcher;
+import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
 import com.axibase.tsd.util.AtsdUtil;
@@ -60,7 +59,15 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
 
     private void printData() {
         Map<String, String> tags = AtsdUtil.toMap("app_name", "atsd_writer_example");
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(new Interval(CNT + 2, IntervalUnit.SECOND), CNT,
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
+                new SeriesCommandPreparer() {
+                    @Override
+                    public void prepare(GetSeriesCommand command) {
+                        command.setLimit(CNT);
+                        command.setStartTime(System.currentTimeMillis() - (CNT + 2) * 1000L);
+                        command.setEndTime(System.currentTimeMillis());
+                    }
+                },
                 new GetSeriesCommand(hostName, "total_memory_mb", tags),
                 new GetSeriesCommand(hostName, "free_memory_mb", tags)
         );

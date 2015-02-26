@@ -14,10 +14,8 @@
 */
 package com.axibase.tsd.example;
 
-import com.axibase.tsd.model.data.GetSeriesResult;
-import com.axibase.tsd.model.data.Interval;
-import com.axibase.tsd.model.data.IntervalUnit;
-import com.axibase.tsd.model.data.Series;
+import com.axibase.tsd.model.data.command.AggregateMatcher;
+import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.command.GetSeriesCommand;
 import com.axibase.tsd.model.meta.EntityAndTags;
 import com.axibase.tsd.model.meta.Metric;
@@ -58,7 +56,8 @@ public class AtsdClientReadExample extends AbstractAtsdClientExample {
 
             System.out.println("===Series===");
             GetSeriesCommand command = new GetSeriesCommand(entityName, metric.getName(), tags);
-            List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(new Interval(1, IntervalUnit.MINUTE), 10, command);
+            command.setAggregateMatcher(new AggregateMatcher(new Interval(1, IntervalUnit.MINUTE), Interpolate.NONE, AggregateType.DETAIL));
+            List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(command);
             for (GetSeriesResult getSeriesResult : getSeriesResults) {
                 print(getSeriesResult);
             }
