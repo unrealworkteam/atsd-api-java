@@ -93,11 +93,11 @@ Use -Daxibase.tsd.api.client.properties=./local.client.properties
 
 **local.client.properties** example:
 ```
-        axibase.tsd.api.server.name=writeyourownservername.com
-        #axibase.tsd.api.server.port=8088
-        axibase.tsd.api.server.port=8443
+        axibase.tsd.api.server.name=writeyourownATSDservername.com
+        axibase.tsd.api.server.port=8088
+        #axibase.tsd.api.server.port=8443
         #axibase.tsd.api.protocol=https
-        axibase.tsd.api.ssl.errors.ignore=true
+        #axibase.tsd.api.ssl.errors.ignore=true
         axibase.tsd.api.username=username
         axibase.tsd.api.password=pwd
 ```
