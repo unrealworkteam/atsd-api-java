@@ -8,7 +8,7 @@ By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get star
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>0.3.5</version>
+            <version>0.3.6</version>
         </dependency>
 ```
 
@@ -63,14 +63,14 @@ Download the latest version of ATSD that is available for your Linux distributio
 
 Minimum requirements for running the ATSD Client: Java 1.6+.
 
-￼We recommend installing the ATSD Client for Java by using Maven. Build the ATSD Client with
-￼Maven after checking out the code from GitHub.
+We recommend installing the ATSD Client for Java by using Maven. Build the ATSD Client with
+Maven after checking out the code from GitHub.
 
 ```
 git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
-java -cp "atsd-api-java-0.3.5.jar:dependency/*" com.axibase.tsd.example.AtsdClientExample
+java -cp "atsd-api-java-0.3.6.jar:dependency/*" com.axibase.tsd.example.AtsdClientExample
 ```
 
 ## Examples
@@ -81,11 +81,13 @@ See:
 
 ### Client Configuration
 
-#### Way 1
+#### Option 1
 Use -Daxibase.tsd.api.client.properties=./local.client.properties
 
 ```java
-        ClientConfiguration clientConfiguration = ClientConfigurationFactory.createInstance().createClientConfiguration();
+        ClientConfiguration clientConfiguration = ClientConfigurationFactory
+            .createInstance()
+            .createClientConfiguration();
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
         dataService = new DataService(httpClientManager);
         metaDataService = new MetaDataService(httpClientManager);
@@ -93,8 +95,8 @@ Use -Daxibase.tsd.api.client.properties=./local.client.properties
 
 **local.client.properties** example:
 ```
-        axibase.tsd.api.server.name=writeyourownATSDservername.com
-        axibase.tsd.api.server.port=8088
+        axibase.tsd.api.server.name=atsd_server
+        axibase.tsd.api.server.port=8080
         #axibase.tsd.api.server.port=8443
         #axibase.tsd.api.protocol=https
         #axibase.tsd.api.ssl.errors.ignore=true
@@ -110,18 +112,19 @@ Usage
         atsdClientWriteExample.printData();
 ```
 
-#### Way 2
+#### Option 2
 Use pure Java.
 ```java
         ClientConfigurationFactory configurationFactory = new ClientConfigurationFactory(
-                "http", "writeyourownATSDservername.com", 8088, // serverPort
+                "http", "atsd_server", 8080, // serverPort
                 "/api/v1", "/api/v1",
                 "username", "pwd",
-                3, // connectTimeout
-                3, // readTimeout
+                3000, // connectTimeoutMillis
+                3000, // readTimeoutMillis
                 false // ignoreSSLErrors
         );
-        ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
+        ClientConfiguration clientConfiguration = configurationFactory
+            .createClientConfiguration();
         System.out.println("Connecting to ATSD: " + clientConfiguration.getMetadataUrl());
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
 
@@ -145,7 +148,7 @@ Usage
 ```
 
 
-#### Way 3
+#### Option 3
 Use Spring.
 See **example-beans.xml**
 ```xml
@@ -153,11 +156,13 @@ See **example-beans.xml**
         <bean id="dataService" class="com.axibase.tsd.client.DataService"/>
         <bean id="metaDataService" class="com.axibase.tsd.client.MetaDataService"/>
         <bean id="httpClientManager" class="com.axibase.tsd.client.HttpClientManager"/>
-        <bean id="genericObjectPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+        <bean id="genericObjectPoolConfig"
+            class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
             <property name="maxTotal" value="3"/>
         </bean>
-        <bean id="clientConfiguration" class="com.axibase.tsd.model.system.ClientConfiguration">
-            <constructor-arg name="url" value="http://writeyourownATSDservername.com:8080/api/v1"/>
+        <bean id="clientConfiguration"
+            class="com.axibase.tsd.model.system.ClientConfiguration">
+            <constructor-arg name="url" value="http://atsd_server:8080/api/v1"/>
             <constructor-arg name="username" value="username"/>
             <constructor-arg name="password" value="pwd"/>
         </bean>
@@ -165,30 +170,51 @@ See **example-beans.xml**
 
 Usage
 ```java
-            ApplicationContext context = new ClassPathXmlApplicationContext("example-beans.xml");
-            AtsdClientWriteExample example =(AtsdClientWriteExample)context.getBean("example");
+            ApplicationContext context =
+                new ClassPathXmlApplicationContext("example-beans.xml");
+            AtsdClientWriteExample example =
+                (AtsdClientWriteExample)context.getBean("example");
             example.writeData();
             example.printData();
 ```
 
 ### Metadata Processing
 ```java
+        String metricExample = "jvm_memory_used_percent";
         Metric metric = metaDataService.retrieveMetric(metricExample);
         if (metric == null) {
             System.out.println("Unknown metric: " + metricExample);
             return;
         }
-        List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(metric.getName(), null);
+        List<EntityAndTags> entityAndTagsList = metaDataService
+            .retrieveEntityAndTags(metric.getName(), null);
         System.out.println("===Metric MetaData===");
-        System.out.println("Metric: " + metric.getName());
+        System.out.println("Metric: " + metric);
+        for (EntityAndTags entityAndTags : entityAndTagsList) {
+            String entityName = entityAndTags.getEntityName();
+            System.out.println("\n===Entity MetaData===");
+            System.out.println("Entity: " + entityName);
+            Map<String, String> tags = entityAndTags.getTags();
+            System.out.println("===Tags===");
+            for (Map.Entry<String, String> tagAndValue : tags.entrySet()) {
+                System.out.println("\t" + tagAndValue.getKey() + " : " + tagAndValue.getValue());
+            }
+        }
 ```
 
 ### Data Queries
 ```java
-        GetSeriesCommand command = new GetSeriesCommand(entityName, metric.getName(), tags);
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(new Interval(1, IntervalUnit.MINUTE), 10, command);
+        GetSeriesCommand command =
+            new GetSeriesCommand(entityName, metric.getName(), tags);
+        command.setAggregateMatcher(
+            new SimpleAggregateMatcher(new Interval(1, IntervalUnit.MINUTE),
+            Interpolate.NONE,
+            AggregateType.DETAIL));
+        List<GetSeriesResult> getSeriesResults =
+            dataService.retrieveSeries(command);
         for (GetSeriesResult getSeriesResult : getSeriesResults) {
-            System.out.println("Time Series Key: " + getSeriesResult.getTimeSeriesKey());
+            System.out.println("Time Series Key: "
+                + getSeriesResult.getTimeSeriesKey());
             List<Series> data = getSeriesResult.getData();
             for (Series series : data) {
                 long ts = series.getT();

@@ -20,14 +20,14 @@ package com.axibase.tsd.model.system;
  * @author Nikolay Malevanny.
  */
 public class ClientConfiguration {
-    public static final int DEFAULT_TIMEOUT = 1000;
+    public static final int DEFAULT_TIMEOUT_MS = 1000;
 
     private final String metadataUrl;
     private final String dataUrl;
     private final String username;
     private final String password;
-    private int connectTimeout = DEFAULT_TIMEOUT;
-    private int readTimeout = DEFAULT_TIMEOUT;
+    private int connectTimeoutMillis = DEFAULT_TIMEOUT_MS;
+    private int readTimeoutMillis = DEFAULT_TIMEOUT_MS;
     private boolean ignoreSSLErrors = false;
 
     /**
@@ -71,24 +71,24 @@ public class ClientConfiguration {
         return password;
     }
 
-    public int getConnectTimeout() {
-        return connectTimeout;
+    public int getConnectTimeoutMillis() {
+        return connectTimeoutMillis;
     }
 
-    public int getReadTimeout() {
-        return readTimeout;
+    public int getReadTimeoutMillis() {
+        return readTimeoutMillis;
     }
 
     public boolean isIgnoreSSLErrors() {
         return ignoreSSLErrors;
     }
 
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
+    public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-    public void setReadTimeout(int readTimeout) {
-        this.readTimeout = readTimeout;
+    public void setReadTimeoutMillis(int readTimeoutMillis) {
+        this.readTimeoutMillis = readTimeoutMillis;
     }
 
     public void setIgnoreSSLErrors(boolean ignoreSSLErrors) {

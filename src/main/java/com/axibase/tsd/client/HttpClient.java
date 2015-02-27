@@ -30,6 +30,7 @@ import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.StrictHostnameVerifier;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -100,8 +101,8 @@ class HttpClient {
 
         client = ClientBuilder.newBuilder().withConfig(clientConfig).build();
 
-        client.property(ClientProperties.CONNECT_TIMEOUT, 3000);
-        client.property(ClientProperties.READ_TIMEOUT, 3000);
+        client.property(ClientProperties.CONNECT_TIMEOUT, clientConfiguration.getConnectTimeoutMillis());
+        client.property(ClientProperties.READ_TIMEOUT, clientConfiguration.getReadTimeoutMillis());
 
         this.clientConfiguration = clientConfiguration;
     }

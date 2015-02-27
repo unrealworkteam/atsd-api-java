@@ -35,11 +35,12 @@ public class AtsdClientReadExample extends AbstractAtsdClientExample {
     public static void main(String[] args) {
         AtsdClientReadExample atsdClientReadExample = new AtsdClientReadExample();
         atsdClientReadExample.configure();
-//        atsdClientExample.printMetaDataAndData("jvm_memory_used_percent");
-        atsdClientReadExample.printMetaDataAndData("disk_used_percent");
+        atsdClientReadExample.printMetaDataAndData();
     }
 
-    private void printMetaDataAndData(String metricExample) {
+    private void printMetaDataAndData() {
+        String metricExample = "jvm_memory_used_percent";
+//        String metricExample = "disk_used_percent";
         Metric metric = metaDataService.retrieveMetric(metricExample);
         if (metric == null) {
             System.out.println("Unknown metric: " + metricExample);
@@ -47,7 +48,7 @@ public class AtsdClientReadExample extends AbstractAtsdClientExample {
         }
         List<EntityAndTags> entityAndTagsList = metaDataService.retrieveEntityAndTags(metric.getName(), null);
         System.out.println("===Metric MetaData===");
-        System.out.println("Metric: " + metric.getName());
+        System.out.println("Metric: " + metric);
         for (EntityAndTags entityAndTags : entityAndTagsList) {
             String entityName = entityAndTags.getEntityName();
             System.out.println("\n===Entity MetaData===");

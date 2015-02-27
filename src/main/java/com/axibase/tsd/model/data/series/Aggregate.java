@@ -15,6 +15,7 @@
 package com.axibase.tsd.model.data.series;
 
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
+import com.axibase.tsd.model.data.series.aggregate.Calendar;
 import com.axibase.tsd.model.data.series.aggregate.Threshold;
 import com.axibase.tsd.model.data.series.aggregate.WorkingMinutes;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,7 +32,7 @@ public class Aggregate {
     private Interpolate interpolate;
     private WorkingMinutes workingMinutes;
     private Threshold threshold;
-
+    private Calendar calendar;
 
     public Aggregate() {
     }
@@ -62,6 +63,10 @@ public class Aggregate {
         return threshold;
     }
 
+    public Calendar getCalendar() {
+        return calendar;
+    }
+
     public void setType(AggregateType type) {
         this.type = type;
     }
@@ -82,6 +87,10 @@ public class Aggregate {
         this.threshold = threshold;
     }
 
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
+    }
+
     @Override
     public String toString() {
         return "Aggregate{" +
@@ -90,6 +99,7 @@ public class Aggregate {
                 ", interpolate=" + interpolate +
                 ", workingMinutes=" + workingMinutes +
                 ", threshold=" + threshold +
+                ", calendar=" + calendar +
                 '}';
     }
 }

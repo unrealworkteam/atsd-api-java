@@ -17,21 +17,34 @@ package com.axibase.tsd.model.data.command;
 import com.axibase.tsd.model.data.series.Interpolate;
 import com.axibase.tsd.model.data.series.Interval;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
+import com.axibase.tsd.model.data.series.aggregate.Calendar;
 import com.axibase.tsd.model.data.series.aggregate.Threshold;
 import com.axibase.tsd.model.data.series.aggregate.WorkingMinutes;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * @author Nikolay Malevanny.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ThresholdAggregateMatcher extends SimpleAggregateMatcher {
+    private WorkingMinutes workingMinutes;
+    private Threshold threshold;
+    private Calendar calendar;
+
     protected ThresholdAggregateMatcher(Interval interval, Interpolate interpolate,
                                         AggregateType type, AggregateType... types) {
         super();
         init(interval, interpolate, type, types);
     }
 
-    private WorkingMinutes workingMinutes;
-    private Threshold threshold;
+    public ThresholdAggregateMatcher(Interval interval, Interpolate interpolate,
+                                     WorkingMinutes workingMinutes, Threshold threshold, Calendar calendar,
+                                     AggregateType type, AggregateType... types) {
+        super(interval, interpolate, type, types);
+        this.workingMinutes = workingMinutes;
+        this.threshold = threshold;
+        this.calendar = calendar;
+    }
 
     public WorkingMinutes getWorkingMinutes() {
         return workingMinutes;
@@ -39,6 +52,10 @@ public class ThresholdAggregateMatcher extends SimpleAggregateMatcher {
 
     public Threshold getThreshold() {
         return threshold;
+    }
+
+    public Calendar getCalendar() {
+        return calendar;
     }
 
     public void setWorkingMinutes(WorkingMinutes workingMinutes) {
@@ -49,12 +66,17 @@ public class ThresholdAggregateMatcher extends SimpleAggregateMatcher {
         this.threshold = threshold;
     }
 
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
+    }
+
     @Override
     public String toString() {
         return "ThresholdAggregateMatcher{" +
                 super.toString() +
                 ", workingMinutes=" + workingMinutes +
                 ", threshold=" + threshold +
+                ", calendar=" + calendar +
                 '}';
     }
 }

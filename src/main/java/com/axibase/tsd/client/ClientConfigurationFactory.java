@@ -49,8 +49,8 @@ public class ClientConfigurationFactory {
     private String dataPath;
     private String username;
     private String password;
-    private int connectTimeout;
-    private int readTimeout;
+    private int connectTimeoutMillis;
+    private int readTimeoutMillis;
     boolean ignoreSSLErrors;
 
     private ClientConfigurationFactory() {
@@ -95,9 +95,9 @@ public class ClientConfigurationFactory {
                 , clientProperties, DEFAULT_API_PATH);
         configurationFactory.protocol = load(AXIBASE_TSD_API_DOMAIN + ".protocol"
                 , clientProperties, DEFAULT_PROTOCOL);
-        configurationFactory.connectTimeout = loadInt(AXIBASE_TSD_API_DOMAIN + ".connection.timeout"
+        configurationFactory.connectTimeoutMillis = loadInt(AXIBASE_TSD_API_DOMAIN + ".connection.timeout"
                 , clientProperties, DEFAULT_CONNECT_TIMEOUT_MS);
-        configurationFactory.readTimeout = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
+        configurationFactory.readTimeoutMillis = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
                 , clientProperties, DEFAULT_READ_TIMEOUT_MS);
         configurationFactory.ignoreSSLErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
                 , clientProperties, "false").toLowerCase().trim());
@@ -105,8 +105,8 @@ public class ClientConfigurationFactory {
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, String serverPort, String metadataPath, String dataPath, String username, String password,
-                                      int connectTimeout,
-                                      int readTimeout, boolean ignoreSSLErrors) {
+                                      int connectTimeoutMillis,
+                                      int readTimeoutMillis, boolean ignoreSSLErrors) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -114,16 +114,16 @@ public class ClientConfigurationFactory {
         this.metadataPath = metadataPath;
         this.dataPath = dataPath;
         this.protocol = protocol;
-        this.connectTimeout = connectTimeout;
-        this.readTimeout = readTimeout;
+        this.connectTimeoutMillis = connectTimeoutMillis;
+        this.readTimeoutMillis = readTimeoutMillis;
         this.ignoreSSLErrors = ignoreSSLErrors;
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, int serverPort, String metadataPath, String dataPath, String username, String password,
-                                      int connectTimeout,
-                                      int readTimeout, boolean ignoreSSLErrors) {
+                                      int connectTimeoutMillis,
+                                      int readTimeoutMillis, boolean ignoreSSLErrors) {
         this(protocol, serverName, Integer.toString(serverPort), metadataPath, dataPath, username, password,
-                connectTimeout, readTimeout, ignoreSSLErrors);
+                connectTimeoutMillis, readTimeoutMillis, ignoreSSLErrors);
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -131,8 +131,8 @@ public class ClientConfigurationFactory {
                 buildTimeSeriesUrl(),
                 username,
                 password);
-        clientConfiguration.setConnectTimeout(connectTimeout);
-        clientConfiguration.setReadTimeout(readTimeout);
+        clientConfiguration.setConnectTimeoutMillis(connectTimeoutMillis);
+        clientConfiguration.setReadTimeoutMillis(readTimeoutMillis);
         clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
         return clientConfiguration;
     }
