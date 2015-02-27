@@ -42,7 +42,7 @@ public class GetSeriesCommand {
     private Join join;
     private Rate rate;
     @JsonProperty("aggregate")
-    private AggregateMatcher aggregateMatcher;
+    private SimpleAggregateMatcher aggregateMatcher;
     private String requestId;
 
     /**
@@ -116,7 +116,7 @@ public class GetSeriesCommand {
         return rate;
     }
 
-    public AggregateMatcher getAggregateMatcher() {
+    public SimpleAggregateMatcher getAggregateMatcher() {
         return aggregateMatcher;
     }
 
@@ -184,7 +184,7 @@ public class GetSeriesCommand {
     /**
      * @param aggregateMatcher Computes statistics for the specified time intervals.
      */
-    public void setAggregateMatcher(AggregateMatcher aggregateMatcher) {
+    public void setAggregateMatcher(SimpleAggregateMatcher aggregateMatcher) {
         this.aggregateMatcher = aggregateMatcher;
     }
 

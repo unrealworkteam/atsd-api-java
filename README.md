@@ -76,12 +76,99 @@ java -cp "atsd-api-java-0.3.5.jar:dependency/*" com.axibase.tsd.example.AtsdClie
 ## Examples
 
 See:
-[AtsdClientReadExample][atsd-read-example] [AtsdClientWriteExample][atsd-write-example]
+* [AtsdClientReadExample][atsd-read-example]
+* [AtsdClientWriteExample][atsd-write-example]
 
 ### Client Configuration
+
+#### Way 1
+Use -Daxibase.tsd.api.client.properties=./local.client.properties
+
 ```java
-        AtsdClientExample atsdClientExample = new AtsdClientExample();
-        atsdClientExample.configure();
+        ClientConfiguration clientConfiguration = ClientConfigurationFactory.createInstance().createClientConfiguration();
+        HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
+        dataService = new DataService(httpClientManager);
+        metaDataService = new MetaDataService(httpClientManager);
+```
+
+**local.client.properties** example:
+```
+        axibase.tsd.api.server.name=writeyourownservername.com
+        #axibase.tsd.api.server.port=8088
+        axibase.tsd.api.server.port=8443
+        #axibase.tsd.api.protocol=https
+        axibase.tsd.api.ssl.errors.ignore=true
+        axibase.tsd.api.username=username
+        axibase.tsd.api.password=pwd
+```
+
+Usage
+```java
+        AtsdClientWriteExample atsdClientWriteExample = new AtsdClientWriteExample();
+        atsdClientWriteExample.configure();
+        atsdClientWriteExample.writeData();
+        atsdClientWriteExample.printData();
+```
+
+#### Way 2
+Use pure Java.
+```java
+        ClientConfigurationFactory configurationFactory = new ClientConfigurationFactory(
+                "http", "writeyourownATSDservername.com", 8088, // serverPort
+                "/api/v1", "/api/v1",
+                "username", "pwd",
+                3, // connectTimeout
+                3, // readTimeout
+                false // ignoreSSLErrors
+        );
+        ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
+        System.out.println("Connecting to ATSD: " + clientConfiguration.getMetadataUrl());
+        HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
+
+        GenericObjectPoolConfig objectPoolConfig = new GenericObjectPoolConfig();
+        objectPoolConfig.setMaxTotal(5);
+        objectPoolConfig.setMaxIdle(5);
+
+        httpClientManager.setObjectPoolConfig(objectPoolConfig);
+        httpClientManager.setBorrowMaxWaitMillis(1000);
+
+        dataService = new DataService(httpClientManager);
+        metaDataService = new MetaDataService(httpClientManager);
+```
+
+Usage
+```java
+        AtsdClientWriteExample atsdClientWriteExample = new AtsdClientWriteExample();
+        atsdClientWriteExample.pureJavaConfigure();
+        atsdClientWriteExample.writeData();
+        atsdClientWriteExample.printData();
+```
+
+
+#### Way 3
+Use Spring.
+See **example-beans.xml**
+```xml
+        <bean id="example" class="com.axibase.tsd.example.AtsdClientWriteExample"/>
+        <bean id="dataService" class="com.axibase.tsd.client.DataService"/>
+        <bean id="metaDataService" class="com.axibase.tsd.client.MetaDataService"/>
+        <bean id="httpClientManager" class="com.axibase.tsd.client.HttpClientManager"/>
+        <bean id="genericObjectPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+            <property name="maxTotal" value="3"/>
+        </bean>
+        <bean id="clientConfiguration" class="com.axibase.tsd.model.system.ClientConfiguration">
+            <constructor-arg name="url" value="http://writeyourownATSDservername.com:8080/api/v1"/>
+            <constructor-arg name="username" value="username"/>
+            <constructor-arg name="password" value="pwd"/>
+        </bean>
+```
+
+Usage
+```java
+            ApplicationContext context = new ClassPathXmlApplicationContext("example-beans.xml");
+            AtsdClientWriteExample example =(AtsdClientWriteExample)context.getBean("example");
+            example.writeData();
+            example.printData();
 ```
 
 ### Metadata Processing

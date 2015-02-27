@@ -14,9 +14,9 @@
 */
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.series.AggregateType;
 import com.axibase.tsd.model.data.series.Interpolate;
 import com.axibase.tsd.model.data.series.Interval;
+import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -30,27 +30,33 @@ import java.util.List;
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AggregateMatcher {
+public class SimpleAggregateMatcher {
     @JsonProperty("type")
     private List<AggregateType> types;
     private Interval interval;
     private Interpolate interpolate;
 
-    public AggregateMatcher() {
+    public SimpleAggregateMatcher() {
     }
 
-    public AggregateMatcher(Interval interval, Interpolate interpolate, AggregateType type, AggregateType... types) {
+    protected void init(Interval interval, Interpolate interpolate, AggregateType type, AggregateType... types) {
+        this.interval = interval;
+        this.interpolate = interpolate;
         this.types = new ArrayList<AggregateType>();
         this.types.add(type);
         this.types.addAll(Arrays.asList(types));
-        this.interval = interval;
-        this.interpolate = interpolate;
+    }
+
+    public SimpleAggregateMatcher(Interval interval, Interpolate interpolate,
+                            AggregateType type, AggregateType... types) {
+        this();
+        init(interval, interpolate, type, types);
     }
 
     /**
      * An array of statistical functions DETAIL,COUNT, MIN, MAX, AVG, SUM, PERCENTILE_999, PERCENTILE_995,
      * PERCENTILE_99, PERCENTILE_95, PERCENTILE_90, PERCENTILE_75, PERCENTILE_50, STANDARD_DEVIATION, FIRST,
-     * LAST, DELTA, WAVG, WTAVG
+     * LAST, DELTA, WAVG, WTAVG, THRESHOLD_COUNT, THRESHOLD_DURATION, THRESHOLD_PERCENT
      */
     public List<AggregateType> getTypes() {
         return types;

@@ -51,7 +51,7 @@ public class ClientConfigurationFactory {
     private String password;
     private int connectTimeout;
     private int readTimeout;
-    boolean ignoreSSLCertificateErrors;
+    boolean ignoreSSLErrors;
 
     private ClientConfigurationFactory() {
     }
@@ -99,14 +99,14 @@ public class ClientConfigurationFactory {
                 , clientProperties, DEFAULT_CONNECT_TIMEOUT_MS);
         configurationFactory.readTimeout = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
                 , clientProperties, DEFAULT_READ_TIMEOUT_MS);
-        configurationFactory.ignoreSSLCertificateErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
+        configurationFactory.ignoreSSLErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
                 , clientProperties, "false").toLowerCase().trim());
         return configurationFactory;
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, String serverPort, String metadataPath, String dataPath, String username, String password,
                                       int connectTimeout,
-                                      int readTimeout, boolean ignoreSSLCertificateErrors) {
+                                      int readTimeout, boolean ignoreSSLErrors) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -116,7 +116,14 @@ public class ClientConfigurationFactory {
         this.protocol = protocol;
         this.connectTimeout = connectTimeout;
         this.readTimeout = readTimeout;
-        this.ignoreSSLCertificateErrors = ignoreSSLCertificateErrors;
+        this.ignoreSSLErrors = ignoreSSLErrors;
+    }
+
+    public ClientConfigurationFactory(String protocol, String serverName, int serverPort, String metadataPath, String dataPath, String username, String password,
+                                      int connectTimeout,
+                                      int readTimeout, boolean ignoreSSLErrors) {
+        this(protocol, serverName, Integer.toString(serverPort), metadataPath, dataPath, username, password,
+                connectTimeout, readTimeout, ignoreSSLErrors);
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -126,7 +133,7 @@ public class ClientConfigurationFactory {
                 password);
         clientConfiguration.setConnectTimeout(connectTimeout);
         clientConfiguration.setReadTimeout(readTimeout);
-        clientConfiguration.setIgnoreSSLErrors(ignoreSSLCertificateErrors);
+        clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
         return clientConfiguration;
     }
 

@@ -12,7 +12,7 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.data.series;
+package com.axibase.tsd.model.data.series.aggregate;
 
 /**
  * @author Nikolay Malevanny.
@@ -36,5 +36,9 @@ public enum AggregateType {
     LAST,
     DELTA,
     WAVG,
-    WTAVG
+    WTAVG,
+
+    THRESHOLD_COUNT,
+    THRESHOLD_DURATION,
+    THRESHOLD_PERCENT
 }

@@ -17,8 +17,8 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
-import com.axibase.tsd.model.data.PropertyParameter;
 import com.axibase.tsd.model.data.series.*;
+import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -238,7 +238,9 @@ public class DataServiceTest {
         tags.add("ttt-tag-2", "ttt-tag-value-2");
         GetSeriesCommand command = new GetSeriesCommand(TTT_ENTITY, TTT_METRIC);
         command.setTags(tags);
-        command.setAggregateMatcher(new AggregateMatcher(new Interval(20, IntervalUnit.SECOND), Interpolate.LINEAR, AggregateType.DETAIL));
+        command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
+                Interpolate.LINEAR,
+                AggregateType.DETAIL));
         return command;
     }
 

@@ -12,47 +12,26 @@
 * express or implied. See the License for the specific language governing
 * permissions and limitations under the License.
 */
-package com.axibase.tsd.model.data.series;
+package com.axibase.tsd.model.data.command;
 
+import com.axibase.tsd.model.data.series.Interpolate;
+import com.axibase.tsd.model.data.series.Interval;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.model.data.series.aggregate.Threshold;
 import com.axibase.tsd.model.data.series.aggregate.WorkingMinutes;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Contains data to compute statistics for the specified time intervals.
- *
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
-public class Aggregate {
-    private AggregateType type;
-    private Interval interval;
-    private Interpolate interpolate;
+public class ThresholdAggregateMatcher extends SimpleAggregateMatcher {
+    protected ThresholdAggregateMatcher(Interval interval, Interpolate interpolate,
+                                        AggregateType type, AggregateType... types) {
+        super();
+        init(interval, interpolate, type, types);
+    }
+
     private WorkingMinutes workingMinutes;
     private Threshold threshold;
-
-
-    public Aggregate() {
-    }
-
-    public AggregateType getType() {
-        return type;
-    }
-
-    /**
-     * interval for computing statistics.
-     */
-    public Interval getInterval() {
-        return interval;
-    }
-
-    /**
-     * Generates missing aggregation intervals using interpolation if enabled: NONE, LINEAR, STEP
-     */
-    public Interpolate getInterpolate() {
-        return interpolate;
-    }
 
     public WorkingMinutes getWorkingMinutes() {
         return workingMinutes;
@@ -60,18 +39,6 @@ public class Aggregate {
 
     public Threshold getThreshold() {
         return threshold;
-    }
-
-    public void setType(AggregateType type) {
-        this.type = type;
-    }
-
-    public void setInterval(Interval interval) {
-        this.interval = interval;
-    }
-
-    public void setInterpolate(Interpolate interpolate) {
-        this.interpolate = interpolate;
     }
 
     public void setWorkingMinutes(WorkingMinutes workingMinutes) {
@@ -84,10 +51,8 @@ public class Aggregate {
 
     @Override
     public String toString() {
-        return "Aggregate{" +
-                "type=" + type +
-                ", interval=" + interval +
-                ", interpolate=" + interpolate +
+        return "ThresholdAggregateMatcher{" +
+                super.toString() +
                 ", workingMinutes=" + workingMinutes +
                 ", threshold=" + threshold +
                 '}';

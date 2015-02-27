@@ -59,7 +59,7 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
         );
     }
 
-    private void printData() {
+    protected void printData() {
         Map<String, String> tags = AtsdUtil.toMap("app_name", "atsd_writer_example");
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
                 new SeriesCommandPreparer() {
@@ -79,7 +79,7 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
         }
     }
 
-    private void writeData() {
+    protected void writeData() {
         System.out.println("Writing memory usage metrics to ATSD ...");
         Runtime runtime = Runtime.getRuntime();
         memoryEater = new HashSet<String>();

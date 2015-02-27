@@ -131,7 +131,6 @@ public class HttpClientManager {
         GenericObjectPool<HttpClient> objectPool = createObjectPool();
         HttpClient httpClient;
         try {
-            borrowMaxWaitMillis = 1000;
             httpClient = objectPool.borrowObject(borrowMaxWaitMillis);
         } catch (Exception e) {
             throw new AtsdClientException("Could not borrow http client from pool", e);

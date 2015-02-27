@@ -30,7 +30,6 @@ public class ClientConfiguration {
     private int readTimeout = DEFAULT_TIMEOUT;
     private boolean ignoreSSLErrors = false;
 
-
     /**
      * @param metadataUrl full URL to Metadata ATSD API
      * @param dataUrl full URL to Data ATSD API
@@ -40,6 +39,18 @@ public class ClientConfiguration {
     public ClientConfiguration(String metadataUrl, String dataUrl, String username, String password) {
         this.metadataUrl = metadataUrl;
         this.dataUrl = dataUrl;
+        this.username = username;
+        this.password = password;
+    }
+
+    /**
+     * @param url full URL to both Metadata and Data ATSD API
+     * @param username user name to login
+     * @param password password to login
+     */
+    public ClientConfiguration(String url, String username, String password) {
+        this.metadataUrl = url;
+        this.dataUrl = url;
         this.username = username;
         this.password = password;
     }

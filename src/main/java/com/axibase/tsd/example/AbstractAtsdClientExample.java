@@ -22,6 +22,9 @@ import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+//import org.springframework.context.ApplicationContext;
+//import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Date;
 import java.util.List;
@@ -34,6 +37,15 @@ public abstract class AbstractAtsdClientExample {
     protected DataService dataService;
     protected MetaDataService metaDataService;
 
+    public void setDataService(DataService dataService) {
+        this.dataService = dataService;
+    }
+
+    public void setMetaDataService(MetaDataService metaDataService) {
+        this.metaDataService = metaDataService;
+    }
+
+    // Client Configuration -- way 1
     protected void configure() {
         System.out.println("Getting Started with Axibase TSD");
         ClientConfiguration clientConfiguration = ClientConfigurationFactory.createInstance().createClientConfiguration();
@@ -41,6 +53,47 @@ public abstract class AbstractAtsdClientExample {
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
         dataService = new DataService(httpClientManager);
         metaDataService = new MetaDataService(httpClientManager);
+    }
+
+    // Client Configuration -- way 2
+    protected void pureJavaConfigure() {
+        ClientConfigurationFactory configurationFactory = new ClientConfigurationFactory(
+                "http", "writeyourownservername.com", 8088, // serverPort
+                "/api/v1", "/api/v1",
+                "username", "pwd",
+                3, // connectTimeout
+                3, // readTimeout
+                false // ignoreSSLErrors
+        );
+        ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
+        System.out.println("Connecting to ATSD: " + clientConfiguration.getMetadataUrl());
+        HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
+
+        GenericObjectPoolConfig objectPoolConfig = new GenericObjectPoolConfig();
+        objectPoolConfig.setMaxTotal(5);
+        objectPoolConfig.setMaxIdle(5);
+
+        httpClientManager.setObjectPoolConfig(objectPoolConfig);
+        httpClientManager.setBorrowMaxWaitMillis(1000);
+
+        dataService = new DataService(httpClientManager);
+        metaDataService = new MetaDataService(httpClientManager);
+    }
+
+    // Client Configuration -- way 3
+    public static void main(String[] args) {
+//        Add to your pom.xml:
+//        <dependency>
+//        <groupId>org.springframework</groupId>
+//        <artifactId>spring-context</artifactId>
+//        <version>4.0.3.RELEASE</version>
+//        </dependency>
+
+//        Uncomment springframework imports and code below
+//        ApplicationContext context = new ClassPathXmlApplicationContext("example-beans.xml");
+//        AtsdClientWriteExample example =(AtsdClientWriteExample)context.getBean("example");
+//        example.writeData();
+//        example.printData();
     }
 
     protected String toISODate(long time) {
