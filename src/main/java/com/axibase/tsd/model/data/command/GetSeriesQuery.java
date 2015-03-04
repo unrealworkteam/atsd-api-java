@@ -28,7 +28,7 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GetSeriesCommand {
+public class GetSeriesQuery {
     private Long startTime;
     private Long endTime;
     private Integer limit;
@@ -49,7 +49,7 @@ public class GetSeriesCommand {
      * @param entityName an entity's name of the requested time series. User defined values (case insensitive).
      * @param metricName a metric name of the requested time series. User defined values (case insensitive).
      */
-    public GetSeriesCommand(String entityName, String metricName) {
+    public GetSeriesQuery(String entityName, String metricName) {
         this.entityName = entityName;
         this.metricName = metricName;
     }
@@ -59,7 +59,7 @@ public class GetSeriesCommand {
      * @param metricName a metric name of the requested time series. User defined values (case insensitive).
      * @param tags Object key is a tag name and a value is an array of possible tag values
      */
-    public GetSeriesCommand(String entityName, String metricName, MultivaluedMap<String, String> tags) {
+    public GetSeriesQuery(String entityName, String metricName, MultivaluedMap<String, String> tags) {
         this.entityName = entityName;
         this.metricName = metricName;
         this.tags = tags;
@@ -70,7 +70,7 @@ public class GetSeriesCommand {
      * @param metricName a metric name of the requested time series. User defined values (case insensitive).
      * @param tags Object key is a tag name and a value is an array of possible tag values
      */
-    public GetSeriesCommand(String entityName, String metricName, Map<String, String> tags) {
+    public GetSeriesQuery(String entityName, String metricName, Map<String, String> tags) {
         this.entityName = entityName;
         this.metricName = metricName;
         this.tags = new MultivaluedHashMap<String, String>(tags);
@@ -203,7 +203,7 @@ public class GetSeriesCommand {
 
     @Override
     public String toString() {
-        return "GetSeriesCommand{" +
+        return "GetSeriesQuery{" +
                 "startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", limit=" + limit +

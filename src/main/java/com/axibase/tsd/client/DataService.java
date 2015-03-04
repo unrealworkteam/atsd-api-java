@@ -24,6 +24,7 @@ import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,16 +57,16 @@ public class DataService {
      * @param seriesQueries queries with details, each query property overrides common one in the request parameters
      * @return list of {@code GetSeriesResult}
      */
-    public List<GetSeriesResult> retrieveSeries(GetSeriesCommand... seriesQueries) {
+    public List<GetSeriesResult> retrieveSeries(GetSeriesQuery... seriesQueries) {
         QueryPart<GetSeriesBatchResult> query = new Query<GetSeriesBatchResult>("series");
         GetSeriesBatchResult seriesBatchResult = httpClientManager.requestData(GetSeriesBatchResult.class, query,
-                post(new GetSeriesBatchCommand(Arrays.asList(seriesQueries))));
+                post(new BatchQuery<GetSeriesQuery>(Arrays.asList(seriesQueries))));
         return seriesBatchResult.getSeriesResults();
     }
 
-    public List<GetSeriesResult> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesCommand... seriesQueries) {
+    public List<GetSeriesResult> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesQuery... seriesQueries) {
         if (preparer != null) {
-            for (GetSeriesCommand seriesQuery : seriesQueries) {
+            for (GetSeriesQuery seriesQuery : seriesQueries) {
                 preparer.prepare(seriesQuery);
             }
         }
@@ -110,18 +111,18 @@ public class DataService {
      * @param seriesQueries queries with details
      * @return list of {@code GetSeriesResult}
      */
-    public List<GetSeriesResult> retrieveLastSeries(GetSeriesCommand... seriesQueries) {
+    public List<GetSeriesResult> retrieveLastSeries(GetSeriesQuery... seriesQueries) {
         return retrieveSeries(LAST_PREPARER, seriesQueries);
     }
 
     /**
-     * @param getPropertiesCommand command with property filter parameters
+     * @param getPropertiesQuery command with property filter parameters
      * @return list of {@code Property}
      */
-    public List<Property> retrieveProperties(GetPropertiesCommand getPropertiesCommand) {
+    public List<Property> retrieveProperties(GetPropertiesQuery getPropertiesQuery, GetPropertiesQuery... getPropertiesQueries) {
         QueryPart<Property> query = new Query<Property>("properties");
         return httpClientManager.requestDataList(Property.class, query,
-                post(getPropertiesCommand));
+                post(new BatchQuery<GetPropertiesQuery>(getPropertiesQuery, getPropertiesQueries)));
     }
 
     /**
@@ -157,30 +158,26 @@ public class DataService {
             List<String> ruleNames,
             List<Severity> severities,
             Severity minSeverity) {
+        GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames, ruleNames, severities, minSeverity);
+        return retrieveAlerts(alertQuery);
+    }
+
+    public List<Alert> retrieveAlerts(GetAlertQuery alertQuery, GetAlertQuery... alertQueries) {
         QueryPart<Alert> query = new Query<Alert>("/alerts");
-        if (minSeverity != null) {
-            query.param("min-severity", minSeverity.getCode());
-        }
-        query = fillParams(query, "metric", metricNames);
-        query = fillParams(query, "entity", entityNames);
-        query = fillParams(query, "rule", ruleNames);
-        if (severities != null) {
-            for (Severity severity : severities) {
-                query = query.param("severity", severity.getCode());
-            }
-        }
-        return httpClientManager.requestDataList(Alert.class, query, null);
+        BatchQuery<GetAlertQuery> batchQuery = new BatchQuery<GetAlertQuery>(alertQuery, alertQueries);
+        return httpClientManager.requestDataList(Alert.class, query, post(batchQuery));
     }
 
     /**
-     * @param getAlertHistoryCommand command with alert history selection details
+     * @param getAlertHistoryQuery command with alert history selection details
      * @return list of  {@code AlertHistory}
      */
-    public List<AlertHistory> retrieveAlertHistory(GetAlertHistoryCommand getAlertHistoryCommand) {
+    public List<AlertHistory> retrieveAlertHistory(GetAlertHistoryQuery getAlertHistoryQuery,
+                                                   GetAlertHistoryQuery... getAlertHistoryQueries) {
         QueryPart<AlertHistory> query = new Query<AlertHistory>("alerts")
                 .path("history");
         return httpClientManager.requestDataList(AlertHistory.class, query,
-                post(getAlertHistoryCommand));
+                post(new BatchQuery<GetAlertHistoryQuery>(getAlertHistoryQuery, getAlertHistoryQueries)));
     }
 
     private static  QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
@@ -194,7 +191,7 @@ public class DataService {
 
     private static class LastPreparer implements SeriesCommandPreparer {
         @Override
-        public void prepare(GetSeriesCommand command) {
+        public void prepare(GetSeriesQuery command) {
             command.setLast(true);
         }
     }

@@ -14,7 +14,7 @@
 */
 package com.axibase.tsd.example;
 
-import com.axibase.tsd.model.data.command.GetSeriesCommand;
+import com.axibase.tsd.model.data.command.GetSeriesQuery;
 import com.axibase.tsd.model.data.command.SimpleAggregateMatcher;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.model.data.series.Interpolate;
@@ -60,7 +60,7 @@ public class AtsdClientReadExample extends AbstractAtsdClientExample {
             }
 
             System.out.println("===Series===");
-            GetSeriesCommand command = new GetSeriesCommand(entityName, metric.getName(), tags);
+            GetSeriesQuery command = new GetSeriesQuery(entityName, metric.getName(), tags);
             command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(1, IntervalUnit.MINUTE),
                     Interpolate.NONE,
                     AggregateType.DETAIL));

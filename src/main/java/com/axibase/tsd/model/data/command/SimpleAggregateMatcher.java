@@ -31,7 +31,6 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SimpleAggregateMatcher {
-    @JsonProperty("type")
     private List<AggregateType> types;
     private Interval interval;
     private Interpolate interpolate;

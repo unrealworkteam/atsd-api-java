@@ -21,6 +21,7 @@ import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -46,7 +47,7 @@ public class DataServiceTest {
 
     @Test
     public void testRetrieveSeries() throws Exception {
-        GetSeriesCommand c1 = createTestGetTestCommand();
+        GetSeriesQuery c1 = createTestGetTestCommand();
         List<GetSeriesResult> seriesList = dataService.retrieveSeries(c1);
 
         assertTrue(seriesList.get(0) instanceof GetSeriesResult);
@@ -74,18 +75,18 @@ public class DataServiceTest {
         }
         dataService.addSeries(c1, c2);
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
                 new SeriesCommandPreparer() {
                     @Override
-                    public void prepare(GetSeriesCommand command) {
+                    public void prepare(GetSeriesQuery command) {
 //                        command.setAggregateMatcher(new AggregateMatcher(new Interval(20, IntervalUnit.SECOND), Interpolate.NONE, AggregateType.DETAIL));
                         command.setLimit(10);
                     }
                 },
-                new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
-                new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM(
+                new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
+                new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM(
                         "ttt-tag-1", "ttt-tag-value-1"
                         , "ttt-tag-2", "ttt-tag-value-2"))
         );
@@ -105,16 +106,16 @@ public class DataServiceTest {
 
         dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
                 new SeriesCommandPreparer() {
                     @Override
-                    public void prepare(GetSeriesCommand command) {
+                    public void prepare(GetSeriesQuery command) {
                         command.setLimit(10);
                     }
                 },
-        new GetSeriesCommand(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
+        new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
         );
         assertEquals(1, getSeriesResults.size());
         assertEquals(10, getSeriesResults.get(0).getData().size());
@@ -122,7 +123,7 @@ public class DataServiceTest {
 
     @Test
     public void testRetrieveLastSeries() throws Exception {
-        GetSeriesCommand c1 = createTestGetTestCommand();
+        GetSeriesQuery c1 = createTestGetTestCommand();
         c1.setAggregateMatcher(null);
         List<GetSeriesResult> seriesList = dataService.retrieveLastSeries(c1);
 
@@ -132,21 +133,13 @@ public class DataServiceTest {
 
     @Test
     public void testRetrieveProperties() throws Exception {
-        GetPropertiesCommand getPropertiesCommand = new GetPropertiesCommand();
-        getPropertiesCommand.setStartTime(0);
-        getPropertiesCommand.setEndTime(Long.MAX_VALUE);
-//        getPropertiesCommand.setLast(true);
-        ArrayList<PropertyParameter> params = new ArrayList<PropertyParameter>();
-        PropertyParameter p1 = new PropertyParameter();
-        p1.setType(TTT_TYPE);
-        p1.setEntityName(TTT_ENTITY);
-//        p1.setLimit("1");
+        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
+        getPropertiesQuery.setStartTime(0);
+        getPropertiesQuery.setEndTime(Long.MAX_VALUE);
         HashMap<String, String> keys = new HashMap<String, String>();
         keys.put("key1", "ttt-key-1");
-//      //  p1.setKeys(keys);
-        params.add(p1);
-        getPropertiesCommand.setParams(params);
-        List<Property> properties = dataService.retrieveProperties(getPropertiesCommand);
+        getPropertiesQuery.setKeys(keys);
+        List<Property> properties = dataService.retrieveProperties(getPropertiesQuery);
         for (Property property : properties) {
             System.out.println("property = " + property);
         }
@@ -193,15 +186,11 @@ public class DataServiceTest {
         }
     }
 
-    public GetPropertiesCommand createGetNewPropCommand() {
-        GetPropertiesCommand getPropertiesCommand = new GetPropertiesCommand();
-        getPropertiesCommand.setStartTime(0);
-        getPropertiesCommand.setEndTime(Long.MAX_VALUE);
-        PropertyParameter propertyParameter = new PropertyParameter();
-        propertyParameter.setEntityName(NNN_ENTITY);
-        propertyParameter.setType(NNN_TYPE);
-        getPropertiesCommand.setParams(propertyParameter);
-        return getPropertiesCommand;
+    public GetPropertiesQuery createGetNewPropCommand() {
+        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(NNN_ENTITY, NNN_TYPE);
+        getPropertiesQuery.setStartTime(0);
+        getPropertiesQuery.setEndTime(Long.MAX_VALUE);
+        return getPropertiesQuery;
     }
 
 
@@ -219,24 +208,25 @@ public class DataServiceTest {
         }
     }
 
+    @Ignore
     @Test
     public void testRetrieveAlertHistory() throws Exception {
-        GetAlertHistoryCommand getAlertHistoryCommand = new GetAlertHistoryCommand();
-        getAlertHistoryCommand.setStartTime(0L);
-        getAlertHistoryCommand.setEndTime(Long.MAX_VALUE);
-        getAlertHistoryCommand.setEntityName(TTT_ENTITY);
-        getAlertHistoryCommand.setMetricName(TTT_METRIC);
+        GetAlertHistoryQuery getAlertHistoryQuery = new GetAlertHistoryQuery();
+        getAlertHistoryQuery.setStartTime(0L);
+        getAlertHistoryQuery.setEndTime(Long.MAX_VALUE);
+        getAlertHistoryQuery.setEntityName(TTT_ENTITY);
+        getAlertHistoryQuery.setMetricName(TTT_METRIC);
 
-        List<AlertHistory> alertHistoryList = dataService.retrieveAlertHistory(getAlertHistoryCommand);
+        List<AlertHistory> alertHistoryList = dataService.retrieveAlertHistory(getAlertHistoryQuery);
         assertTrue(alertHistoryList.get(0) instanceof AlertHistory);
         assertTrue(alertHistoryList.size() > 0);
     }
 
-    public GetSeriesCommand createTestGetTestCommand() {
+    public GetSeriesQuery createTestGetTestCommand() {
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add("ttt-tag-1", "ttt-tag-value-1");
         tags.add("ttt-tag-2", "ttt-tag-value-2");
-        GetSeriesCommand command = new GetSeriesCommand(TTT_ENTITY, TTT_METRIC);
+        GetSeriesQuery command = new GetSeriesQuery(TTT_ENTITY, TTT_METRIC);
         command.setTags(tags);
         command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
                 Interpolate.LINEAR,

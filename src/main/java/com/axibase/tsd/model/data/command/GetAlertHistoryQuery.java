@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GetAlertHistoryCommand {
+public class GetAlertHistoryQuery {
     private Long startTime;
     private Long endTime;
     @JsonProperty("metric")
@@ -92,7 +92,7 @@ public class GetAlertHistoryCommand {
 
     @Override
     public String toString() {
-        return "GetAlertHistoryCommand{" +
+        return "GetAlertHistoryQuery{" +
                 "startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", metricName='" + metricName + '\'' +

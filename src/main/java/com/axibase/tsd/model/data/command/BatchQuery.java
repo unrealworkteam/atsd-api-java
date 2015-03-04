@@ -14,22 +14,27 @@
 */
 package com.axibase.tsd.model.data.command;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class GetSeriesBatchCommand {
-    @JsonProperty("series")
-    private final List<GetSeriesCommand> seriesCommands;
+public class BatchQuery<T> {
+    private final List<T> queries;
 
-    public GetSeriesBatchCommand(List<GetSeriesCommand> seriesCommands) {
-        this.seriesCommands = seriesCommands;
+    public BatchQuery(T query, T... anotherQueries) {
+        this(new ArrayList<T>());
+        this.queries.add(query);
+        this.queries.addAll(Arrays.asList(anotherQueries));
     }
 
-    public List<GetSeriesCommand> getSeriesCommands() {
-        return seriesCommands;
+    public BatchQuery(List<T> queries) {
+        this.queries = queries;
+    }
+
+    public List<T> getQueries() {
+        return queries;
     }
 }

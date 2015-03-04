@@ -16,7 +16,7 @@ package com.axibase.tsd.example;
 
 import com.axibase.tsd.client.SeriesCommandPreparer;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
-import com.axibase.tsd.model.data.command.GetSeriesCommand;
+import com.axibase.tsd.model.data.command.GetSeriesQuery;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
 import com.axibase.tsd.util.AtsdUtil;
 
@@ -64,14 +64,14 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
         List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
                 new SeriesCommandPreparer() {
                     @Override
-                    public void prepare(GetSeriesCommand command) {
+                    public void prepare(GetSeriesQuery command) {
                         command.setLimit(CNT);
                         command.setStartTime(System.currentTimeMillis() - (CNT + 2) * 1000L);
                         command.setEndTime(System.currentTimeMillis());
                     }
                 },
-                new GetSeriesCommand(hostName, "total_memory_mb", tags),
-                new GetSeriesCommand(hostName, "free_memory_mb", tags)
+                new GetSeriesQuery(hostName, "total_memory_mb", tags),
+                new GetSeriesQuery(hostName, "free_memory_mb", tags)
         );
         System.out.println("===Series===");
         for (GetSeriesResult getSeriesResult : getSeriesResults) {
