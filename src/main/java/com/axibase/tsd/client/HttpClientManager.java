@@ -159,6 +159,10 @@ public class HttpClientManager {
         if (pool != null) {
             pool.close();
         }
+        PlainSender sender = plainSender.get();
+        if (sender != null) {
+            sender.close();
+        }
     }
 
     public void send(PlainCommand plainCommand) {
