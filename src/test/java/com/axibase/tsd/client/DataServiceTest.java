@@ -15,20 +15,29 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.TestUtil;
-import com.axibase.tsd.model.data.*;
+import com.axibase.tsd.model.data.Alert;
+import com.axibase.tsd.model.data.AlertHistory;
+import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.PropertyKey;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
+import com.axibase.tsd.model.meta.Metric;
+import com.axibase.tsd.plain.SeriesInsertCommand;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.axibase.tsd.TestUtil.*;
 import static junit.framework.Assert.*;
@@ -234,8 +243,75 @@ public class DataServiceTest {
         return command;
     }
 
+    @Test
+    public void testMultiThreadStreamingCommands() throws Exception {
+        final int size = 5;
+        final int cnt = 500;
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size, 0,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(cnt));
+        long start = System.currentTimeMillis();
+        CountDownLatch latch = new CountDownLatch(cnt);
+        for (int i = 0; i < cnt; i++) {
+            threadPoolExecutor.execute(new SimpleSeriesSender(start, dataService, i, latch));
+        }
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        Thread.sleep(3000);
+
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
+                new SeriesCommandPreparer() {
+                    @Override
+                    public void prepare(GetSeriesQuery command) {
+                        command.setStartTime(System.currentTimeMillis() - 10000);
+                        command.setEndTime(System.currentTimeMillis() + 1000);
+                        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+                        for (int i = 0; i < size; i++) {
+                            tags.add("thread","pool-1-thread-" + (1+i));
+//                            tags.add("thread","pool-1-thread-" + (i));
+                        }
+                        command.setTags(tags);
+                    }
+                }, new GetSeriesQuery(SSS_ENTITY, SSS_METRIC));
+        List<GetSeriesResult> results = getSeriesResults;
+        int resCnt = 0;
+        for (GetSeriesResult result : results) {
+            resCnt+= result.getData().size();
+        }
+        assertEquals(cnt, resCnt);
+    }
+
     @After
     public void tearDown() throws Exception {
         httpClientManager.close();
+    }
+
+    private static class SimpleSeriesSender implements Runnable {
+        private static AtomicInteger counter = new AtomicInteger(0);
+        private long startMs;
+        private final DataService dataService;
+        private final int num;
+        private CountDownLatch latch;
+
+        public SimpleSeriesSender(long startMs, DataService dataService, int num, CountDownLatch latch) {
+            this.startMs = startMs;
+            this.dataService = dataService;
+            this.num = num;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
+            SeriesInsertCommand seriesInsertCommand = new SeriesInsertCommand(SSS_ENTITY, SSS_METRIC, series,
+                    "thread", Thread.currentThread().getName());
+            dataService.sendPlainCommand(seriesInsertCommand);
+            latch.countDown();
+        }
     }
 }

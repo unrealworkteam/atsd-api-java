@@ -61,8 +61,9 @@ public abstract class AbstractAtsdClientExample {
                 "http", "writeyourownservername.com", 8088, // serverPort
                 "/api/v1", "/api/v1",
                 "username", "pwd",
-                3, // connectTimeout
-                3, // readTimeout
+                3000, // connectTimeout
+                3000, // readTimeout
+                600000, // pingTimeout
                 false // ignoreSSLErrors
         );
         ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
@@ -104,8 +105,8 @@ public abstract class AbstractAtsdClientExample {
         System.out.println("Time Series Key: " + getSeriesResult.getTimeSeriesKey());
         List<Series> data = getSeriesResult.getData();
         for (Series series : data) {
-            long ts = series.getT();
-            System.out.println(toISODate(ts) + "\t" + series.getV());
+            long ts = series.getTimeMillis();
+            System.out.println(toISODate(ts) + "\t" + series.getValue());
         }
     }
 }

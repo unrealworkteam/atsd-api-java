@@ -15,44 +15,47 @@
 package com.axibase.tsd.model.data.series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class Series {
-    private long t;
-    private double v;
+    @JsonProperty("t")
+    private long timeMillis;
+    @JsonProperty("v")
+    private double value;
 
     public Series() {
     }
 
-    public Series(long t, double v) {
-        this.t = t;
-        this.v = v;
+    public Series(long timeMillis, double value) {
+        this.timeMillis = timeMillis;
+        this.value = value;
     }
 
-    public long getT() {
-        return t;
+    public long getTimeMillis() {
+        return timeMillis;
     }
 
-    public void setT(long t) {
-        this.t = t;
+    public void setTimeMillis(long timeMillis) {
+        this.timeMillis = timeMillis;
     }
 
-    public double getV() {
-        return v;
+    public double getValue() {
+        return value;
     }
 
-    public void setV(double v) {
-        this.v = v;
+    public void setValue(double value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
         return "Series{" +
-                "t=" + t +
-                ", v=" + v +
+                "timeMillis=" + timeMillis +
+                ", value=" + value +
                 '}';
     }
 }

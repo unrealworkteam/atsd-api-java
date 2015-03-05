@@ -35,8 +35,9 @@ public class ClientConfigurationFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConfigurationFactory.class);
 
     private static final String DEFAULT_PROTOCOL = "http";
-    private static final int DEFAULT_CONNECT_TIMEOUT_MS = 1000;
-    private static final int DEFAULT_READ_TIMEOUT_MS = 1000;
+    private static final int DEFAULT_CONNECT_TIMEOUT_MS = ClientConfiguration.DEFAULT_TIMEOUT_MS;
+    private static final int DEFAULT_READ_TIMEOUT_MS = ClientConfiguration.DEFAULT_TIMEOUT_MS;
+    private static final long DEFAULT_PING_TIMEOUT_MS = ClientConfiguration.DEFAULT_PING_TIMEOUT_MS;
     private static final String DEFAULT_CLIENT_PROPERTIES_FILE_NAME = "classpath:/client.properties";
     private static final String AXIBASE_TSD_API_DOMAIN = "axibase.tsd.api";
     private static final String DEFAULT_API_PATH = "/api/v1";
@@ -51,6 +52,7 @@ public class ClientConfigurationFactory {
     private String password;
     private int connectTimeoutMillis;
     private int readTimeoutMillis;
+    private long pingTimeoutMillis;
     boolean ignoreSSLErrors;
 
     private ClientConfigurationFactory() {
@@ -99,14 +101,19 @@ public class ClientConfigurationFactory {
                 , clientProperties, DEFAULT_CONNECT_TIMEOUT_MS);
         configurationFactory.readTimeoutMillis = loadInt(AXIBASE_TSD_API_DOMAIN + ".read.timeout"
                 , clientProperties, DEFAULT_READ_TIMEOUT_MS);
+        configurationFactory.pingTimeoutMillis = loadLong(AXIBASE_TSD_API_DOMAIN + ".ping.timeout"
+                , clientProperties, DEFAULT_PING_TIMEOUT_MS);
         configurationFactory.ignoreSSLErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
                 , clientProperties, "false").toLowerCase().trim());
         return configurationFactory;
     }
 
-    public ClientConfigurationFactory(String protocol, String serverName, String serverPort, String metadataPath, String dataPath, String username, String password,
+    public ClientConfigurationFactory(String protocol, String serverName, String serverPort,
+                                      String metadataPath, String dataPath, String username, String password,
                                       int connectTimeoutMillis,
-                                      int readTimeoutMillis, boolean ignoreSSLErrors) {
+                                      int readTimeoutMillis,
+                                      long pingTimeoutMillis,
+                                      boolean ignoreSSLErrors) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -116,14 +123,18 @@ public class ClientConfigurationFactory {
         this.protocol = protocol;
         this.connectTimeoutMillis = connectTimeoutMillis;
         this.readTimeoutMillis = readTimeoutMillis;
+        this.pingTimeoutMillis = pingTimeoutMillis;
         this.ignoreSSLErrors = ignoreSSLErrors;
     }
 
-    public ClientConfigurationFactory(String protocol, String serverName, int serverPort, String metadataPath, String dataPath, String username, String password,
+    public ClientConfigurationFactory(String protocol, String serverName, int serverPort,
+                                      String metadataPath, String dataPath, String username, String password,
                                       int connectTimeoutMillis,
-                                      int readTimeoutMillis, boolean ignoreSSLErrors) {
+                                      int readTimeoutMillis,
+                                      long pingTimeoutMillis,
+                                      boolean ignoreSSLErrors) {
         this(protocol, serverName, Integer.toString(serverPort), metadataPath, dataPath, username, password,
-                connectTimeoutMillis, readTimeoutMillis, ignoreSSLErrors);
+                connectTimeoutMillis, readTimeoutMillis, pingTimeoutMillis, ignoreSSLErrors);
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -133,6 +144,7 @@ public class ClientConfigurationFactory {
                 password);
         clientConfiguration.setConnectTimeoutMillis(connectTimeoutMillis);
         clientConfiguration.setReadTimeoutMillis(readTimeoutMillis);
+        clientConfiguration.setPingTimeoutMillis(pingTimeoutMillis);
         clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
         return clientConfiguration;
     }
@@ -147,6 +159,10 @@ public class ClientConfigurationFactory {
 
     private static int loadInt(String name, Properties clientProperties, int defaultValue) {
         return NumberUtils.toInt(load(name, clientProperties, ""), defaultValue);
+    }
+
+    private static long loadLong(String name, Properties clientProperties, long defaultValue) {
+        return NumberUtils.toLong(load(name, clientProperties, ""), defaultValue);
     }
 
     private static String load(String name, Properties clientProperties, String defaultValue) {

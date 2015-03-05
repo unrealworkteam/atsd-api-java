@@ -15,6 +15,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.plain.PlainCommand;
 import com.axibase.tsd.query.QueryPart;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -23,6 +24,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -40,6 +42,7 @@ public class HttpClientManager {
 
     private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReference = new AtomicReference<GenericObjectPool<HttpClient>>();
     private int borrowMaxWaitMillis = DEFAULT_BORROW_MAX_TIME_MS;
+    private final AtomicReference<PlainSender> plainSender = new AtomicReference<PlainSender>();
 
     public HttpClientManager() {
         objectPoolConfig = new GenericObjectPoolConfig();
@@ -158,6 +161,25 @@ public class HttpClientManager {
         }
     }
 
+    public void send(PlainCommand plainCommand) {
+        PlainSender sender = prepareSender();
+
+        sender.send(plainCommand);
+    }
+
+    private PlainSender prepareSender() {
+        PlainSender sender = plainSender.get();
+        if (sender == null) {
+            PlainSender newSender = new PlainSender(clientConfiguration.getDataUrl(), clientConfiguration.getPingTimeoutMillis());
+            if (plainSender.compareAndSet(null, newSender)) {
+                Executors.newSingleThreadExecutor().execute(newSender);
+            }
+            sender = plainSender.get();
+            sender.await();
+        }
+        return sender;
+    }
+
     private class HttpClientBasePooledObjectFactory extends BasePooledObjectFactory<HttpClient> {
         @Override
         public HttpClient create() throws Exception {
@@ -174,4 +196,5 @@ public class HttpClientManager {
             p.getObject().close();
         }
     }
+
 }

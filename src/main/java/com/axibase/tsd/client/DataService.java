@@ -21,16 +21,18 @@ import com.axibase.tsd.model.data.Severity;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
+import com.axibase.tsd.plain.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
 import static com.axibase.tsd.util.AtsdUtil.check;
+import static com.axibase.tsd.util.AtsdUtil.checkEntityName;
 
 /**
  * Provides high-level API to retrieve and update ATSD Data Objects (time-series, alerts, properties).
@@ -61,7 +63,7 @@ public class DataService {
         QueryPart<GetSeriesBatchResult> query = new Query<GetSeriesBatchResult>("series");
         GetSeriesBatchResult seriesBatchResult = httpClientManager.requestData(GetSeriesBatchResult.class, query,
                 post(new BatchQuery<GetSeriesQuery>(Arrays.asList(seriesQueries))));
-        return seriesBatchResult.getSeriesResults();
+        return seriesBatchResult == null ? Collections.<GetSeriesResult>emptyList() : seriesBatchResult.getSeriesResults();
     }
 
     public List<GetSeriesResult> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesQuery... seriesQueries) {
@@ -85,13 +87,13 @@ public class DataService {
     }
 
     /**
-     * @param entityName entity name
-     * @param data CSV as String
+     * @param entityName        entity name
+     * @param data              CSV as String
      * @param tagNamesAndValues entity tags
      * @return true if success
      */
     public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
-        check(entityName, "Entity name is empty");
+        checkEntityName(entityName);
         check(data, "Data is empty");
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("csv")
@@ -147,8 +149,8 @@ public class DataService {
     /**
      * @param metricNames metric filter, multiple values allowed
      * @param entityNames entity filter, multiple values allowed
-     * @param ruleNames rule filter, multiple values allowed
-     * @param severities severity filter, multiple values allowed
+     * @param ruleNames   rule filter, multiple values allowed
+     * @param severities  severity filter, multiple values allowed
      * @param minSeverity minimal severity filter
      * @return list of {@code Alert}
      */
@@ -180,13 +182,18 @@ public class DataService {
                 post(new BatchQuery<GetAlertHistoryQuery>(getAlertHistoryQuery, getAlertHistoryQueries)));
     }
 
-    private static  QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
+    private static QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
         if (paramValueList != null) {
             for (String paramValue : paramValueList) {
                 query = query.param(paramName, paramValue);
             }
         }
         return query;
+    }
+
+    public void sendPlainCommand(PlainCommand plainCommand)
+            throws AtsdClientException, AtsdServerException {
+        httpClientManager.send(plainCommand);
     }
 
     private static class LastPreparer implements SeriesCommandPreparer {

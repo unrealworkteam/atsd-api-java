@@ -21,6 +21,7 @@ package com.axibase.tsd.model.system;
  */
 public class ClientConfiguration {
     public static final int DEFAULT_TIMEOUT_MS = 1000;
+    public static final long DEFAULT_PING_TIMEOUT_MS = 600000L;
 
     private final String metadataUrl;
     private final String dataUrl;
@@ -29,6 +30,7 @@ public class ClientConfiguration {
     private int connectTimeoutMillis = DEFAULT_TIMEOUT_MS;
     private int readTimeoutMillis = DEFAULT_TIMEOUT_MS;
     private boolean ignoreSSLErrors = false;
+    private long pingTimeoutMillis = DEFAULT_PING_TIMEOUT_MS;
 
     /**
      * @param metadataUrl full URL to Metadata ATSD API
@@ -83,6 +85,10 @@ public class ClientConfiguration {
         return ignoreSSLErrors;
     }
 
+    public long getPingTimeoutMillis() {
+        return pingTimeoutMillis;
+    }
+
     public void setConnectTimeoutMillis(int connectTimeoutMillis) {
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
@@ -93,5 +99,9 @@ public class ClientConfiguration {
 
     public void setIgnoreSSLErrors(boolean ignoreSSLErrors) {
         this.ignoreSSLErrors = ignoreSSLErrors;
+    }
+
+    public void setPingTimeoutMillis(long pingTimeoutMillis) {
+        this.pingTimeoutMillis = pingTimeoutMillis;
     }
 }

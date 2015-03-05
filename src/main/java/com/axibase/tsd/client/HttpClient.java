@@ -30,7 +30,6 @@ import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.StrictHostnameVerifier;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -199,6 +198,7 @@ class HttpClient {
         if (response.getStatus() == HTTP_STATUS_OK) {
             return response.readEntity(resultClass);
         } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {
+            buildAndLogServerError(response);
             return null;
         } else {
             throw buildException(response);
@@ -230,6 +230,13 @@ class HttpClient {
     }
 
     private AtsdServerException buildException(Response response) {
+        ServerError serverError = buildAndLogServerError(response);
+        return new AtsdServerException(response.getStatusInfo().getReasonPhrase() + " (" + response.getStatus() + ")" +
+                ((serverError == null) ? "" : (", " + serverError.getMessage()))
+        );
+    }
+
+    private ServerError buildAndLogServerError(Response response) {
         ServerError serverError = null;
         try {
             serverError = response.readEntity(ServerError.class);
@@ -237,9 +244,7 @@ class HttpClient {
         } catch (Throwable e) {
             log.warn("Couldn't read error message", e);
         }
-        return new AtsdServerException(response.getStatusInfo().getReasonPhrase() + " (" + response.getStatus() + ")" +
-                ((serverError == null) ? "" : (", " + serverError.getMessage()))
-        );
+        return serverError;
     }
 
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor) {

@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.axibase.tsd.client.RequestProcessor.*;
-import static com.axibase.tsd.util.AtsdUtil.check;
+import static com.axibase.tsd.util.AtsdUtil.*;
 
 /**
  * Provides high-level API to retrieve and update ATSD Metadata Objects (entities, entity groups, metrics).
@@ -106,14 +106,14 @@ public class MetaDataService {
      */
     public Metric retrieveMetric(String metricName)
             throws AtsdClientException, AtsdServerException {
-        check(metricName, "Metric name is empty");
+        checkMetricName(metricName);
         return httpClientManager.requestMetaDataObject(Metric.class, new Query<Metric>("metrics")
                 .path(metricName));
     }
 
     public boolean updateMetric(Metric metric) {
         String metricName = metric.getName();
-        check(metricName, "Metric name is empty");
+        checkMetricName(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
                 .path(metricName);
         return httpClientManager.updateMetaData(queryPart, put(metric));
@@ -121,7 +121,7 @@ public class MetaDataService {
 
     public boolean deleteMetric(Metric metric) {
         String metricName = metric.getName();
-        check(metricName, "Metric name is empty");
+        checkMetricName(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
                 .path(metricName);
         return httpClientManager.updateMetaData(queryPart, delete());
@@ -159,7 +159,7 @@ public class MetaDataService {
      */
     public Entity retrieveEntity(String entityName)
             throws AtsdClientException, AtsdServerException {
-        check(entityName, "Entity name is empty");
+        checkEntityName(entityName);
         QueryPart<Entity> query = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.requestMetaDataObject(Entity.class, query);
@@ -167,7 +167,7 @@ public class MetaDataService {
 
     public boolean updateEntity(Entity entity) {
         String entityName = entity.getName();
-        check(entityName, "Entity name is empty");
+        checkEntityName(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.updateMetaData(queryPart, put(entity));
@@ -175,7 +175,7 @@ public class MetaDataService {
 
     public boolean deleteEntity(Entity entity) {
         String entityName = entity.getName();
-        check(entityName, "Entity name is empty");
+        checkEntityName(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.updateMetaData(queryPart, delete());
@@ -190,7 +190,7 @@ public class MetaDataService {
      */
     public List<EntityAndTags> retrieveEntityAndTags(String metricName, String entityName)
             throws AtsdClientException, AtsdServerException {
-        check(metricName, "Metric name is empty");
+        checkMetricName(metricName);
         return httpClientManager.requestMetaDataList(EntityAndTags.class, new Query<EntityAndTags>("metrics")
                         .path(metricName)
                         .path("entity-and-tags")
@@ -214,7 +214,7 @@ public class MetaDataService {
      * @throws AtsdServerException
      */
     public EntityGroup retrieveEntityGroup(String entityGroupName) throws AtsdClientException, AtsdServerException {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
                 .path(entityGroupName);
         return httpClientManager.requestMetaDataObject(EntityGroup.class, query);
@@ -222,7 +222,7 @@ public class MetaDataService {
 
     public boolean updateEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
         String entityGroupName = entityGroup.getName();
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
                 .path(entityGroupName);
         return httpClientManager.updateMetaData(query, put(entityGroup));
@@ -230,7 +230,7 @@ public class MetaDataService {
 
     public boolean deleteEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
         String entityGroupName = entityGroup.getName();
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
                 .path(entityGroupName);
         return httpClientManager.updateMetaData(query, delete());
@@ -251,7 +251,7 @@ public class MetaDataService {
                                               String expression,
                                               TagAppender tagAppender,
                                               Integer limit) throws AtsdClientException, AtsdServerException {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities")
@@ -272,7 +272,7 @@ public class MetaDataService {
      */
     public List<Entity> retrieveGroupEntities(String entityGroupName)
             throws AtsdClientException, AtsdServerException {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");
@@ -291,7 +291,7 @@ public class MetaDataService {
      * @throws AtsdServerException if there is any server problem
      */
     public boolean addGroupEntities(String entityGroupName, Boolean createEntities, Entity... entities) {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities")
@@ -313,7 +313,7 @@ public class MetaDataService {
      * @throws AtsdServerException if there is any server problem
      */
     public boolean replaceGroupEntities(String entityGroupName, Boolean createEntities, Entity... entities) {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities")
@@ -330,7 +330,7 @@ public class MetaDataService {
      * @throws AtsdServerException if there is any server problem
      */
     public boolean deleteGroupEntities(String entityGroupName, Entity... entities) {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");
@@ -346,7 +346,7 @@ public class MetaDataService {
      * @throws AtsdServerException if there is any server problem
      */
     public boolean deleteAllGroupEntities(String entityGroupName) {
-        check(entityGroupName, "Entity group name is empty");
+        checkEntityGroupName(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");

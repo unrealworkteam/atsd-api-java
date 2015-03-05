@@ -14,6 +14,7 @@
 */
 package com.axibase.tsd.util;
 
+import com.axibase.tsd.model.data.series.Series;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.MediaType;
@@ -48,6 +49,24 @@ public class AtsdUtil {
     public static void check(String value, String errorMessage) {
         if (StringUtils.isBlank(value)) {
             throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    public static void checkEntityName(String entityName) {
+        check(entityName, "Entity name is empty");
+    }
+
+    public static void checkEntityGroupName(String entityGroupName) {
+        check(entityGroupName, "Entity group name is empty");
+    }
+
+    public static void checkMetricName(String metricName) {
+        check(metricName, "Metric name is empty");
+    }
+
+    public static void checkSeries(Series series) {
+        if (series == null) {
+            throw new IllegalArgumentException("Series is null");
         }
     }
 }

@@ -45,6 +45,10 @@ public class Metric {
     public Metric() {
     }
 
+    public Metric(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }
