@@ -78,9 +78,14 @@ public class MetaDataServiceTest {
 
     @Test
     public void testCreateAndDeleteMetric() throws Exception {
+        Metric newTestMetric = createNewTestMetric();
+        try {
+            metaDataService.deleteMetric(newTestMetric);
+        } catch (Throwable e) {
+            // ignore
+        }
         assertNull(metaDataService.retrieveMetric(NNN_METRIC));
 
-        Metric newTestMetric = createNewTestMetric();
         assertTrue(metaDataService.updateMetric(newTestMetric));
         assertNotNull(metaDataService.retrieveMetric(NNN_METRIC));
 
