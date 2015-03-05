@@ -16,6 +16,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.plain.PlainCommand;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
@@ -43,6 +44,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private volatile boolean active;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
+    private CloseableHttpResponse response;
 
     public PlainSender(String url, long pingTimeoutMillis) {
         this.url = url;
@@ -113,7 +115,20 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     public void close() {
         active = false;
-        HttpClientUtils.closeQuietly(httpClient);
+        if (response != null) {
+            try {
+                response.close();
+            } catch (IOException e) {
+                log.error("Could not close response: {}", response, e);
+            }
+        }
+        if (httpClient == null) {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                log.error("Could not close client: {}", httpClient, e);
+            }
+        }
     }
 
     @Override
@@ -126,7 +141,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         httpPost.setEntity(this);
         try {
             active = true;
-            httpClient.execute(httpPost);
+            response = httpClient.execute(httpPost);
         } catch (IOException e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
         }

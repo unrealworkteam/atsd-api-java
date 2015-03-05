@@ -287,7 +287,7 @@ public class DataServiceTest {
     public void testMultipleSeriesStreamingCommands() throws Exception {
         dataService.sendPlainCommand(new MultipleInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
                 AtsdUtil.toMap("thread", "current"),
-                AtsdUtil.toValuesMap(SSS_METRIC, 1.0, NNN_METRIC, 2.0)
+                AtsdUtil.toValuesMap(SSS_METRIC, 1.0, YYY_METRIC, 2.0)
         ));
 
         Thread.sleep(3000);
@@ -298,7 +298,7 @@ public class DataServiceTest {
         seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
         seriesQuery.setEndTime(System.currentTimeMillis() + 1000);
         seriesQuery.setTags(tags);
-        GetSeriesQuery seriesQuery2 = new GetSeriesQuery(SSS_ENTITY, NNN_METRIC);
+        GetSeriesQuery seriesQuery2 = new GetSeriesQuery(SSS_ENTITY, YYY_METRIC);
         seriesQuery2.setStartTime(System.currentTimeMillis() - 10000);
         seriesQuery2.setEndTime(System.currentTimeMillis() + 1000);
         seriesQuery2.setTags(tags);
