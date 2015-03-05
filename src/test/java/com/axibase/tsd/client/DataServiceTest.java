@@ -264,7 +264,7 @@ public class DataServiceTest {
             fail();
         }
 
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
         seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
