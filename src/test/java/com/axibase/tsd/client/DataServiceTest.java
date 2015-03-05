@@ -22,9 +22,9 @@ import com.axibase.tsd.model.data.PropertyKey;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
-import com.axibase.tsd.plain.AbstractSeriesInsertCommand;
-import com.axibase.tsd.plain.MultipleSeriesInsertCommand;
-import com.axibase.tsd.plain.SeriesInsertCommand;
+import com.axibase.tsd.plain.AbstractInsertCommand;
+import com.axibase.tsd.plain.MultipleInsertCommand;
+import com.axibase.tsd.plain.InsertCommand;
 import com.axibase.tsd.util.AtsdUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -285,7 +285,7 @@ public class DataServiceTest {
 
     @Test
     public void testMultipleSeriesStreamingCommands() throws Exception {
-        dataService.sendPlainCommand(new MultipleSeriesInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
+        dataService.sendPlainCommand(new MultipleInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
                 AtsdUtil.toMap("thread", "current"),
                 AtsdUtil.toValuesMap(SSS_METRIC, 1.0, NNN_METRIC, 2.0)
         ));
@@ -329,7 +329,7 @@ public class DataServiceTest {
         @Override
         public void run() {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
-            AbstractSeriesInsertCommand plainCommand = new SeriesInsertCommand(SSS_ENTITY, SSS_METRIC, series,
+            AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
                     "thread", Thread.currentThread().getName());
             dataService.sendPlainCommand(plainCommand);
             latch.countDown();

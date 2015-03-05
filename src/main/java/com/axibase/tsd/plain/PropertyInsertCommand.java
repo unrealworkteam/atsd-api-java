@@ -15,14 +15,30 @@
 
 package com.axibase.tsd.plain;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import com.axibase.tsd.util.AtsdUtil;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class PropertyInsertCommand implements PlainCommand {
+public class PropertyInsertCommand extends AbstractInsertCommand {
+    private final String typeName;
+    private final Map<String, String> values;
+
+    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> tags,
+                                 Map<String, String> values) {
+        super(entityName, timeMillis, tags);
+        AtsdUtil.check(typeName, "Type name is null");
+        this.typeName = typeName;
+        this.values = (values == null)? Collections.<String, String>emptyMap():values;
+    }
+
     @Override
-    public String compose() {
-        throw new NotImplementedException();
+    protected void appendValues(StringBuilder sb) {
+        // property e:abc001 t:disk k:name=sda v:size=203459 v:fs_type=nfs
+        sb.append(" t:").append(clean(typeName));
+        appendKeysAndValues(sb, " v:",values);
     }
 }

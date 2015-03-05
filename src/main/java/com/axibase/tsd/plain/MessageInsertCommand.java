@@ -15,14 +15,30 @@
 
 package com.axibase.tsd.plain;
 
+import org.apache.commons.lang3.StringUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class MessageInsertCommand implements PlainCommand {
+public class MessageInsertCommand extends AbstractInsertCommand {
+    private final String messageText;
+
+    public MessageInsertCommand(String entityName, Long timeMillis, Map<String, String> tags, String messageText) {
+        super(entityName, timeMillis, tags);
+        this.messageText = messageText;
+        if ((tags==null||tags.isEmpty()) && StringUtils.isBlank(messageText)) {
+            throw new IllegalArgumentException("Either message text or one of the tags is required");
+        }
+    }
+
     @Override
-    public String compose() {
-        throw new NotImplementedException();
+    protected void appendValues(StringBuilder sb) {
+        //message e:<entity> s:<timestamp> t:<key-1>=<value-2> t:<key-2>=<value-2> m:<message>
+        if (StringUtils.isNoneBlank(messageText)) {
+            sb.append(" m:").append(normalize(messageText));
+        }
     }
 }

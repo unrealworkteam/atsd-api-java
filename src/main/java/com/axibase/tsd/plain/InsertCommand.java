@@ -26,28 +26,28 @@ import static com.axibase.tsd.util.AtsdUtil.checkMetricName;
 /**
  * @author Nikolay Malevanny.
  */
-public class SeriesInsertCommand extends AbstractSeriesInsertCommand {
+public class InsertCommand extends AbstractInsertCommand {
     private final String metricName;
     private final Series series;
 
-    public SeriesInsertCommand(String entityName, String metricName, Series series, Map<String, String> tags) {
+    public InsertCommand(String entityName, String metricName, Series series, Map<String, String> tags) {
         super(entityName, series.getTimeMillis(), tags);
         checkMetricName(metricName);
         this.metricName = metricName;
         this.series = series;
     }
 
-    public SeriesInsertCommand(String entityName, String metricName, Series series) {
+    public InsertCommand(String entityName, String metricName, Series series) {
         this(entityName, metricName, series, Collections.<String, String>emptyMap());
     }
 
-    public SeriesInsertCommand(String entityName, String metricName, Series series, String... tagNamesAndValues) {
+    public InsertCommand(String entityName, String metricName, Series series, String... tagNamesAndValues) {
         this(entityName, metricName, series, AtsdUtil.toMap(tagNamesAndValues));
     }
 
     @Override
-    protected void addValues(StringBuilder sb) {
-        sb.append(" m:").append(metricName).append('=').append(series.getValue());
+    protected void appendValues(StringBuilder sb) {
+        sb.append(" m:").append(clean(metricName)).append('=').append(series.getValue());
     }
 
 }

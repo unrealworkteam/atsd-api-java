@@ -20,19 +20,20 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-public class MultipleSeriesInsertCommand extends AbstractSeriesInsertCommand  {
+public class MultipleInsertCommand extends AbstractInsertCommand {
     private final Map<String, Double> metricsAndValues;
 
-    public MultipleSeriesInsertCommand(String entityName, long time, Map<String, String> tags,
-                                       Map<String, Double> metricsAndValues) {
+    public MultipleInsertCommand(String entityName, long time, Map<String, String> tags,
+                                 Map<String, Double> metricsAndValues) {
         super(entityName, time, tags);
         this.metricsAndValues = metricsAndValues;
     }
 
     @Override
-    protected void addValues(StringBuilder sb) {
+    protected void appendValues(StringBuilder sb) {
         for (Map.Entry<String, Double> metricNameAndValue : metricsAndValues.entrySet()) {
-            sb.append(" m:").append(metricNameAndValue.getKey()).append('=').append(metricNameAndValue.getValue());
+            sb.append(" m:").append(clean(metricNameAndValue.getKey()))
+                    .append('=').append(metricNameAndValue.getValue());
         }
     }
 }
