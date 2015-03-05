@@ -16,7 +16,6 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.plain.PlainCommand;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.*;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * @author Nikolay Malevanny.
@@ -88,7 +86,6 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
-        //outputStream = new GZIPOutputStream(outputStream);
         while (active) {
             try {
                 String message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
@@ -126,7 +123,6 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         httpClient = HttpClients.custom().build();
         HttpPost httpPost = new HttpPost(url +
                 "/command");
-        //httpPost.setHeader("Accept-Encoding", "gzip");
         httpPost.setEntity(this);
         try {
             active = true;
