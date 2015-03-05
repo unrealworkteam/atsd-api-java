@@ -46,6 +46,22 @@ public class AtsdUtil {
         return result;
     }
 
+    public static Map<String, Double> toValuesMap(Object... metricNamesAndValues) {
+        if (metricNamesAndValues==null || metricNamesAndValues.length==0) {
+            return Collections.emptyMap();
+        }
+
+        if (metricNamesAndValues.length % 2 == 1) {
+            throw new IllegalArgumentException("Key without value");
+        }
+
+        Map<String, Double> result = new HashMap<String, Double>();
+        for (int i = 0; i < metricNamesAndValues.length; i++) {
+            result.put((String) metricNamesAndValues[i],(Double) metricNamesAndValues[++i]);
+        }
+        return result;
+    }
+
     public static void check(String value, String errorMessage) {
         if (StringUtils.isBlank(value)) {
             throw new IllegalArgumentException(errorMessage);
@@ -62,11 +78,5 @@ public class AtsdUtil {
 
     public static void checkMetricName(String metricName) {
         check(metricName, "Metric name is empty");
-    }
-
-    public static void checkSeries(Series series) {
-        if (series == null) {
-            throw new IllegalArgumentException("Series is null");
-        }
     }
 }

@@ -15,14 +15,24 @@
 
 package com.axibase.tsd.plain;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class MultipleSeriesInsertCommand implements PlainCommand {
+public class MultipleSeriesInsertCommand extends AbstractSeriesInsertCommand  {
+    private final Map<String, Double> metricsAndValues;
+
+    public MultipleSeriesInsertCommand(String entityName, long time, Map<String, String> tags,
+                                       Map<String, Double> metricsAndValues) {
+        super(entityName, time, tags);
+        this.metricsAndValues = metricsAndValues;
+    }
+
     @Override
-    public String compose() {
-        throw new NotImplementedException();
+    protected void addValues(StringBuilder sb) {
+        for (Map.Entry<String, Double> metricNameAndValue : metricsAndValues.entrySet()) {
+            sb.append(" m:").append(metricNameAndValue.getKey()).append('=').append(metricNameAndValue.getValue());
+        }
     }
 }

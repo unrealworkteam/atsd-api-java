@@ -22,8 +22,10 @@ import com.axibase.tsd.model.data.PropertyKey;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
-import com.axibase.tsd.model.meta.Metric;
+import com.axibase.tsd.plain.AbstractSeriesInsertCommand;
+import com.axibase.tsd.plain.MultipleSeriesInsertCommand;
 import com.axibase.tsd.plain.SeriesInsertCommand;
+import com.axibase.tsd.util.AtsdUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -124,7 +126,7 @@ public class DataServiceTest {
                         command.setLimit(10);
                     }
                 },
-        new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
+                new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
         );
         assertEquals(1, getSeriesResults.size());
         assertEquals(10, getSeriesResults.get(0).getData().size());
@@ -264,26 +266,45 @@ public class DataServiceTest {
 
         Thread.sleep(3000);
 
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
-                new SeriesCommandPreparer() {
-                    @Override
-                    public void prepare(GetSeriesQuery command) {
-                        command.setStartTime(System.currentTimeMillis() - 10000);
-                        command.setEndTime(System.currentTimeMillis() + 1000);
-                        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
-                        for (int i = 0; i < size; i++) {
-                            tags.add("thread","pool-1-thread-" + (1+i));
-//                            tags.add("thread","pool-1-thread-" + (i));
-                        }
-                        command.setTags(tags);
-                    }
-                }, new GetSeriesQuery(SSS_ENTITY, SSS_METRIC));
+        GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
+        seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
+        seriesQuery.setEndTime(System.currentTimeMillis() + 1000);
+        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+        for (int i = 0; i < size; i++) {
+            tags.add("thread", "pool-1-thread-" + (1 + i));
+        }
+        seriesQuery.setTags(tags);
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(seriesQuery);
         List<GetSeriesResult> results = getSeriesResults;
         int resCnt = 0;
         for (GetSeriesResult result : results) {
-            resCnt+= result.getData().size();
+            resCnt += result.getData().size();
         }
         assertEquals(cnt, resCnt);
+    }
+
+    @Test
+    public void testMultipleSeriesStreamingCommands() throws Exception {
+        dataService.sendPlainCommand(new MultipleSeriesInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
+                AtsdUtil.toMap("thread", "current"),
+                AtsdUtil.toValuesMap(SSS_METRIC, 1.0, NNN_METRIC, 2.0)
+        ));
+
+        Thread.sleep(1000);
+
+        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+        tags.add("thread", "current");
+        GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
+        seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
+        seriesQuery.setEndTime(System.currentTimeMillis() + 1000);
+        seriesQuery.setTags(tags);
+        GetSeriesQuery seriesQuery2 = new GetSeriesQuery(SSS_ENTITY, NNN_METRIC);
+        seriesQuery2.setStartTime(System.currentTimeMillis() - 10000);
+        seriesQuery2.setEndTime(System.currentTimeMillis() + 1000);
+        seriesQuery2.setTags(tags);
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(seriesQuery, seriesQuery2);
+        List<GetSeriesResult> results = getSeriesResults;
+        assertEquals(2, results.size());
     }
 
     @After
@@ -308,9 +329,9 @@ public class DataServiceTest {
         @Override
         public void run() {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
-            SeriesInsertCommand seriesInsertCommand = new SeriesInsertCommand(SSS_ENTITY, SSS_METRIC, series,
+            AbstractSeriesInsertCommand plainCommand = new SeriesInsertCommand(SSS_ENTITY, SSS_METRIC, series,
                     "thread", Thread.currentThread().getName());
-            dataService.sendPlainCommand(seriesInsertCommand);
+            dataService.sendPlainCommand(plainCommand);
             latch.countDown();
         }
     }

@@ -92,6 +92,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         while (active) {
             try {
                 String message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
+//                log.debug("message = {}", message);
                 if (message != null) {
                     outputStream.write(message.getBytes());
                     outputStream.flush();
