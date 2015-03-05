@@ -248,7 +248,7 @@ public class DataServiceTest {
     @Test
     public void testMultiThreadStreamingCommands() throws Exception {
         final int size = 5;
-        final int cnt = 300;
+        final int cnt = 30;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size, 0,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(cnt));
@@ -264,7 +264,7 @@ public class DataServiceTest {
             fail();
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
         GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
         seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
@@ -290,7 +290,7 @@ public class DataServiceTest {
                 AtsdUtil.toValuesMap(SSS_METRIC, 1.0, NNN_METRIC, 2.0)
         ));
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add("thread", "current");
