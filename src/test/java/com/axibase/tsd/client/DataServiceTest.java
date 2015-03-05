@@ -246,7 +246,7 @@ public class DataServiceTest {
     @Test
     public void testMultiThreadStreamingCommands() throws Exception {
         final int size = 5;
-        final int cnt = 500;
+        final int cnt = 300;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size, 0,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(cnt));

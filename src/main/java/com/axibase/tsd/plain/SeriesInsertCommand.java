@@ -54,14 +54,13 @@ public class SeriesInsertCommand implements PlainCommand {
 
     @Override
     public String compose() {
-        // series <entity> <metric> <timestamp> <value> <tags>
+        // series e:<entity> s:<timestamp> t:<key-1>=<value-2> t:<key-2>=<value-2> m:<metric-1>=<value-1> m:<metric-2>=<value-2>
         StringBuilder sb = new StringBuilder("series ")
-                .append(entityName).append(' ')
-                .append(metricName).append(' ')
-                .append("m:").append(series.getTimeMillis()).append(' ')
-                .append(series.getValue());
+                .append("e:").append(entityName).append(' ')
+                .append("ms:").append(series.getTimeMillis()).append(' ')
+                .append("m:").append(metricName).append('=').append(series.getValue());
         for (Map.Entry<String, String> tagNameAndValue : tags.entrySet()) {
-            sb.append(' ').append(tagNameAndValue.getKey()).append('=').append(tagNameAndValue.getValue());
+            sb.append(" t:").append(tagNameAndValue.getKey()).append('=').append(tagNameAndValue.getValue());
         }
         return sb.append('\n').toString();
     }
