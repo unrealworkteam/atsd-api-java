@@ -175,7 +175,6 @@ public class HttpClientManager {
                 Executors.newSingleThreadExecutor().execute(newSender);
             }
             sender = plainSender.get();
-            sender.await();
         }
         return sender;
     }

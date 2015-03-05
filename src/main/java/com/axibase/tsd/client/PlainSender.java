@@ -51,15 +51,13 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         this.pingTimeoutMillis = pingTimeoutMillis;
     }
 
-    void await() {
+    public void send(PlainCommand plainCommand) {
         try {
             latch.await();
         } catch (InterruptedException e) {
             log.error("Initialization error:", e);
         }
-    }
 
-    public void send(PlainCommand plainCommand) {
         String message = plainCommand.compose();
         try {
             messages.put(message);
