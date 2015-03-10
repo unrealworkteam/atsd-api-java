@@ -22,9 +22,17 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -33,7 +41,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Nikolay Malevanny.
  */
 public class HttpClientManager {
+    private static final Logger log = LoggerFactory.getLogger(HttpClientManager.class);
+
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
+    private static final int DEFAULT_PING_PERIOD_MS = 5000;
     private static final int DEFAULT_MAX_TOTAL = 100;
     private static final int DEFAULT_MAX_IDLE = 100;
 
@@ -42,7 +53,13 @@ public class HttpClientManager {
 
     private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReference = new AtomicReference<GenericObjectPool<HttpClient>>();
     private int borrowMaxWaitMillis = DEFAULT_BORROW_MAX_TIME_MS;
+
+    // plain commands
+    private long pingPeriodMillis = DEFAULT_PING_PERIOD_MS;
     private final AtomicReference<PlainSender> plainSender = new AtomicReference<PlainSender>();
+    private final AtomicLong lastPingTime = new AtomicLong(0);
+    private final List<PlainCommand> saved = new ArrayList<PlainCommand>();
+    private boolean lastPingResult = true;
 
     public HttpClientManager() {
         objectPoolConfig = new GenericObjectPoolConfig();
@@ -67,6 +84,10 @@ public class HttpClientManager {
         this.borrowMaxWaitMillis = borrowMaxWaitMillis;
     }
 
+    public void setPingPeriodMillis(long pingPeriodMillis) {
+        this.pingPeriodMillis = pingPeriodMillis;
+    }
+
     public <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
         HttpClient httpClient = borrowClient();
         try {
@@ -85,7 +106,7 @@ public class HttpClientManager {
         }
     }
 
-     public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
+    public <E> boolean updateMetaData(QueryPart query, RequestProcessor<E> requestProcessor) {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.updateMetaData(query, requestProcessor);
@@ -112,7 +133,7 @@ public class HttpClientManager {
         }
     }
 
-    public <T,E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+    public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.requestDataList(clazz, query, requestProcessor);
@@ -121,7 +142,7 @@ public class HttpClientManager {
         }
     }
 
-    public <T,E> T requestData(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+    public <T, E> T requestData(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.requestData(clazz, query, requestProcessor);
@@ -166,21 +187,81 @@ public class HttpClientManager {
     }
 
     public void send(PlainCommand plainCommand) {
+        if (!lastPingResult) {
+            throw new IllegalStateException("Last ping was bad");
+        }
         PlainSender sender = prepareSender();
+        if (canSendPlainCommand()) {
+            try {
+                sender.send(plainCommand);
+            } finally {
+                saved.add(plainCommand);
+            }
+        }
+    }
 
-        sender.send(plainCommand);
+    private boolean ping() {
+        String dataUrl = clientConfiguration.getDataUrl();
+        Socket socket = null;
+        String host = null;
+        int port = -1;
+        try {
+            URI uri = new URI(dataUrl);
+            host = uri.getHost();
+            port = uri.getPort();
+            socket = new Socket(host, port);
+        } catch (Throwable e) {
+            log.info("Ping (host={}, port={}) error: ", host, port, e);
+            return false;
+        } finally {
+            if (socket != null) try {
+                socket.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+        return true;
     }
 
     private PlainSender prepareSender() {
         PlainSender sender = plainSender.get();
-        if (sender == null) {
-            PlainSender newSender = new PlainSender(clientConfiguration.getDataUrl(), clientConfiguration.getPingTimeoutMillis());
-            if (plainSender.compareAndSet(null, newSender)) {
+        if (sender == null || !sender.isCorrect()) {
+            PlainSender newSender = new PlainSender(clientConfiguration.getDataUrl(), clientConfiguration.getPingTimeoutMillis(), sender);
+            if (plainSender.compareAndSet(sender, newSender)) {
                 Executors.newSingleThreadExecutor().execute(newSender);
             }
             sender = plainSender.get();
         }
         return sender;
+    }
+
+    public boolean canSendPlainCommand() {
+        long last = lastPingTime.get();
+        long current = System.currentTimeMillis();
+        if (current - last > pingPeriodMillis) {
+            if (lastPingTime.compareAndSet(last, current)) {
+                boolean pingResult = lastPingResult;
+                lastPingResult = ping();
+                if (pingResult && lastPingResult) {
+                    saved.clear();
+                }
+            }
+        }
+        return lastPingResult;
+    }
+
+    public List<PlainCommand> removeSavedPlainCommands() {
+        if (saved.isEmpty()) {
+            return Collections.emptyList();
+        }
+        synchronized (saved) {
+            List<PlainCommand> result = new ArrayList<PlainCommand>(saved);
+            saved.removeAll(result);
+            if (result.size() > 0) {
+                log.info("{} commands are removed from saved list", result.size());
+            }
+            return result;
+        }
     }
 
     private class HttpClientBasePooledObjectFactory extends BasePooledObjectFactory<HttpClient> {

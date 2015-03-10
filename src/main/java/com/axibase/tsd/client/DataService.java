@@ -196,6 +196,14 @@ public class DataService {
         httpClientManager.send(plainCommand);
     }
 
+    public boolean canSendPlainCommand() {
+        return httpClientManager.canSendPlainCommand();
+    }
+
+    public List<PlainCommand> removeSavedPlainCommands() {
+        return httpClientManager.removeSavedPlainCommands();
+    }
+
     private static class LastPreparer implements SeriesCommandPreparer {
         @Override
         public void prepare(GetSeriesQuery command) {

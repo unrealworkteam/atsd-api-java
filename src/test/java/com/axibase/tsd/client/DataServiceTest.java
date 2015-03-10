@@ -23,8 +23,9 @@ import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.plain.AbstractInsertCommand;
-import com.axibase.tsd.plain.MultipleInsertCommand;
 import com.axibase.tsd.plain.InsertCommand;
+import com.axibase.tsd.plain.MultipleInsertCommand;
+import com.axibase.tsd.plain.PlainCommand;
 import com.axibase.tsd.util.AtsdUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,7 @@ import static junit.framework.Assert.*;
 
 public class DataServiceTest {
 
+    public static final int WAIT_TIME = 1500;
     private DataService dataService;
     private HttpClientManager httpClientManager;
 
@@ -249,12 +252,14 @@ public class DataServiceTest {
     public void testMultiThreadStreamingCommands() throws Exception {
         final int size = 5;
         final int cnt = 30;
+        int pauseMs = 10;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size, 0,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(cnt));
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
         for (int i = 0; i < cnt; i++) {
+            Thread.sleep(pauseMs);
             threadPoolExecutor.execute(new SimpleSeriesSender(start, dataService, i, latch));
         }
         try {
@@ -264,22 +269,72 @@ public class DataServiceTest {
             fail();
         }
 
-        Thread.sleep(3000);
+        Thread.sleep(WAIT_TIME);
 
-        GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
-        seriesQuery.setStartTime(System.currentTimeMillis() - 10000);
-        seriesQuery.setEndTime(System.currentTimeMillis() + 1000);
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         for (int i = 0; i < size; i++) {
             tags.add("thread", "pool-1-thread-" + (1 + i));
         }
-        seriesQuery.setTags(tags);
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(seriesQuery);
-        List<GetSeriesResult> results = getSeriesResults;
-        int resCnt = 0;
-        for (GetSeriesResult result : results) {
-            resCnt += result.getData().size();
+        int resCnt = countSssSeries(size, cnt, start, tags);
+        assertEquals(cnt, resCnt);
+    }
+
+    @Test
+    public void testStreamingCommands() throws Exception {
+        final int size = 5;
+        final int cnt = 30;
+        int pauseMs = 50;
+        long start = System.currentTimeMillis();
+        CountDownLatch latch = new CountDownLatch(cnt);
+        for (int i = 0; i < cnt; i++) {
+            Thread.sleep(pauseMs);
+
+            new SimpleSeriesSender(start, dataService, i, latch).run();
         }
+
+        Thread.sleep(WAIT_TIME);
+
+        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+        tags.add("thread", "main");
+        int resCnt = countSssSeries(size, cnt, start, tags);
+        assertEquals(cnt, resCnt);
+    }
+
+    @Ignore
+    @Test
+    public void testStreamingCommandsUnstableNetwork() throws Exception {
+        final int size = 5;
+        final int cnt = 1200;
+        int pauseMs = 100;
+        long start = System.currentTimeMillis();
+        CountDownLatch latch = new CountDownLatch(cnt);
+        List<PlainCommand> simpleCache = new ArrayList<PlainCommand>();
+        for (int i = 0; i < cnt; i++) {
+            Thread.sleep(pauseMs);
+
+            Series series = new Series(start + i, Math.random());
+            AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
+                    "thread", Thread.currentThread().getName());
+            if (dataService.canSendPlainCommand()) {
+                dataService.sendPlainCommand(plainCommand);
+                if (!simpleCache.isEmpty()) {
+                    System.out.println("Resend " + simpleCache.size() + " commands");
+                    for (PlainCommand command : simpleCache) {
+                        dataService.sendPlainCommand(command);
+                    }
+                    simpleCache.clear();
+                }
+            } else {
+                simpleCache.add(plainCommand);
+                simpleCache.addAll(dataService.removeSavedPlainCommands());
+            }
+        }
+
+        Thread.sleep(WAIT_TIME);
+
+        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+        tags.add("thread", "main");
+        int resCnt = countSssSeries(size, cnt, start, tags);
         assertEquals(cnt, resCnt);
     }
 
@@ -331,8 +386,23 @@ public class DataServiceTest {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
             AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
                     "thread", Thread.currentThread().getName());
+//            System.out.println(plainCommand.compose());
             dataService.sendPlainCommand(plainCommand);
             latch.countDown();
         }
+    }
+
+    private int countSssSeries(int size, int cnt, long start, MultivaluedHashMap<String, String> tags) {
+        GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
+        seriesQuery.setStartTime(start - 1);
+        seriesQuery.setEndTime(System.currentTimeMillis());
+        seriesQuery.setTags(tags);
+        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(seriesQuery);
+        List<GetSeriesResult> results = getSeriesResults;
+        int resCnt = 0;
+        for (GetSeriesResult result : results) {
+            resCnt += result.getData().size();
+        }
+        return resCnt;
     }
 }

@@ -16,39 +16,50 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.plain.PlainCommand;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Nikolay Malevanny.
  */
 class PlainSender extends AbstractHttpEntity implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PlainSender.class);
-    public static final String PING_COMMAND = "ping\n";
+    private static final String PING_COMMAND = "ping\n";
+    private static final int SMALL = 64;
 
     private String url;
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
     private volatile boolean active;
+    private volatile boolean correct = true;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
     private CloseableHttpResponse response;
 
-    public PlainSender(String url, long pingTimeoutMillis) {
+    public PlainSender(String url, long pingTimeoutMillis, PlainSender old) {
         this.url = url;
         this.pingTimeoutMillis = pingTimeoutMillis;
+        if (old != null) {
+            messages = old.messages;
+            log.info("Reborn plain commands sender using previous messages, size: {}", messages.size());
+        }
     }
 
     public void send(PlainCommand plainCommand) {
@@ -58,12 +69,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             log.error("Initialization error:", e);
         }
 
-        String message = plainCommand.compose();
-        try {
-            messages.put(message);
-        } catch (InterruptedException e) {
-            log.error("Could not put message: {}", message, e);
-        }
+        messages.add(plainCommand.compose());
     }
 
     @Override
@@ -73,7 +79,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     @Override
     public boolean isChunked() {
-        return true;
+        return false;
     }
 
     @Override
@@ -89,21 +95,32 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
         while (active) {
+            String message = null;
             try {
-                String message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
+                message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
 //                log.debug("message = {}", message);
+            } catch (InterruptedException e) {
+                log.error("Could not poll message from queue", e);
+            }
+
+            try {
                 if (message != null) {
                     outputStream.write(message.getBytes());
                     outputStream.flush();
                     lastMessageTime = System.currentTimeMillis();
                 }
-                if (lastMessageTime - System.currentTimeMillis() > pingTimeoutMillis) {
-                    outputStream.write(PING_COMMAND.getBytes());
-                    outputStream.flush();
-                    lastMessageTime = System.currentTimeMillis();
-                }
-            } catch (InterruptedException e) {
-                log.error("Could not poll message from queue", e);
+            } catch (Throwable e) {
+                active = false;
+                correct = false;
+                log.error("Sender is died. Could not send message: {}", message, e);
+                messages.add(message);
+                close();
+                return;
+            }
+            if (lastMessageTime - System.currentTimeMillis() > pingTimeoutMillis) {
+                outputStream.write(PING_COMMAND.getBytes());
+                outputStream.flush();
+                lastMessageTime = System.currentTimeMillis();
             }
         }
     }
@@ -133,9 +150,15 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     @Override
     public void run() {
-        messages = new LinkedBlockingQueue<String>();
+        if (messages == null) {
+            messages = new LinkedBlockingQueue<String>();
+        }
         latch.countDown();
-        httpClient = HttpClients.custom().build();
+        BasicHttpClientConnectionManager connManager = new BasicHttpClientConnectionManager();
+        connManager.setConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
+        httpClient = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .build();
         HttpPost httpPost = new HttpPost(url +
                 "/command");
         httpPost.setEntity(this);
@@ -145,5 +168,9 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         } catch (IOException e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
         }
+    }
+
+    public boolean isCorrect() {
+        return correct;
     }
 }
