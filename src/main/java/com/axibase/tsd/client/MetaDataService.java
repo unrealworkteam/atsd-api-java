@@ -111,12 +111,20 @@ public class MetaDataService {
                 .path(metricName));
     }
 
-    public boolean updateMetric(Metric metric) {
+    public boolean createOrReplaceMetric(Metric metric) {
         String metricName = metric.getName();
         checkMetricName(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
                 .path(metricName);
         return httpClientManager.updateMetaData(queryPart, put(metric));
+    }
+
+    public boolean updateMetric(Metric metric) {
+        String metricName = metric.getName();
+        checkMetricName(metricName);
+        QueryPart<Metric> queryPart = new Query<Metric>("metrics")
+                .path(metricName);
+        return httpClientManager.updateMetaData(queryPart, patch(metric));
     }
 
     public boolean deleteMetric(Metric metric) {
@@ -165,12 +173,20 @@ public class MetaDataService {
         return httpClientManager.requestMetaDataObject(Entity.class, query);
     }
 
-    public boolean updateEntity(Entity entity) {
+    public boolean createOrReplaceEntity(Entity entity) {
         String entityName = entity.getName();
         checkEntityName(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.updateMetaData(queryPart, put(entity));
+    }
+
+    public boolean updateEntity(Entity entity) {
+        String entityName = entity.getName();
+        checkEntityName(entityName);
+        QueryPart<Entity> queryPart = new Query<Entity>("entities")
+                .path(entityName);
+        return httpClientManager.updateMetaData(queryPart, patch(entity));
     }
 
     public boolean deleteEntity(Entity entity) {
@@ -220,12 +236,45 @@ public class MetaDataService {
         return httpClientManager.requestMetaDataObject(EntityGroup.class, query);
     }
 
-    public boolean updateEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
+    /**
+     * Create an entity group with specified properties and tags or replace an existing entity group.
+     * <p/>
+     * This method creates a new entity group or replaces an existing entity group.
+     * <p/>
+     * If only a subset of fields is provided for an existing entity group, the remaining properties
+     * and tags will be deleted.
+     *
+     * @param entityGroup the entity group to create or replace
+     * @return {@code true} if entity group is created or updated.
+     * @throws AtsdClientException
+     * @throws AtsdServerException
+     */
+    public boolean createOrReplaceEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
         String entityGroupName = entityGroup.getName();
         checkEntityGroupName(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
                 .path(entityGroupName);
         return httpClientManager.updateMetaData(query, put(entityGroup));
+    }
+
+    /**
+     * Update specified properties and tags for the given entity group.
+     * <p/>
+     * This method updates specified properties and tags for an existing entity group.
+     * <p/>
+     * Properties and tags that are not specified are left unchanged.
+     *
+     * @param entityGroup the entity group to update
+     * @return {@code true} if entity group is updated.
+     * @throws AtsdClientException
+     * @throws AtsdServerException
+     */
+    public boolean updateEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {
+        String entityGroupName = entityGroup.getName();
+        checkEntityGroupName(entityGroupName);
+        QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
+                .path(entityGroupName);
+        return httpClientManager.updateMetaData(query, patch(entityGroup));
     }
 
     public boolean deleteEntityGroup(EntityGroup entityGroup) throws AtsdClientException, AtsdServerException {

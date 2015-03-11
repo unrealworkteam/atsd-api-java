@@ -58,10 +58,10 @@ public class MetaDataServiceTest {
     }
 
     @Test
-    public void testUpdateMetric() throws Exception {
+    public void testCreateOrReplaceMetric() throws Exception {
         Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
         metric.setDataType(DataType.LONG);
-        metaDataService.updateMetric(metric);
+        metaDataService.createOrReplaceMetric(metric);
 
         Metric updatedMetric = metaDataService.retrieveMetric(TTT_METRIC);
         assertNotNull(updatedMetric);
@@ -69,7 +69,7 @@ public class MetaDataServiceTest {
         assertEquals(DataType.LONG, updatedMetric.getDataType());
 
         updatedMetric.setDataType(DataType.DOUBLE);
-        metaDataService.updateMetric(updatedMetric);
+        metaDataService.createOrReplaceMetric(updatedMetric);
 
         metric = metaDataService.retrieveMetric(TTT_METRIC);
         assertNotNull(metric);
@@ -86,11 +86,37 @@ public class MetaDataServiceTest {
         }
         assertNull(metaDataService.retrieveMetric(NNN_METRIC));
 
-        assertTrue(metaDataService.updateMetric(newTestMetric));
+        assertTrue(metaDataService.createOrReplaceMetric(newTestMetric));
         assertNotNull(metaDataService.retrieveMetric(NNN_METRIC));
 
         assertTrue(metaDataService.deleteMetric(newTestMetric));
         assertNull(metaDataService.retrieveMetric(NNN_METRIC));
+    }
+
+    @Test
+    public void testUpdateMetric() throws Exception {
+        Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
+        Map<String, String> oldTags = metric.getTags();
+
+        if(oldTags!=null && oldTags.containsKey(UUU_TAG)) {
+            oldTags.remove(UUU_TAG);
+            metaDataService.createOrReplaceMetric(metric);
+        }
+
+        Map<String, String> newTags = new HashMap<String, String>();
+        newTags.put(UUU_TAG, "uuu-tag-value");
+        metric.setTags(newTags);
+
+        metaDataService.updateMetric(metric);
+
+        metric = metaDataService.retrieveMetric(TTT_METRIC);
+        assertTrue(metric.getTags().containsKey(UUU_TAG));
+
+        metric.setTags(oldTags);
+        metaDataService.createOrReplaceMetric(metric);
+
+        metric = metaDataService.retrieveMetric(TTT_METRIC);
+        assertFalse(metric.getTags().containsKey(UUU_TAG));
     }
 
     @Test
@@ -115,7 +141,7 @@ public class MetaDataServiceTest {
     }
 
     @Test
-    public void testUpdateEntity() throws Exception {
+    public void testCreateOrReplaceEntity() throws Exception {
         Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
         if(entity.getTags().containsKey("uuu-tag-1")) {
@@ -126,14 +152,14 @@ public class MetaDataServiceTest {
         Map<String, String> savedTags = new HashMap<String, String>(tags);
         tags.put("uuu-tag-1", "uuu-tag-value-1");
         entity.setTags(tags);
-        assertTrue(metaDataService.updateEntity(entity));
+        assertTrue(metaDataService.createOrReplaceEntity(entity));
 
         Entity updatedEntity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, updatedEntity.getName());
         assertTrue(updatedEntity.getTags().containsKey("uuu-tag-1"));
 
         updatedEntity.setTags(savedTags);
-        metaDataService.updateEntity(updatedEntity);
+        metaDataService.createOrReplaceEntity(updatedEntity);
 
         entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
@@ -145,14 +171,39 @@ public class MetaDataServiceTest {
         assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
 
         Entity entity = new Entity(NNN_ENTITY);
-        entity.setTags("nnn-test-tag-1", "nnn-test-tag-value-1");
-        metaDataService.updateEntity(entity);
+        entity.buildTags("nnn-test-tag-1", "nnn-test-tag-value-1");
+        metaDataService.createOrReplaceEntity(entity);
 
         assertNotNull(metaDataService.retrieveEntity(NNN_ENTITY));
 
         metaDataService.deleteEntity(entity);
 
         assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
+    }
+
+    @Test
+    public void testUpdateEntity() throws Exception {
+        Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
+        Map<String, String> oldTags = entity.getTags();
+        if (oldTags.containsKey(UUU_TAG)) {
+            oldTags.remove(UUU_TAG);
+            metaDataService.createOrReplaceEntity(entity);
+        }
+
+        Map<String,String> newTags = new HashMap<String, String>(oldTags);
+        newTags.put(UUU_TAG, "uuu-tag-value");
+        entity.setTags(newTags);
+
+        assertTrue(metaDataService.createOrReplaceEntity(entity));
+
+        entity = metaDataService.retrieveEntity(TTT_ENTITY);
+        assertTrue(entity.getTags().containsKey(UUU_TAG));
+
+        entity.setTags(oldTags);
+        metaDataService.createOrReplaceEntity(entity);
+
+        entity = metaDataService.retrieveEntity(TTT_ENTITY);
+        assertFalse(entity.getTags().containsKey(UUU_TAG));
     }
 
     @Test
@@ -175,7 +226,7 @@ public class MetaDataServiceTest {
     }
 
     @Test
-    public void testUpdateEntityGroup() throws Exception {
+    public void testCreateOrReplaceEntityGroup() throws Exception {
         EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
         assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
         assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
@@ -184,14 +235,14 @@ public class MetaDataServiceTest {
         Map<String, String> savedTags = new HashMap<String, String>(tags);
         tags.put("uuu-tag-1", "uuu-tag-value-1");
         entityGroup.setTags(tags);
-        assertTrue(metaDataService.updateEntityGroup(entityGroup));
+        assertTrue(metaDataService.createOrReplaceEntityGroup(entityGroup));
 
         EntityGroup updatedEntityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
         assertEquals(TTT_ENTITY_GROUP, updatedEntityGroup.getName());
         assertTrue(updatedEntityGroup.getTags().containsKey("uuu-tag-1"));
 
         updatedEntityGroup.setTags(savedTags);
-        metaDataService.updateEntityGroup(updatedEntityGroup);
+        metaDataService.createOrReplaceEntityGroup(updatedEntityGroup);
 
         entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
         assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
@@ -204,13 +255,38 @@ public class MetaDataServiceTest {
 
         EntityGroup entityGroup = new EntityGroup(NNN_ENTITY_GROUP);
         entityGroup.setTags("nnn-test-tag-1", "nnn-test-tag-value-1");
-        metaDataService.updateEntityGroup(entityGroup);
+        metaDataService.createOrReplaceEntityGroup(entityGroup);
 
         assertNotNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
 
         metaDataService.deleteEntityGroup(entityGroup);
 
         assertNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
+    }
+
+    @Test
+    public void testUpdateEntityGroup() throws Exception {
+        EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        Map<String, String> oldTags = entityGroup.getTags();
+        if (oldTags.containsKey(UUU_TAG)) {
+            oldTags.remove(UUU_TAG);
+            metaDataService.createOrReplaceEntityGroup(entityGroup);
+        }
+
+        Map<String,String> newTags = new HashMap<String, String>(oldTags);
+        newTags.put(UUU_TAG, "uuu-tag-value");
+        entityGroup.setTags(newTags);
+
+        metaDataService.updateEntityGroup(entityGroup);
+
+        entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertTrue(entityGroup.getTags().containsKey(UUU_TAG));
+
+        entityGroup.setTags(oldTags);
+        metaDataService.createOrReplaceEntityGroup(entityGroup);
+
+        entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
+        assertFalse(entityGroup.getTags().containsKey(UUU_TAG));
     }
 
     @Test
@@ -288,7 +364,7 @@ public class MetaDataServiceTest {
         newMetric.setEnabled(false);
         newMetric.setMaxValue(1D);
         newMetric.setMinValue(3D);
-        newMetric.setTags(
+        newMetric.buildTags(
                 "nnn-tag-1", "nnn-tag-value-1",
                 "nnn-tag-2", "nnn-tag-value-2"
         );

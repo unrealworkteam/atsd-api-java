@@ -36,6 +36,7 @@ public class TestUtil {
     public static final String TTT_METRIC = "ttt-metric";
     public static final String SSS_METRIC = "sss-metric";
     public static final String SSS_TAG = "sss-tag";
+    public static final String UUU_TAG = "uuu-tag";
     public static final String YYY_METRIC = "yyy-metric";
     public static final String NNN_METRIC = "java-nnn-metric";
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";

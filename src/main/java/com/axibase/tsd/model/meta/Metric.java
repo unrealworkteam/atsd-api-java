@@ -161,8 +161,7 @@ public class Metric {
         this.tags = tags;
     }
 
-    @JsonIgnore
-    public void setTags(String... tagNamesAndValues) {
+    public void buildTags(String... tagNamesAndValues) {
         setTags(AtsdUtil.toMap(tagNamesAndValues));
     }
 
