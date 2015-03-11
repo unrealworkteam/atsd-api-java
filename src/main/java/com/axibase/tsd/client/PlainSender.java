@@ -57,6 +57,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private long lastMessageTime;
     private CloseableHttpResponse response;
     private final ClientConfiguration clientConfiguration;
+    private PoolingHttpClientConnectionManager connectionManager;
 
     public PlainSender(ClientConfiguration clientConfiguration, PlainSender old) {
         this.clientConfiguration = clientConfiguration;
@@ -161,6 +162,9 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
                 log.error("Could not close client: {}", httpClient, e);
             }
         }
+        if (connectionManager != null) {
+            connectionManager.close();
+        }
     }
 
     @Override
@@ -170,7 +174,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         }
         latch.countDown();
         SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
-        PoolingHttpClientConnectionManager connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
+        connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
         connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
         httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
