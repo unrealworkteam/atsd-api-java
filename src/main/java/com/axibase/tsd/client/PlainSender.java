@@ -18,14 +18,12 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.plain.PlainCommand;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.SslConfigurator;
 import org.slf4j.Logger;
@@ -155,7 +153,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
                 log.error("Could not close response: {}", response, e);
             }
         }
-        if (httpClient == null) {
+        if (httpClient != null) {
             try {
                 httpClient.close();
             } catch (IOException e) {
