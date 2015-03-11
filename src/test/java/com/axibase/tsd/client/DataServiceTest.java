@@ -15,10 +15,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.TestUtil;
-import com.axibase.tsd.model.data.Alert;
-import com.axibase.tsd.model.data.AlertHistory;
-import com.axibase.tsd.model.data.Property;
-import com.axibase.tsd.model.data.PropertyKey;
+import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
@@ -33,10 +30,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -200,16 +194,13 @@ public class DataServiceTest {
         }
     }
 
-    public GetPropertiesQuery createGetNewPropCommand() {
-        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(NNN_ENTITY, NNN_TYPE);
-        getPropertiesQuery.setStartTime(0);
-        getPropertiesQuery.setEndTime(Long.MAX_VALUE);
-        return getPropertiesQuery;
-    }
-
-
     @Test
     public void testRetrieveAlerts() throws Exception {
+        PlainCommand plainCommand = createFireAlertSeriesCommand();
+        // fire alert
+        dataService.sendPlainCommand(plainCommand);
+        System.out.println("command = " + plainCommand.compose());
+        Thread.sleep(WAIT_TIME);
         {
             List<String> metrics = Arrays.asList(TTT_METRIC);
             List<String> entities = Arrays.asList(TTT_ENTITY);
@@ -219,10 +210,59 @@ public class DataServiceTest {
         {
             List<Alert> alerts = dataService.retrieveAlerts(null, null, null, null, null);
             assertNotNull(alerts);
+            assertTrue(alerts.size() > 0);
+
+            // clean
+            String[] ids = toIds(alerts);
+            dataService.batchUpdateAlerts(BatchAlertCommand.createUpdateCommand(true, ids));
         }
     }
 
-    @Ignore
+
+    @Test
+    public void testUpdateAlerts() throws Exception {
+        GetAlertQuery query = new GetAlertQuery(
+                Arrays.asList(TTT_METRIC),
+                Arrays.asList(TTT_ENTITY),
+                Arrays.asList(TTT_RULE),
+                Collections.<Integer>emptyList(),
+                Severity.UNKNOWN.getId()
+        );
+
+        { // clean
+            List<Alert> alerts = dataService.retrieveAlerts(query);
+            String[] ids = toIds(alerts);
+            if (ids.length > 0) {
+                dataService.batchUpdateAlerts(BatchAlertCommand.createDeleteCommand(ids));
+            }
+        }
+
+        // fire alert
+        dataService.sendPlainCommand(createFireAlertSeriesCommand());
+        Thread.sleep(WAIT_TIME);
+
+
+        // check alert
+        List<Alert> alerts = dataService.retrieveAlerts(query);
+        assertTrue(alerts.size() > 0);
+        Alert alert = alerts.get(0);
+        assertFalse(alert.getAcknowledged());
+
+        // update alerts
+        String[] ids = toIds(alerts);
+        dataService.batchUpdateAlerts(BatchAlertCommand.createUpdateCommand(true, ids));
+
+        // check updated alert
+        alerts = dataService.retrieveAlerts(query);
+        assertTrue(alerts.get(0).getAcknowledged());
+
+        // delete alerts
+        dataService.batchUpdateAlerts(BatchAlertCommand.createDeleteCommand(ids));
+
+        // check empty
+        assertTrue(dataService.retrieveAlerts(query).isEmpty());
+    }
+
     @Test
     public void testRetrieveAlertHistory() throws Exception {
         GetAlertHistoryQuery getAlertHistoryQuery = new GetAlertHistoryQuery();
@@ -236,18 +276,6 @@ public class DataServiceTest {
         assertTrue(alertHistoryList.size() > 0);
     }
 
-    public GetSeriesQuery createTestGetTestCommand() {
-        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
-        tags.add("ttt-tag-1", "ttt-tag-value-1");
-        tags.add("ttt-tag-2", "ttt-tag-value-2");
-        GetSeriesQuery command = new GetSeriesQuery(TTT_ENTITY, TTT_METRIC);
-        command.setTags(tags);
-        command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
-                Interpolate.LINEAR,
-                AggregateType.DETAIL));
-        return command;
-    }
-
     @Test
     public void testMultiThreadStreamingCommands() throws Exception {
         final int size = 5;
@@ -258,9 +286,10 @@ public class DataServiceTest {
                 new ArrayBlockingQueue<Runnable>(cnt));
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
+        String tagValue = "multi-thread";
         for (int i = 0; i < cnt; i++) {
             Thread.sleep(pauseMs);
-            threadPoolExecutor.execute(new SimpleSeriesSender(start, dataService, i, latch));
+            threadPoolExecutor.execute(new SimpleSeriesSender(start, dataService, latch, tagValue));
         }
         try {
             latch.await(10, TimeUnit.SECONDS);
@@ -272,9 +301,9 @@ public class DataServiceTest {
         Thread.sleep(WAIT_TIME);
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
-        for (int i = 0; i < size; i++) {
-            tags.add("thread", "pool-1-thread-" + (1 + i));
-        }
+//        for (int i = 0; i < size; i++) {
+            tags.add(SSS_TAG, tagValue);
+//        }
         int resCnt = countSssSeries(size, cnt, start, tags);
         assertEquals(cnt, resCnt);
     }
@@ -286,16 +315,17 @@ public class DataServiceTest {
         int pauseMs = 50;
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
+        String tagValue = "streaming";
         for (int i = 0; i < cnt; i++) {
             Thread.sleep(pauseMs);
 
-            new SimpleSeriesSender(start, dataService, i, latch).run();
+            new SimpleSeriesSender(start, dataService, latch, tagValue).run();
         }
 
         Thread.sleep(WAIT_TIME);
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
-        tags.add("thread", "main");
+        tags.add(SSS_TAG, tagValue);
         int resCnt = countSssSeries(size, cnt, start, tags);
         assertEquals(cnt, resCnt);
     }
@@ -368,24 +398,28 @@ public class DataServiceTest {
     }
 
     private static class SimpleSeriesSender implements Runnable {
-        private static AtomicInteger counter = new AtomicInteger(0);
-        private long startMs;
-        private final DataService dataService;
-        private final int num;
-        private CountDownLatch latch;
 
-        public SimpleSeriesSender(long startMs, DataService dataService, int num, CountDownLatch latch) {
+        private static AtomicInteger counter = new AtomicInteger(0);
+
+        private long startMs;
+
+        private final DataService dataService;
+
+        private CountDownLatch latch;
+        private final String tagValue;
+
+        public SimpleSeriesSender(long startMs, DataService dataService, CountDownLatch latch, String tagValue) {
             this.startMs = startMs;
             this.dataService = dataService;
-            this.num = num;
             this.latch = latch;
+            this.tagValue = tagValue;
         }
 
         @Override
         public void run() {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
             AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
-                    "thread", Thread.currentThread().getName());
+                    SSS_TAG, tagValue);
 //            System.out.println(plainCommand.compose());
             dataService.sendPlainCommand(plainCommand);
             latch.countDown();
@@ -404,5 +438,41 @@ public class DataServiceTest {
             resCnt += result.getData().size();
         }
         return resCnt;
+    }
+
+    private PlainCommand createFireAlertSeriesCommand() {
+        return new PlainCommand() {
+            @Override
+            public String compose() {
+                return "series e:ttt-entity t:ttt-tag-1=ttt-tag-value-1 m:ttt-metric=35791.0";
+            }
+        };
+    }
+
+    private GetPropertiesQuery createGetNewPropCommand() {
+        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(NNN_ENTITY, NNN_TYPE);
+        getPropertiesQuery.setStartTime(0);
+        getPropertiesQuery.setEndTime(Long.MAX_VALUE);
+        return getPropertiesQuery;
+    }
+
+    public GetSeriesQuery createTestGetTestCommand() {
+        MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
+        tags.add("ttt-tag-1", "ttt-tag-value-1");
+        tags.add("ttt-tag-2", "ttt-tag-value-2");
+        GetSeriesQuery command = new GetSeriesQuery(TTT_ENTITY, TTT_METRIC);
+        command.setTags(tags);
+        command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
+                Interpolate.LINEAR,
+                AggregateType.DETAIL));
+        return command;
+    }
+
+    private String[] toIds(List<Alert> alerts) {
+        String[] ids = new String[alerts.size()];
+        for (int i = 0; i < alerts.size(); i++) {
+            ids[i] = "" + alerts.get(i).getId();
+        }
+        return ids;
     }
 }

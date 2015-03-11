@@ -15,7 +15,6 @@
 
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.Severity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,8 +31,10 @@ public class GetAlertQuery {
     private List<String> entityNames;
     @JsonProperty(value="rules")
     private List<String> ruleNames;
-    private List<Severity> severities;
-    private Severity minSeverity;
+    @JsonProperty(value="severities")
+    private List<Integer> severityIds;
+    @JsonProperty(value="minSeverity")
+    private Integer minSeverityId;
 
     public GetAlertQuery() {
     }
@@ -41,13 +42,13 @@ public class GetAlertQuery {
     public GetAlertQuery(List<String> metricNames,
                          List<String> entityNames,
                          List<String> ruleNames,
-                         List<Severity> severities,
-                         Severity minSeverity) {
+                         List<Integer> severityIds,
+                         Integer minSeverityId) {
         this.metricNames = metricNames;
         this.entityNames = entityNames;
         this.ruleNames = ruleNames;
-        this.severities = severities;
-        this.minSeverity = minSeverity;
+        this.severityIds = severityIds;
+        this.minSeverityId = minSeverityId;
     }
 
     public List<String> getMetricNames() {
@@ -62,12 +63,12 @@ public class GetAlertQuery {
         return ruleNames;
     }
 
-    public List<Severity> getSeverities() {
-        return severities;
+    public List<Integer> getSeverityIds() {
+        return severityIds;
     }
 
-    public Severity getMinSeverity() {
-        return minSeverity;
+    public Integer getMinSeverityId() {
+        return minSeverityId;
     }
 
     public void setMetricNames(List<String> metricNames) {
@@ -82,12 +83,12 @@ public class GetAlertQuery {
         this.ruleNames = ruleNames;
     }
 
-    public void setSeverities(List<Severity> severities) {
-        this.severities = severities;
+    public void setSeverityIds(List<Integer> severityIds) {
+        this.severityIds = severityIds;
     }
 
-    public void setMinSeverity(Severity minSeverity) {
-        this.minSeverity = minSeverity;
+    public void setMinSeverityId(Integer minSeverityId) {
+        this.minSeverityId = minSeverityId;
     }
 
     @Override
@@ -96,8 +97,8 @@ public class GetAlertQuery {
                 "metricNames=" + metricNames +
                 ", entityNames=" + entityNames +
                 ", ruleNames=" + ruleNames +
-                ", severities=" + severities +
-                ", minSeverity=" + minSeverity +
+                ", severityIds=" + severityIds +
+                ", minSeverityId=" + minSeverityId +
                 '}';
     }
 }

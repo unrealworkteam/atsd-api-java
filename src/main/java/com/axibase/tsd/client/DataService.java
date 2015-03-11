@@ -17,7 +17,6 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.data.Alert;
 import com.axibase.tsd.model.data.AlertHistory;
 import com.axibase.tsd.model.data.Property;
-import com.axibase.tsd.model.data.Severity;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
@@ -142,7 +141,7 @@ public class DataService {
      * @return true if success
      */
     public boolean batchUpdateProperties(BatchPropertyCommand... batchPropertyCommands) {
-        QueryPart<Property> query = new Query<Property>("properties");
+        QueryPart query = new Query("properties");
         return httpClientManager.updateData(query, patch(batchPropertyCommands));
     }
 
@@ -150,17 +149,17 @@ public class DataService {
      * @param metricNames metric filter, multiple values allowed
      * @param entityNames entity filter, multiple values allowed
      * @param ruleNames   rule filter, multiple values allowed
-     * @param severities  severity filter, multiple values allowed
-     * @param minSeverity minimal severity filter
+     * @param severityIds  severity filter, multiple values allowed
+     * @param minSeverityId minimal severity filter
      * @return list of {@code Alert}
      */
     public List<Alert> retrieveAlerts(
             List<String> metricNames,
             List<String> entityNames,
             List<String> ruleNames,
-            List<Severity> severities,
-            Severity minSeverity) {
-        GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames, ruleNames, severities, minSeverity);
+            List<Integer> severityIds,
+            Integer minSeverityId) {
+        GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames, ruleNames, severityIds, minSeverityId);
         return retrieveAlerts(alertQuery);
     }
 
@@ -180,6 +179,11 @@ public class DataService {
                 .path("history");
         return httpClientManager.requestDataList(AlertHistory.class, query,
                 post(new BatchQuery<GetAlertHistoryQuery>(getAlertHistoryQuery, getAlertHistoryQueries)));
+    }
+
+    public boolean batchUpdateAlerts(BatchAlertCommand... commands) {
+        QueryPart query = new Query("alerts");
+        return httpClientManager.updateData(query, patch(commands));
     }
 
     private static QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {

@@ -16,6 +16,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.plain.PlainCommand;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -69,7 +70,16 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             log.error("Initialization error:", e);
         }
 
-        messages.add(plainCommand.compose());
+        String text = plainCommand.compose();
+        if (StringUtils.isBlank(text)) {
+            log.error("Command is empty");
+            return;
+        }
+
+        if (!text.endsWith("\n")) {
+            text = text + "\n";
+        }
+        messages.add(text);
     }
 
     @Override
