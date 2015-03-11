@@ -15,6 +15,7 @@
 
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.plain.PlainCommand;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -25,6 +26,8 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.SslConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +56,12 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private final long pingTimeoutMillis;
     private long lastMessageTime;
     private CloseableHttpResponse response;
+    private final ClientConfiguration clientConfiguration;
 
-    public PlainSender(String url, long pingTimeoutMillis, PlainSender old) {
-        this.url = url;
-        this.pingTimeoutMillis = pingTimeoutMillis;
+    public PlainSender(ClientConfiguration clientConfiguration, PlainSender old) {
+        this.clientConfiguration = clientConfiguration;
+        this.url = clientConfiguration.getDataUrl();
+        this.pingTimeoutMillis = clientConfiguration.getPingTimeoutMillis();
         if (old != null) {
             messages = old.messages;
             log.info("Reborn plain commands sender using previous messages, size: {}", messages.size());
@@ -164,10 +169,11 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             messages = new LinkedBlockingQueue<String>();
         }
         latch.countDown();
-        BasicHttpClientConnectionManager connManager = new BasicHttpClientConnectionManager();
-        connManager.setConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
+        SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
+        PoolingHttpClientConnectionManager connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
+        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
         httpClient = HttpClients.custom()
-                .setConnectionManager(connManager)
+                .setConnectionManager(connectionManager)
                 .build();
         HttpPost httpPost = new HttpPost(url +
                 "/command");

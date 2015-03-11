@@ -80,6 +80,14 @@ class HttpClient {
     private final Client client;
 
     HttpClient(ClientConfiguration clientConfiguration) {
+        Client builtClient = buildClient(clientConfiguration);
+        client = builtClient;
+
+
+        this.clientConfiguration = clientConfiguration;
+    }
+
+    private static Client buildClient(ClientConfiguration clientConfiguration) {
         ClientConfig clientConfig = new ClientConfig();
         clientConfig
                 .register(JsonMappingExceptionMapper.class)
@@ -98,16 +106,20 @@ class HttpClient {
         ConnectorProvider connectorProvider = new ApacheConnectorProvider();
         clientConfig.connectorProvider(connectorProvider);
 
-        client = ClientBuilder.newBuilder().withConfig(clientConfig).build();
-
-        client.property(ClientProperties.CONNECT_TIMEOUT, clientConfiguration.getConnectTimeoutMillis());
-        client.property(ClientProperties.READ_TIMEOUT, clientConfiguration.getReadTimeoutMillis());
-
-        this.clientConfiguration = clientConfiguration;
+        Client builtClient = ClientBuilder.newBuilder().withConfig(clientConfig).build();
+        builtClient.property(ClientProperties.CONNECT_TIMEOUT, clientConfiguration.getConnectTimeoutMillis());
+        builtClient.property(ClientProperties.READ_TIMEOUT, clientConfiguration.getReadTimeoutMillis());
+        return builtClient;
     }
 
-    private void configureHttps(ClientConfiguration clientConfiguration, ClientConfig clientConfig) {
+    private static void configureHttps(ClientConfiguration clientConfiguration, ClientConfig clientConfig) {
         SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
+        PoolingHttpClientConnectionManager connectionManager = createConnectionManager(clientConfiguration, sslConfig);
+        clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER, connectionManager);
+        clientConfig.property(ApacheClientProperties.SSL_CONFIG, sslConfig);
+    }
+
+    static PoolingHttpClientConnectionManager createConnectionManager(ClientConfiguration clientConfiguration, SslConfigurator sslConfig) {
         SSLContext sslContext = sslConfig.createSSLContext();
         X509HostnameVerifier hostnameVerifier;
         if (clientConfiguration.isIgnoreSSLErrors()) {
@@ -125,8 +137,7 @@ class HttpClient {
                 .register("http", PlainConnectionSocketFactory.getSocketFactory())
                 .register("https", sslSocketFactory)
                 .build();
-        clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER, new PoolingHttpClientConnectionManager(registry));
-        clientConfig.property(ApacheClientProperties.SSL_CONFIG, sslConfig);
+        return new PoolingHttpClientConnectionManager(registry);
     }
 
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {

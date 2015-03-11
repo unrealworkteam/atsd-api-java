@@ -226,7 +226,7 @@ public class HttpClientManager {
     private PlainSender prepareSender() {
         PlainSender sender = plainSender.get();
         if (sender == null || !sender.isCorrect()) {
-            PlainSender newSender = new PlainSender(clientConfiguration.getDataUrl(), clientConfiguration.getPingTimeoutMillis(), sender);
+            PlainSender newSender = new PlainSender(clientConfiguration, sender);
             if (plainSender.compareAndSet(sender, newSender)) {
                 Executors.newSingleThreadExecutor().execute(newSender);
             }
