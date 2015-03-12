@@ -168,7 +168,9 @@ public class MetaDataServiceTest {
 
     @Test
     public void testCreateAndDeleteEntity() throws Exception {
-        assertNull(metaDataService.retrieveEntity(NNN_ENTITY));
+        if(metaDataService.retrieveEntity(NNN_ENTITY)!=null) {
+            metaDataService.deleteEntity(new Entity(NNN_ENTITY));
+        }
 
         Entity entity = new Entity(NNN_ENTITY);
         entity.buildTags("nnn-test-tag-1", "nnn-test-tag-value-1");
