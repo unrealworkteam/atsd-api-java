@@ -142,7 +142,7 @@ class HttpClient {
 
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
         try {
-            sslContext.init(null, new TrustManager[] {
+            sslContext.init(null, new TrustManager[]{
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {

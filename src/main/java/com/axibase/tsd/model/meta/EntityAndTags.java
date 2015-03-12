@@ -23,9 +23,9 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityAndTags {
-    @JsonProperty ("entity")
+    @JsonProperty("entity")
     private String entityName;
     private Long lastInsertTime;
     @JsonProperty

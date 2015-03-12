@@ -27,7 +27,7 @@ import java.util.Map;
 public class PropertyParameter {
     @JsonProperty
     private String type;
-    @JsonProperty(value="entity")
+    @JsonProperty(value = "entity")
     private String entityName;
     @JsonProperty
     private String limit;

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  *
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Join {
     private JoinType type;

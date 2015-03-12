@@ -58,7 +58,7 @@ public class TestUtil {
         return httpClientManager;
     }
 
-    public static MultivaluedMap<String,String> toMVM(String... tagNamesAndValues) {
+    public static MultivaluedMap<String, String> toMVM(String... tagNamesAndValues) {
         return new MultivaluedHashMap<String, String>(AtsdUtil.toMap(tagNamesAndValues));
     }
 }

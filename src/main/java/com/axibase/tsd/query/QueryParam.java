@@ -19,12 +19,12 @@ import javax.ws.rs.client.WebTarget;
 /**
  * @author Nikolay Malevanny.
  */
-public class QueryParam<T>  extends AbstractQueryPart<T>  {
+public class QueryParam<T> extends AbstractQueryPart<T> {
     private final String name;
     private final Object value;
     private final QueryPart previous;
 
-    QueryParam (String name, Object value, QueryPart<T> previous) {
+    QueryParam(String name, Object value, QueryPart<T> previous) {
         if (previous == null) {
             throw new IllegalArgumentException("previous is null");
         }
@@ -37,9 +37,9 @@ public class QueryParam<T>  extends AbstractQueryPart<T>  {
     public WebTarget fill(WebTarget target) {
         Object paramValue = value;
         if (value instanceof ParamValue) {
-            paramValue = ((ParamValue ) value).toParamValue();
+            paramValue = ((ParamValue) value).toParamValue();
         } else if (value instanceof Boolean) {
-            paramValue = ((Boolean) value)? "true":"false";
+            paramValue = ((Boolean) value) ? "true" : "false";
         }
         return (previous.fill(target)).queryParam(name, paramValue);
     }

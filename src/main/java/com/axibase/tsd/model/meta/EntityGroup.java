@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroup {
     @JsonProperty
     private String name;
@@ -52,7 +52,7 @@ public class EntityGroup {
     }
 
     /**
-     * @return  Entity group expression.
+     * @return Entity group expression.
      */
     public String getExpression() {
         return expression;

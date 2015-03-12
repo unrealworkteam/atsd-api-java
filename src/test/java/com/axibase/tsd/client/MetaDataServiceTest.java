@@ -98,7 +98,7 @@ public class MetaDataServiceTest {
         Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
         Map<String, String> oldTags = metric.getTags();
 
-        if(oldTags!=null && oldTags.containsKey(UUU_TAG)) {
+        if (oldTags != null && oldTags.containsKey(UUU_TAG)) {
             oldTags.remove(UUU_TAG);
             metaDataService.createOrReplaceMetric(metric);
         }
@@ -144,7 +144,7 @@ public class MetaDataServiceTest {
     public void testCreateOrReplaceEntity() throws Exception {
         Entity entity = metaDataService.retrieveEntity(TTT_ENTITY);
         assertEquals(TTT_ENTITY, entity.getName());
-        if(entity.getTags().containsKey("uuu-tag-1")) {
+        if (entity.getTags().containsKey("uuu-tag-1")) {
             entity.getTags().remove("uuu-tag-1");
         }
 
@@ -168,7 +168,7 @@ public class MetaDataServiceTest {
 
     @Test
     public void testCreateAndDeleteEntity() throws Exception {
-        if(metaDataService.retrieveEntity(NNN_ENTITY)!=null) {
+        if (metaDataService.retrieveEntity(NNN_ENTITY) != null) {
             metaDataService.deleteEntity(new Entity(NNN_ENTITY));
         }
 
@@ -192,7 +192,7 @@ public class MetaDataServiceTest {
             metaDataService.createOrReplaceEntity(entity);
         }
 
-        Map<String,String> newTags = new HashMap<String, String>(oldTags);
+        Map<String, String> newTags = new HashMap<String, String>(oldTags);
         newTags.put(UUU_TAG, "uuu-tag-value");
         entity.setTags(newTags);
 
@@ -275,7 +275,7 @@ public class MetaDataServiceTest {
             metaDataService.createOrReplaceEntityGroup(entityGroup);
         }
 
-        Map<String,String> newTags = new HashMap<String, String>(oldTags);
+        Map<String, String> newTags = new HashMap<String, String>(oldTags);
         newTags.put(UUU_TAG, "uuu-tag-value");
         entityGroup.setTags(newTags);
 

@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GetSeriesResult {
     private Long startTime;
     private Long endTime;

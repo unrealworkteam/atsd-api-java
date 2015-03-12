@@ -146,10 +146,10 @@ public class DataService {
     }
 
     /**
-     * @param metricNames metric filter, multiple values allowed
-     * @param entityNames entity filter, multiple values allowed
-     * @param ruleNames   rule filter, multiple values allowed
-     * @param severityIds  severity filter, multiple values allowed
+     * @param metricNames   metric filter, multiple values allowed
+     * @param entityNames   entity filter, multiple values allowed
+     * @param ruleNames     rule filter, multiple values allowed
+     * @param severityIds   severity filter, multiple values allowed
      * @param minSeverityId minimal severity filter
      * @return list of {@code Alert}
      */

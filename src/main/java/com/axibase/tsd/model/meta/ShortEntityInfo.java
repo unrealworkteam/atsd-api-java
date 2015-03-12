@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ShortEntityInfo {
     @JsonProperty
     private String name;

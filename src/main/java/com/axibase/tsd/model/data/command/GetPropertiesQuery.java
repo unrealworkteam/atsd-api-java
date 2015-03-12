@@ -28,14 +28,14 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetPropertiesQuery {
-    @JsonProperty(value="entity")
+    @JsonProperty(value = "entity")
     private final String entityName;
     private final String type;
     private long startTime;
     private long endTime;
     private String limit;
     private boolean last;
-    @JsonProperty(value="keys")
+    @JsonProperty(value = "keys")
     private Map<String, String> keys;
     @JsonProperty
     private List<String> values;

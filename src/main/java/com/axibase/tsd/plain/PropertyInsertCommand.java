@@ -32,13 +32,13 @@ public class PropertyInsertCommand extends AbstractInsertCommand {
         super(entityName, timeMillis, tags);
         AtsdUtil.check(typeName, "Type name is null");
         this.typeName = typeName;
-        this.values = (values == null)? Collections.<String, String>emptyMap():values;
+        this.values = (values == null) ? Collections.<String, String>emptyMap() : values;
     }
 
     @Override
     protected void appendValues(StringBuilder sb) {
         // property e:abc001 t:disk k:name=sda v:size=203459 v:fs_type=nfs
         sb.append(" t:").append(clean(typeName));
-        appendKeysAndValues(sb, " v:",values);
+        appendKeysAndValues(sb, " v:", values);
     }
 }

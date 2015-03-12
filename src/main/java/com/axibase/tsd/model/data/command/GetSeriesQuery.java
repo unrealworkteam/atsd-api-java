@@ -57,7 +57,7 @@ public class GetSeriesQuery {
     /**
      * @param entityName an entity's name of the requested time series. User defined values (case insensitive).
      * @param metricName a metric name of the requested time series. User defined values (case insensitive).
-     * @param tags Object key is a tag name and a value is an array of possible tag values
+     * @param tags       Object key is a tag name and a value is an array of possible tag values
      */
     public GetSeriesQuery(String entityName, String metricName, MultivaluedMap<String, String> tags) {
         this.entityName = entityName;
@@ -68,7 +68,7 @@ public class GetSeriesQuery {
     /**
      * @param entityName an entity's name of the requested time series. User defined values (case insensitive).
      * @param metricName a metric name of the requested time series. User defined values (case insensitive).
-     * @param tags Object key is a tag name and a value is an array of possible tag values
+     * @param tags       Object key is a tag name and a value is an array of possible tag values
      */
     public GetSeriesQuery(String entityName, String metricName, Map<String, String> tags) {
         this.entityName = entityName;
@@ -191,8 +191,8 @@ public class GetSeriesQuery {
     /**
      * To associate 'series' object (one) in request with 'series' objects (many) in response, the client can
      * optionally specify a unique 'requestId' property in each series object in request.
-     *  For example, the client can set requestId to series object's index in the request.
-     *  The server echos requestId for each series in the response.
+     * For example, the client can set requestId to series object's index in the request.
+     * The server echos requestId for each series in the response.
      *
      * @param requestId Optional identifier used to associate 'series' object in request with 'series'
      *                  objects in response. Any string (case sensitive).

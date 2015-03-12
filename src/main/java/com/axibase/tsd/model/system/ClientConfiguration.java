@@ -34,9 +34,9 @@ public class ClientConfiguration {
 
     /**
      * @param metadataUrl full URL to Metadata ATSD API
-     * @param dataUrl full URL to Data ATSD API
-     * @param username user name to login
-     * @param password password to login
+     * @param dataUrl     full URL to Data ATSD API
+     * @param username    user name to login
+     * @param password    password to login
      */
     public ClientConfiguration(String metadataUrl, String dataUrl, String username, String password) {
         this.metadataUrl = metadataUrl;
@@ -46,7 +46,7 @@ public class ClientConfiguration {
     }
 
     /**
-     * @param url full URL to both Metadata and Data ATSD API
+     * @param url      full URL to both Metadata and Data ATSD API
      * @param username user name to login
      * @param password password to login
      */

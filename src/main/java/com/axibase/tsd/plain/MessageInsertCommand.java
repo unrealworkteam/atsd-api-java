@@ -29,7 +29,7 @@ public class MessageInsertCommand extends AbstractInsertCommand {
     public MessageInsertCommand(String entityName, Long timeMillis, Map<String, String> tags, String messageText) {
         super(entityName, timeMillis, tags);
         this.messageText = messageText;
-        if ((tags==null||tags.isEmpty()) && StringUtils.isBlank(messageText)) {
+        if ((tags == null || tags.isEmpty()) && StringUtils.isBlank(messageText)) {
             throw new IllegalArgumentException("Either message text or one of the tags is required");
         }
     }

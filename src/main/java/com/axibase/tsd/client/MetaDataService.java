@@ -313,7 +313,7 @@ public class MetaDataService {
         return httpClientManager.requestMetaDataList(Entity.class, query);
     }
 
- /**
+    /**
      * @param entityGroupName Entity group name.
      * @return List of entities for an entity group.
      * @throws AtsdClientException
@@ -325,7 +325,7 @@ public class MetaDataService {
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
                 .path(entityGroupName)
                 .path("entities");
-            query = query.param("tags", TagAppender.ALL.getTags());
+        query = query.param("tags", TagAppender.ALL.getTags());
         return httpClientManager.requestMetaDataList(Entity.class, query);
     }
 

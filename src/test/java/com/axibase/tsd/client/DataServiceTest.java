@@ -302,7 +302,7 @@ public class DataServiceTest {
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
 //        for (int i = 0; i < size; i++) {
-            tags.add(SSS_TAG, tagValue);
+        tags.add(SSS_TAG, tagValue);
 //        }
         int resCnt = countSssSeries(size, cnt, start, tags);
         assertEquals(cnt, resCnt);

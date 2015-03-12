@@ -29,7 +29,7 @@ import java.util.Map;
 public class AddPropertyCommand {
     private PropertyKey key;
     @JsonProperty("values")
-    private Map<String,String> values;
+    private Map<String, String> values;
     private long timestamp;
 
     public AddPropertyCommand() {

@@ -42,7 +42,7 @@ public abstract class AbstractInsertCommand implements PlainCommand {
     public final String compose() {
         StringBuilder sb = new StringBuilder("series")
                 .append(' ').append("e:").append(clean(entityName));
-        if (timeMillis!=null) {
+        if (timeMillis != null) {
             sb.append(' ').append("ms:").append(timeMillis);
         }
         String prefix = " t:";
@@ -62,7 +62,7 @@ public abstract class AbstractInsertCommand implements PlainCommand {
 
     protected static String normalize(String value) {
         if (value.contains(" ")) {
-            return "\""+value+"\"";
+            return "\"" + value + "\"";
         } else {
             return value;
         }

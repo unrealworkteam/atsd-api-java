@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * @author Nikolay Malevanny.
  */
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GetSeriesBatchResult {
     @JsonProperty("series")
     private List<GetSeriesResult> seriesResults;

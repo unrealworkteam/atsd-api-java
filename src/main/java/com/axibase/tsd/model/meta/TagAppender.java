@@ -23,7 +23,7 @@ public class TagAppender {
     public static TagAppender ALL = new TagAppender("*");
 
     public static TagAppender createTagAppender(String... tagNames) {
-        if (tagNames==null || tagNames.length == 0) {
+        if (tagNames == null || tagNames.length == 0) {
             throw new IllegalArgumentException("Tag names list could not be null or empty");
         }
         return new TagAppender(StringUtils.join(tagNames, ','));

@@ -47,7 +47,7 @@ public class SimpleAggregateMatcher {
     }
 
     public SimpleAggregateMatcher(Interval interval, Interpolate interpolate,
-                            AggregateType type, AggregateType... types) {
+                                  AggregateType type, AggregateType... types) {
         this();
         init(interval, interpolate, type, types);
     }

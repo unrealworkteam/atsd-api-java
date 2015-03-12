@@ -11,7 +11,8 @@
     <name>Axibase Time-Series Database Client for Java</name>
     <description>The ATSD Client for Java enables Java developers to easily read
         and write statistics and metadata from Axibase Time-Series Database. Build reporting,
-        analytics, and alerting solutions with minimal effort.</description>
+        analytics, and alerting solutions with minimal effort.
+    </description>
     <url>https://github.com/axibase/atsd-api-java</url>
 
     <licenses>

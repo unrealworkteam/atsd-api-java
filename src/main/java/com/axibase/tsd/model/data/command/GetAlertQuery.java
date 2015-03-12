@@ -25,15 +25,15 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetAlertQuery {
-    @JsonProperty(value="metrics")
+    @JsonProperty(value = "metrics")
     private List<String> metricNames;
-    @JsonProperty(value="entities")
+    @JsonProperty(value = "entities")
     private List<String> entityNames;
-    @JsonProperty(value="rules")
+    @JsonProperty(value = "rules")
     private List<String> ruleNames;
-    @JsonProperty(value="severities")
+    @JsonProperty(value = "severities")
     private List<Integer> severityIds;
-    @JsonProperty(value="minSeverity")
+    @JsonProperty(value = "minSeverity")
     private Integer minSeverityId;
 
     public GetAlertQuery() {
