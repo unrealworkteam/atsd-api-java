@@ -8,7 +8,7 @@ By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get star
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>0.3.9</version>
+            <version>0.3.10</version>
         </dependency>
 ```
 
@@ -70,7 +70,7 @@ Maven after checking out the code from GitHub.
 git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
-java -cp "atsd-api-java-0.3.9.jar:dependency/*" com.axibase.tsd.example.AtsdClientWriteExample
+java -cp "atsd-api-java-0.3.10.jar:dependency/*" com.axibase.tsd.example.AtsdClientWriteExample
 ```
 
 ## Examples
