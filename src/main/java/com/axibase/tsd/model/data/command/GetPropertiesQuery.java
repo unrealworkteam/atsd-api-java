@@ -14,13 +14,9 @@
 */
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.PropertyParameter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,12 +31,10 @@ public class GetPropertiesQuery {
     private long endTime;
     private String limit;
     private boolean last;
-    @JsonProperty(value = "keys")
-    private Map<String, String> keys;
-    @JsonProperty
-    private List<String> values;
+    private Map<String, String> key;
+    private String keyExpression;
 
-    public GetPropertiesQuery(String entityName, String type) {
+    public GetPropertiesQuery(String type, String entityName) {
         this.entityName = entityName;
         this.type = type;
     }
@@ -69,12 +63,12 @@ public class GetPropertiesQuery {
         return last;
     }
 
-    public Map<String, String> getKeys() {
-        return keys;
+    public Map<String, String> getKey() {
+        return key;
     }
 
-    public List<String> getValues() {
-        return values;
+    public String getKeyExpression() {
+        return keyExpression;
     }
 
     public void setStartTime(long startTime) {
@@ -93,12 +87,12 @@ public class GetPropertiesQuery {
         this.last = last;
     }
 
-    public void setKeys(Map<String, String> keys) {
-        this.keys = keys;
+    public void setKey(Map<String, String> key) {
+        this.key = key;
     }
 
-    public void setValues(List<String> values) {
-        this.values = values;
+    public void setKeyExpression(String keyExpression) {
+        this.keyExpression = keyExpression;
     }
 
     @Override
@@ -110,8 +104,8 @@ public class GetPropertiesQuery {
                 ", endTime=" + endTime +
                 ", limit='" + limit + '\'' +
                 ", last=" + last +
-                ", keys=" + keys +
-                ", values=" + values +
+                ", key=" + key +
+                ", keyExpression='" + keyExpression + '\'' +
                 '}';
     }
 }

@@ -14,35 +14,59 @@
 */
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.PropertyKey;
+import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PropertyMatcher {
-    private PropertyKey key;
+    private String type;
+    @JsonProperty("entity")
+    private String entityName;
+    private Map<String, String> key;
     private Long createdBeforeTime;
 
     public PropertyMatcher() {
     }
 
-    public PropertyMatcher(PropertyKey key, Long createdBeforeTime) {
-        this.key = key;
+    public PropertyMatcher(String type, String entityName, Long createdBeforeTime, String... keyNamesAnaValues) {
+        this.type = type;
+        this.entityName = entityName;
         this.createdBeforeTime = createdBeforeTime;
+        this.key = AtsdUtil.toMap(keyNamesAnaValues);
     }
 
-    public PropertyKey getKey() {
+    public String getType() {
+        return type;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public Map<String, String> getKey() {
         return key;
-    }
-
-    public void setKey(PropertyKey key) {
-        this.key = key;
     }
 
     public Long getCreatedBeforeTime() {
         return createdBeforeTime;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public void setKey(Map<String, String> key) {
+        this.key = key;
     }
 
     public void setCreatedBeforeTime(Long createdBeforeTime) {
@@ -52,7 +76,9 @@ public class PropertyMatcher {
     @Override
     public String toString() {
         return "PropertyMatcher{" +
-                "key=" + key +
+                "type='" + type + '\'' +
+                ", entityName='" + entityName + '\'' +
+                ", key=" + key +
                 ", createdBeforeTime=" + createdBeforeTime +
                 '}';
     }

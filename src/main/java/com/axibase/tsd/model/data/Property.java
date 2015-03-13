@@ -17,6 +17,7 @@ package com.axibase.tsd.model.data;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
@@ -26,47 +27,75 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Property {
-    private PropertyKey key;
-    private Map<String, String> values;
-    private long timestamp;
+    private String type;
+    @JsonProperty("entity")
+    private String entityName;
+    private Map<String, String> key;
+    private Map<String, String> tags;
+    private Long timestamp;
 
     public Property() {
     }
 
-    public Property(PropertyKey key, String... namesAndValues) {
-        this.key = key;
-        this.values = AtsdUtil.toMap(namesAndValues);
+    public Property(String type, String entityName, Map<String, String> key, Map<String, String> tags) {
+        this(type, entityName, key, tags, null);
     }
 
-    public PropertyKey getKey() {
+    public Property(String type, String entityName, Map<String, String> key, Map<String, String> tags, Long timestamp) {
+        this.type = type;
+        this.entityName = entityName;
+        this.key = key;
+        this.tags = tags;
+        this.timestamp = timestamp;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public Map<String, String> getKey() {
         return key;
     }
 
-    public void setKey(PropertyKey key) {
+    public void setKey(Map<String, String> key) {
         this.key = key;
     }
 
-    public Map<String, String> getValues() {
-        return values;
+    public Map<String, String> getTags() {
+        return tags;
     }
 
-    public void setValues(Map<String, String> values) {
-        this.values = values;
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
     }
 
-    public long getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
     @Override
     public String toString() {
         return "Property{" +
-                "key=" + key +
-                ", values=" + values +
+                "type='" + type + '\'' +
+                ", entityName='" + entityName + '\'' +
+                ", compositeKey=" + key +
+                ", tags=" + tags +
                 ", timestamp=" + timestamp +
                 '}';
     }

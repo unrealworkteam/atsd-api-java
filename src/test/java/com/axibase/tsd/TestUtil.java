@@ -96,12 +96,10 @@ public class TestUtil {
     }
 
     public static GetPropertiesQuery buildPropertiesQuery() {
-        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
+        GetPropertiesQuery query = new GetPropertiesQuery(TTT_TYPE, TTT_ENTITY);
         query.setStartTime(0);
         query.setEndTime(Long.MAX_VALUE);
-        HashMap<String, String> keys = new HashMap<String, String>();
-        keys.put("key1", "ttt-key-1");
-        query.setKeys(keys);
+        query.setKey(AtsdUtil.toMap("key1", "ttt-key-1"));
         return query;
     }
 }

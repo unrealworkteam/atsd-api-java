@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.axibase.tsd.TestUtil.*;
+import static com.axibase.tsd.util.AtsdUtil.toMap;
 import static junit.framework.Assert.*;
 
 public class DataServiceTest {
@@ -165,13 +166,18 @@ public class DataServiceTest {
 
     @Test
     public void testInsertProperties() throws Exception {
-        PropertyKey nnnKey = new PropertyKey(NNN_TYPE, NNN_ENTITY, "nnn-test-key-1", "nnn-test-key-value-1");
         { // check that new property does not exist
-            List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
-            assertEquals(0, properties.size());
+            GetPropertiesQuery newPropCommand = createGetNewPropCommand();
+            List<Property> properties = dataService.retrieveProperties(newPropCommand);
+            if (properties.size()>0) {
+                dataService.batchUpdateProperties(BatchPropertyCommand.createDeleteCommand(
+                        new Property(NNN_TYPE, NNN_ENTITY,null,null)));
+            }
         }
         { // create new property
-            assertTrue(dataService.insertProperties(new Property(nnnKey, "nnn-name", "nnn-value")));
+            assertTrue(dataService.insertProperties(new Property(NNN_TYPE, NNN_ENTITY,
+                    toMap("nnn-test-key-1", "nnn-test-key-value-1"),
+                    toMap("nnn-name", "nnn-value"))));
         }
         { // check that new property exists
             List<Property> properties = dataService.retrieveProperties(createGetNewPropCommand());
@@ -179,7 +185,8 @@ public class DataServiceTest {
         }
         { // delete property
             BatchPropertyCommand deletePropertyCommand = BatchPropertyCommand.createDeleteCommand(
-                    new Property(nnnKey, "nnn-name", "nnn-value")
+                    new Property(NNN_TYPE, NNN_ENTITY,
+                            toMap("nnn-test-key-1", "nnn-test-key-value-1"), null)
             );
             assertTrue(dataService.batchUpdateProperties(deletePropertyCommand));
         }
@@ -188,11 +195,13 @@ public class DataServiceTest {
             assertEquals(0, properties.size());
         }
         { // create new property
-            assertTrue(dataService.insertProperties(new Property(nnnKey, "nnn-name", "nnn-value")));
+            assertTrue(dataService.insertProperties(new Property(NNN_TYPE, NNN_ENTITY,
+                    toMap("nnn-test-key-1", "nnn-test-key-value-1"),
+                    toMap("nnn-name", "nnn-value"))));
         }
         { // delete property using matcher
             BatchPropertyCommand deletePropertyCommand = BatchPropertyCommand.createDeleteMatchCommand(
-                    new PropertyMatcher(nnnKey, Long.MAX_VALUE)
+                    new PropertyMatcher(NNN_TYPE, NNN_ENTITY, Long.MAX_VALUE, "nnn-test-key-1", "nnn-test-key-value-1")
             );
             assertTrue(dataService.batchUpdateProperties(deletePropertyCommand));
         }
@@ -379,7 +388,7 @@ public class DataServiceTest {
     @Test
     public void testMultipleSeriesStreamingCommands() throws Exception {
         dataService.sendPlainCommand(new MultipleInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
-                AtsdUtil.toMap("thread", "current"),
+                toMap("thread", "current"),
                 AtsdUtil.toValuesMap(SSS_METRIC, 1.0, YYY_METRIC, 2.0)
         ));
 
@@ -423,6 +432,7 @@ public class DataServiceTest {
             this.latch = latch;
             this.tagValue = tagValue;
         }
+
         @Override
         public void run() {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
@@ -448,6 +458,7 @@ public class DataServiceTest {
         }
         return resCnt;
     }
+
     private PlainCommand createFireAlertSeriesCommand() {
         return new PlainCommand() {
             @Override
@@ -458,7 +469,7 @@ public class DataServiceTest {
     }
 
     private GetPropertiesQuery createGetNewPropCommand() {
-        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(NNN_ENTITY, NNN_TYPE);
+        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(NNN_TYPE, NNN_ENTITY);
         getPropertiesQuery.setStartTime(0);
         getPropertiesQuery.setEndTime(Long.MAX_VALUE);
         return getPropertiesQuery;
