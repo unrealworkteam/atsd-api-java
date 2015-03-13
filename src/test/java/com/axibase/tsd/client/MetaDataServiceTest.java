@@ -300,6 +300,9 @@ public class MetaDataServiceTest {
                 , new Entity("java-sss-entity")));
         List<Entity> entityList = metaDataService
                 .retrieveGroupEntities(TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
+        if (entityList.size()==0) {
+            entityList = fixTestDataEntityGroupEntity();
+        }
         Entity entity = entityList.get(0);
         assertEquals(1, entityList.size());
         assertEquals(TTT_ENTITY, entity.getName());
@@ -310,6 +313,9 @@ public class MetaDataServiceTest {
         {
             List<Entity> entityList = metaDataService
                     .retrieveGroupEntities(TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
+            if (entityList.size()==0) {
+                entityList = fixTestDataEntityGroupEntity();
+            }
             Entity entity = entityList.get(0);
             assertEquals(1, entityList.size());
             assertEquals(TTT_ENTITY, entity.getName());
@@ -374,5 +380,13 @@ public class MetaDataServiceTest {
         );
         newMetric.setTimePrecision(TimePrecision.SECONDS);
         return newMetric;
+    }
+
+    private List<Entity> fixTestDataEntityGroupEntity() {
+        List<Entity> entityList;
+        metaDataService.addGroupEntities(TTT_ENTITY_GROUP, true, new Entity(TTT_ENTITY));
+        entityList = metaDataService
+                .retrieveGroupEntities(TTT_ENTITY_GROUP, null, null, TagAppender.ALL, null);
+        return entityList;
     }
 }

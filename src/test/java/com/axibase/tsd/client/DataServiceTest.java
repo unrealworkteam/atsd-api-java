@@ -19,10 +19,7 @@ import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
-import com.axibase.tsd.plain.AbstractInsertCommand;
-import com.axibase.tsd.plain.InsertCommand;
-import com.axibase.tsd.plain.MultipleInsertCommand;
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.plain.*;
 import com.axibase.tsd.util.AtsdUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -142,13 +139,18 @@ public class DataServiceTest {
 
     @Test
     public void testRetrieveProperties() throws Exception {
-        GetPropertiesQuery getPropertiesQuery = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
-        getPropertiesQuery.setStartTime(0);
-        getPropertiesQuery.setEndTime(Long.MAX_VALUE);
+        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
+        query.setStartTime(0);
+        query.setEndTime(Long.MAX_VALUE);
         HashMap<String, String> keys = new HashMap<String, String>();
         keys.put("key1", "ttt-key-1");
-        getPropertiesQuery.setKeys(keys);
-        List<Property> properties = dataService.retrieveProperties(getPropertiesQuery);
+        query.setKeys(keys);
+        List<Property> properties = dataService.retrieveProperties(query);
+        if (properties.size() == 0) {
+            fixTestDataProperty();
+        }
+        Thread.sleep(WAIT_TIME);
+        properties = dataService.retrieveProperties(query);
         for (Property property : properties) {
             System.out.println("property = " + property);
         }
@@ -219,7 +221,6 @@ public class DataServiceTest {
         }
     }
 
-
     @Test
     public void testUpdateAlerts() throws Exception {
         GetAlertQuery query = new GetAlertQuery(
@@ -263,6 +264,7 @@ public class DataServiceTest {
         // check empty
         assertTrue(dataService.retrieveAlerts(query).isEmpty());
     }
+
 
     @Test
     public void testRetrieveAlertHistory() throws Exception {
@@ -407,8 +409,8 @@ public class DataServiceTest {
         private final DataService dataService;
 
         private CountDownLatch latch;
-        private final String tagValue;
 
+        private final String tagValue;
         public SimpleSeriesSender(long startMs, DataService dataService, CountDownLatch latch, String tagValue) {
             this.startMs = startMs;
             this.dataService = dataService;
@@ -425,8 +427,8 @@ public class DataServiceTest {
             dataService.sendPlainCommand(plainCommand);
             latch.countDown();
         }
-    }
 
+    }
     private int countSssSeries(int size, int cnt, long start, MultivaluedHashMap<String, String> tags) {
         GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
         seriesQuery.setStartTime(start - 1);
@@ -475,5 +477,17 @@ public class DataServiceTest {
             ids[i] = "" + alerts.get(i).getId();
         }
         return ids;
+    }
+
+    private void fixTestDataProperty() {
+        // "property type:ttt-type entity:ttt-entity time:111 key:key1=ttt-key-1 key2=ttt-key-2 " +
+        // "values: key1=ttt-key-value-1 key2=ttt-key-value-3"
+        PropertyInsertCommand command = new PropertyInsertCommand(
+                TTT_ENTITY, TTT_TYPE, System.currentTimeMillis() - 1000,
+                AtsdUtil.toMap("key1", "ttt-key-1", "key2", "ttt-key-2"),
+                AtsdUtil.toMap("key1", "ttt-key-value-1", "key2", "ttt-key-value-3")
+        );
+        System.out.println("command = " + command.compose());
+        dataService.sendPlainCommand(command);
     }
 }

@@ -27,11 +27,12 @@ import static com.axibase.tsd.util.AtsdUtil.checkMetricName;
  * @author Nikolay Malevanny.
  */
 public class InsertCommand extends AbstractInsertCommand {
+    public static final String SERIES_COMMAND = "series";
     private final String metricName;
     private final Series series;
 
     public InsertCommand(String entityName, String metricName, Series series, Map<String, String> tags) {
-        super(entityName, series.getTimeMillis(), tags);
+        super(SERIES_COMMAND, entityName, series.getTimeMillis(), tags);
         checkMetricName(metricName);
         this.metricName = metricName;
         this.series = series;

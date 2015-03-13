@@ -25,7 +25,7 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
 
     public MultipleInsertCommand(String entityName, long time, Map<String, String> tags,
                                  Map<String, Double> metricsAndValues) {
-        super(entityName, time, tags);
+        super(InsertCommand.SERIES_COMMAND, entityName, time, tags);
         this.metricsAndValues = metricsAndValues;
     }
 

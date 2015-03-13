@@ -27,11 +27,13 @@ import static com.axibase.tsd.util.AtsdUtil.checkEntityName;
  * @author Nikolay Malevanny.
  */
 public abstract class AbstractInsertCommand implements PlainCommand {
+    private final String commandName;
     protected final String entityName;
     private final Long timeMillis;
     protected final Map<String, String> tags;
 
-    public AbstractInsertCommand(String entityName, Long timeMillis, Map<String, String> tags) {
+    public AbstractInsertCommand(String commandName, String entityName, Long timeMillis, Map<String, String> tags) {
+        this.commandName = commandName;
         checkEntityName(entityName);
         this.entityName = entityName;
         this.timeMillis = timeMillis;
@@ -40,13 +42,12 @@ public abstract class AbstractInsertCommand implements PlainCommand {
 
     @Override
     public final String compose() {
-        StringBuilder sb = new StringBuilder("series")
+        StringBuilder sb = new StringBuilder(commandName)
                 .append(' ').append("e:").append(clean(entityName));
         if (timeMillis != null) {
             sb.append(' ').append("ms:").append(timeMillis);
         }
-        String prefix = " t:";
-        appendKeysAndValues(sb, prefix, tags);
+        appendKeysAndValues(sb, " t:", tags);
         appendValues(sb);
         return sb.append('\n').toString();
     }

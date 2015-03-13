@@ -24,14 +24,17 @@ import java.util.Map;
  * @author Nikolay Malevanny.
  */
 public class PropertyInsertCommand extends AbstractInsertCommand {
+    public static final String PROPERTY_COMMAND = "property";
     private final String typeName;
+    private final Map<String, String> keys;
     private final Map<String, String> values;
 
-    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> tags,
+    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> keys,
                                  Map<String, String> values) {
-        super(entityName, timeMillis, tags);
+        super(PROPERTY_COMMAND, entityName, timeMillis, Collections.<String, String>emptyMap());
         AtsdUtil.check(typeName, "Type name is null");
         this.typeName = typeName;
+        this.keys = (keys == null) ? Collections.<String, String>emptyMap() : keys;
         this.values = (values == null) ? Collections.<String, String>emptyMap() : values;
     }
 
@@ -39,6 +42,7 @@ public class PropertyInsertCommand extends AbstractInsertCommand {
     protected void appendValues(StringBuilder sb) {
         // property e:abc001 t:disk k:name=sda v:size=203459 v:fs_type=nfs
         sb.append(" t:").append(clean(typeName));
+        appendKeysAndValues(sb, " k:", keys);
         appendKeysAndValues(sb, " v:", values);
     }
 }

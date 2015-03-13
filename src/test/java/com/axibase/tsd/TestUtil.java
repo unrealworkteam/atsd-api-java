@@ -42,7 +42,7 @@ public class TestUtil {
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";
     public static final String NNN_ENTITY_GROUP = "nnn-entity-group";
 
-    public static final int MAX_TRIES = 13;
+    public static final int MAX_TRIES = 33;
     public static final int WAIT_TIME = 1800;
 
     // To overwrite client properties use Maven properties like:
