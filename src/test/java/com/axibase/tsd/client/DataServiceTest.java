@@ -139,23 +139,40 @@ public class DataServiceTest {
 
     @Test
     public void testRetrieveProperties() throws Exception {
-        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
-        query.setStartTime(0);
-        query.setEndTime(Long.MAX_VALUE);
-        HashMap<String, String> keys = new HashMap<String, String>();
-        keys.put("key1", "ttt-key-1");
-        query.setKeys(keys);
-        List<Property> properties = dataService.retrieveProperties(query);
+        List<Property> properties = dataService.retrieveProperties(buildPropertiesQuery());
         if (properties.size() == 0) {
-            fixTestDataProperty();
+            properties = fixTestDataProperty();
         }
-        Thread.sleep(WAIT_TIME);
-        properties = dataService.retrieveProperties(query);
+
         for (Property property : properties) {
             System.out.println("property = " + property);
         }
         assertTrue(properties.get(0) instanceof Property);
         assertEquals(1, properties.size());
+    }
+
+    @Test
+    public void testRetrievePropertiesByEntityNameAndPropertyTypeName() throws Exception {
+        List<Property> properties = dataService.retrieveProperties(TTT_ENTITY, TTT_TYPE);
+        if (properties.size() == 0) {
+            fixTestDataProperty();
+            properties = dataService.retrieveProperties(TTT_ENTITY, TTT_TYPE);
+        }
+
+        assertTrue(properties.get(0) instanceof Property);
+        assertEquals(1, properties.size());
+    }
+
+    @Test
+    public void testRetrievePropertyTypes() throws Exception {
+        GetPropertiesQuery query = buildPropertiesQuery();
+        List<Property> properties = dataService.retrieveProperties(query);
+        if (properties.size() == 0) {
+            fixTestDataProperty();
+        }
+        Set<String> propertyTypes = dataService.retrievePropertyTypes(TTT_ENTITY, 0L);
+        assertTrue(propertyTypes.size() > 0 );
+        assertTrue(propertyTypes.contains(TTT_TYPE));
     }
 
     @Test
@@ -265,7 +282,6 @@ public class DataServiceTest {
         assertTrue(dataService.retrieveAlerts(query).isEmpty());
     }
 
-
     @Test
     public void testRetrieveAlertHistory() throws Exception {
         GetAlertHistoryQuery getAlertHistoryQuery = new GetAlertHistoryQuery();
@@ -278,6 +294,7 @@ public class DataServiceTest {
         assertTrue(alertHistoryList.get(0) instanceof AlertHistory);
         assertTrue(alertHistoryList.size() > 0);
     }
+
 
     @Test
     public void testMultiThreadStreamingCommands() throws Exception {
@@ -411,13 +428,13 @@ public class DataServiceTest {
         private CountDownLatch latch;
 
         private final String tagValue;
+
         public SimpleSeriesSender(long startMs, DataService dataService, CountDownLatch latch, String tagValue) {
             this.startMs = startMs;
             this.dataService = dataService;
             this.latch = latch;
             this.tagValue = tagValue;
         }
-
         @Override
         public void run() {
             Series series = new Series(startMs + counter.incrementAndGet(), Math.random());
@@ -429,6 +446,7 @@ public class DataServiceTest {
         }
 
     }
+
     private int countSssSeries(int size, int cnt, long start, MultivaluedHashMap<String, String> tags) {
         GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
         seriesQuery.setStartTime(start - 1);
@@ -442,7 +460,6 @@ public class DataServiceTest {
         }
         return resCnt;
     }
-
     private PlainCommand createFireAlertSeriesCommand() {
         return new PlainCommand() {
             @Override
@@ -479,7 +496,7 @@ public class DataServiceTest {
         return ids;
     }
 
-    private void fixTestDataProperty() {
+    private List<Property> fixTestDataProperty() throws InterruptedException {
         // "property type:ttt-type entity:ttt-entity time:111 key:key1=ttt-key-1 key2=ttt-key-2 " +
         // "values: key1=ttt-key-value-1 key2=ttt-key-value-3"
         PropertyInsertCommand command = new PropertyInsertCommand(
@@ -489,5 +506,17 @@ public class DataServiceTest {
         );
         System.out.println("command = " + command.compose());
         dataService.sendPlainCommand(command);
+        Thread.sleep(WAIT_TIME);
+        return dataService.retrieveProperties(buildPropertiesQuery());
+    }
+
+    private GetPropertiesQuery buildPropertiesQuery() {
+        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
+        query.setStartTime(0);
+        query.setEndTime(Long.MAX_VALUE);
+        HashMap<String, String> keys = new HashMap<String, String>();
+        keys.put("key1", "ttt-key-1");
+        query.setKeys(keys);
+        return query;
     }
 }

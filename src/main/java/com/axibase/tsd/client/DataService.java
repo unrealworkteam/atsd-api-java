@@ -24,9 +24,7 @@ import com.axibase.tsd.plain.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
@@ -124,6 +122,33 @@ public class DataService {
         QueryPart<Property> query = new Query<Property>("properties");
         return httpClientManager.requestDataList(Property.class, query,
                 post(new BatchQuery<GetPropertiesQuery>(getPropertiesQuery, getPropertiesQueries)));
+    }
+
+    /**
+     * @param entityName entity name
+     * @param typeName   property type name
+     * @return properties for entity and type
+     */
+    public List<Property> retrieveProperties(String entityName, String typeName) {
+        checkEntityName(entityName);
+        check(typeName, "Property type name is empty");
+        QueryPart<Property> query = new Query<Property>("properties");
+        query = query.path(entityName).path("types").path(typeName);
+        return httpClientManager.requestDataList(Property.class, query, null);
+    }
+
+    /**
+     * @param entityName entity name
+     * @param startTime  to return only property types that have been collected after the specified time
+     * @return a set of property types for the entity.
+     */
+    public Set<String> retrievePropertyTypes(String entityName, Long startTime) {
+        checkEntityName(entityName);
+        QueryPart<String> query = new Query<String>("properties");
+        query = query.path(entityName).path("types").param("startTime", startTime);
+        HashSet<String> result = new HashSet<String>();
+        result.addAll(httpClientManager.requestDataList(String.class, query, null));
+        return result;
     }
 
     /**
