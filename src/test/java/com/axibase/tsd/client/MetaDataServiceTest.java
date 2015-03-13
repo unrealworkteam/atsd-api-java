@@ -363,7 +363,7 @@ public class MetaDataServiceTest {
         if (properties.size() == 0) {
             fixTestDataProperty(dataService);
         }
-        Set<String> propertyTypes = dataService.retrievePropertyTypes(TTT_ENTITY, 0L);
+        Set<String> propertyTypes = metaDataService.retrievePropertyTypes(TTT_ENTITY, 0L);
         assertTrue(propertyTypes.size() > 0 );
         assertTrue(propertyTypes.contains(TTT_TYPE));
     }
