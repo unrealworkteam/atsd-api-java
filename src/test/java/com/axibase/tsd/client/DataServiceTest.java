@@ -42,7 +42,6 @@ import static junit.framework.Assert.*;
 
 public class DataServiceTest {
 
-    public static final int WAIT_TIME = 1800;
     private DataService dataService;
     private HttpClientManager httpClientManager;
 
@@ -51,6 +50,8 @@ public class DataServiceTest {
         dataService = new DataService();
         httpClientManager = TestUtil.buildHttpClientManager();
         dataService.setHttpClientManager(httpClientManager);
+
+        waitWorkingServer(httpClientManager);
     }
 
     @Test

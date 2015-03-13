@@ -36,10 +36,12 @@ public class MetaDataServiceTest {
     private HttpClientManager httpClientManager;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         metaDataService = new MetaDataService();
         httpClientManager = TestUtil.buildHttpClientManager();
         metaDataService.setHttpClientManager(httpClientManager);
+
+        waitWorkingServer(httpClientManager);
     }
 
     @Test

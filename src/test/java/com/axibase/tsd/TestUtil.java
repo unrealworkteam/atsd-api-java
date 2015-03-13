@@ -42,6 +42,9 @@ public class TestUtil {
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";
     public static final String NNN_ENTITY_GROUP = "nnn-entity-group";
 
+    public static final int MAX_TRIES = 13;
+    public static final int WAIT_TIME = 1800;
+
     // To overwrite client properties use Maven properties like:
     // -DargLine="-Daxibase.tsd.api.server.name=10.100.10.5 -Daxibase.tsd.api.server.port=8888"
     public static HttpClientManager buildHttpClientManager() {
@@ -60,5 +63,15 @@ public class TestUtil {
 
     public static MultivaluedMap<String, String> toMVM(String... tagNamesAndValues) {
         return new MultivaluedHashMap<String, String>(AtsdUtil.toMap(tagNamesAndValues));
+    }
+
+    public static void waitWorkingServer(HttpClientManager httpClientManager) throws InterruptedException {
+        for (int i = 0; i < MAX_TRIES; i ++) {
+            if (httpClientManager.canSendPlainCommand()) {
+                return;
+            } else {
+                Thread.sleep(WAIT_TIME);
+            }
+        }
     }
 }
