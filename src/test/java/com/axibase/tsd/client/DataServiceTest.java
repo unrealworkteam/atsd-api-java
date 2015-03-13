@@ -141,7 +141,7 @@ public class DataServiceTest {
     public void testRetrieveProperties() throws Exception {
         List<Property> properties = dataService.retrieveProperties(buildPropertiesQuery());
         if (properties.size() == 0) {
-            properties = fixTestDataProperty();
+            properties = fixTestDataProperty(dataService);
         }
 
         for (Property property : properties) {
@@ -155,24 +155,12 @@ public class DataServiceTest {
     public void testRetrievePropertiesByEntityNameAndPropertyTypeName() throws Exception {
         List<Property> properties = dataService.retrieveProperties(TTT_ENTITY, TTT_TYPE);
         if (properties.size() == 0) {
-            fixTestDataProperty();
+            fixTestDataProperty(dataService);
             properties = dataService.retrieveProperties(TTT_ENTITY, TTT_TYPE);
         }
 
         assertTrue(properties.get(0) instanceof Property);
         assertEquals(1, properties.size());
-    }
-
-    @Test
-    public void testRetrievePropertyTypes() throws Exception {
-        GetPropertiesQuery query = buildPropertiesQuery();
-        List<Property> properties = dataService.retrieveProperties(query);
-        if (properties.size() == 0) {
-            fixTestDataProperty();
-        }
-        Set<String> propertyTypes = dataService.retrievePropertyTypes(TTT_ENTITY, 0L);
-        assertTrue(propertyTypes.size() > 0 );
-        assertTrue(propertyTypes.contains(TTT_TYPE));
     }
 
     @Test
@@ -496,27 +484,4 @@ public class DataServiceTest {
         return ids;
     }
 
-    private List<Property> fixTestDataProperty() throws InterruptedException {
-        // "property type:ttt-type entity:ttt-entity time:111 key:key1=ttt-key-1 key2=ttt-key-2 " +
-        // "values: key1=ttt-key-value-1 key2=ttt-key-value-3"
-        PropertyInsertCommand command = new PropertyInsertCommand(
-                TTT_ENTITY, TTT_TYPE, System.currentTimeMillis() - 1000,
-                AtsdUtil.toMap("key1", "ttt-key-1", "key2", "ttt-key-2"),
-                AtsdUtil.toMap("key1", "ttt-key-value-1", "key2", "ttt-key-value-3")
-        );
-        System.out.println("command = " + command.compose());
-        dataService.sendPlainCommand(command);
-        Thread.sleep(WAIT_TIME);
-        return dataService.retrieveProperties(buildPropertiesQuery());
-    }
-
-    private GetPropertiesQuery buildPropertiesQuery() {
-        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
-        query.setStartTime(0);
-        query.setEndTime(Long.MAX_VALUE);
-        HashMap<String, String> keys = new HashMap<String, String>();
-        keys.put("key1", "ttt-key-1");
-        query.setKeys(keys);
-        return query;
-    }
 }

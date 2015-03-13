@@ -22,7 +22,9 @@ import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.axibase.tsd.client.RequestProcessor.*;
 import static com.axibase.tsd.util.AtsdUtil.*;
@@ -171,6 +173,20 @@ public class MetaDataService {
         QueryPart<Entity> query = new Query<Entity>("entities")
                 .path(entityName);
         return httpClientManager.requestMetaDataObject(Entity.class, query);
+    }
+
+    /**
+     * @param entityName entity name
+     * @param startTime  to return only property types that have been collected after the specified time
+     * @return a set of property types for the entity.
+     */
+    public Set<String> retrievePropertyTypes(String entityName, Long startTime) {
+        checkEntityName(entityName);
+        QueryPart<String> query = new Query<String>("entities");
+        query = query.path(entityName).path("property-types").param("startTime", startTime);
+        HashSet<String> result = new HashSet<String>();
+        result.addAll(httpClientManager.requestDataList(String.class, query, null));
+        return result;
     }
 
     public boolean createOrReplaceEntity(Entity entity) {

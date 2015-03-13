@@ -138,20 +138,6 @@ public class DataService {
     }
 
     /**
-     * @param entityName entity name
-     * @param startTime  to return only property types that have been collected after the specified time
-     * @return a set of property types for the entity.
-     */
-    public Set<String> retrievePropertyTypes(String entityName, Long startTime) {
-        checkEntityName(entityName);
-        QueryPart<String> query = new Query<String>("properties");
-        query = query.path(entityName).path("types").param("startTime", startTime);
-        HashSet<String> result = new HashSet<String>();
-        result.addAll(httpClientManager.requestDataList(String.class, query, null));
-        return result;
-    }
-
-    /**
      * @param properties list of {@code Property} to add.
      * @return true if success
      */

@@ -15,13 +15,19 @@
 package com.axibase.tsd;
 
 import com.axibase.tsd.client.ClientConfigurationFactory;
+import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
+import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.command.GetPropertiesQuery;
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.plain.PropertyInsertCommand;
 import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Nikolay Malevanny.
@@ -73,5 +79,29 @@ public class TestUtil {
                 Thread.sleep(WAIT_TIME);
             }
         }
+    }
+
+    public static List<Property> fixTestDataProperty(DataService ds) throws InterruptedException {
+        // "property type:ttt-type entity:ttt-entity time:111 key:key1=ttt-key-1 key2=ttt-key-2 " +
+        // "values: key1=ttt-key-value-1 key2=ttt-key-value-3"
+        PropertyInsertCommand command = new PropertyInsertCommand(
+                TTT_ENTITY, TTT_TYPE, System.currentTimeMillis() - 1000,
+                AtsdUtil.toMap("key1", "ttt-key-1", "key2", "ttt-key-2"),
+                AtsdUtil.toMap("key1", "ttt-key-value-1", "key2", "ttt-key-value-3")
+        );
+        System.out.println("command = " + command.compose());
+        ds.sendPlainCommand(command);
+        Thread.sleep(WAIT_TIME);
+        return ds.retrieveProperties(buildPropertiesQuery());
+    }
+
+    public static GetPropertiesQuery buildPropertiesQuery() {
+        GetPropertiesQuery query = new GetPropertiesQuery(TTT_ENTITY, TTT_TYPE);
+        query.setStartTime(0);
+        query.setEndTime(Long.MAX_VALUE);
+        HashMap<String, String> keys = new HashMap<String, String>();
+        keys.put("key1", "ttt-key-1");
+        query.setKeys(keys);
+        return query;
     }
 }

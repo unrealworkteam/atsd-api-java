@@ -15,17 +15,17 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.TestUtil;
+import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.command.GetPropertiesQuery;
 import com.axibase.tsd.model.meta.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.axibase.tsd.TestUtil.*;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.*;
 
 /**
@@ -33,6 +33,7 @@ import static org.junit.Assert.*;
  */
 public class MetaDataServiceTest {
     private MetaDataService metaDataService;
+    private DataService dataService;
     private HttpClientManager httpClientManager;
 
     @Before
@@ -40,6 +41,8 @@ public class MetaDataServiceTest {
         metaDataService = new MetaDataService();
         httpClientManager = TestUtil.buildHttpClientManager();
         metaDataService.setHttpClientManager(httpClientManager);
+        dataService = new DataService();
+        dataService.setHttpClientManager(httpClientManager);
 
         waitWorkingServer(httpClientManager);
     }
@@ -353,6 +356,18 @@ public class MetaDataServiceTest {
             // OK
         }
     }
+
+    @Test
+    public void testRetrievePropertyTypes() throws Exception {
+        List<Property> properties = dataService.retrieveProperties(buildPropertiesQuery());
+        if (properties.size() == 0) {
+            fixTestDataProperty(dataService);
+        }
+        Set<String> propertyTypes = dataService.retrievePropertyTypes(TTT_ENTITY, 0L);
+        assertTrue(propertyTypes.size() > 0 );
+        assertTrue(propertyTypes.contains(TTT_TYPE));
+    }
+
 
     @Test
     public void testRetrieveMetricsByEntity() throws Exception {
