@@ -45,8 +45,8 @@ public class DataServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        dataService = new DataService();
         httpClientManager = TestUtil.buildHttpClientManager();
+        dataService = new DataService();
         dataService.setHttpClientManager(httpClientManager);
 
         waitWorkingServer(httpClientManager);
@@ -327,12 +327,12 @@ public class DataServiceTest {
 
     @Test
     public void testStreamingCommands() throws Exception {
+        String tagValue = "streaming";
         final int size = 5;
         final int cnt = 30;
         int pauseMs = 50;
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
-        String tagValue = "streaming";
         for (int i = 0; i < cnt; i++) {
             Thread.sleep(pauseMs);
 
@@ -387,10 +387,12 @@ public class DataServiceTest {
 
     @Test
     public void testMultipleSeriesStreamingCommands() throws Exception {
-        dataService.sendPlainCommand(new MultipleInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
+        MultipleInsertCommand plainCommand = new MultipleInsertCommand(SSS_ENTITY, System.currentTimeMillis(),
                 toMap("thread", "current"),
                 AtsdUtil.toValuesMap(SSS_METRIC, 1.0, YYY_METRIC, 2.0)
-        ));
+        );
+        System.out.println("plainCommand = " + plainCommand.compose());
+        dataService.sendPlainCommand(plainCommand);
 
         Thread.sleep(3000);
 
@@ -494,5 +496,4 @@ public class DataServiceTest {
         }
         return ids;
     }
-
 }

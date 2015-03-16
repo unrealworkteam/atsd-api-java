@@ -17,6 +17,7 @@ package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.plain.PlainCommand;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -29,6 +30,7 @@ import org.glassfish.jersey.SslConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -179,6 +181,9 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
                 .build();
         HttpPost httpPost = new HttpPost(url +
                 "/command");
+        httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
+                (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
+        ));
         httpPost.setEntity(this);
         try {
             active = true;
