@@ -14,12 +14,13 @@
 */
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.RerunRule;
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.model.data.Property;
-import com.axibase.tsd.model.data.command.GetPropertiesQuery;
 import com.axibase.tsd.model.meta.*;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.*;
@@ -35,6 +36,9 @@ public class MetaDataServiceTest {
     private MetaDataService metaDataService;
     private DataService dataService;
     private HttpClientManager httpClientManager;
+
+    @Rule
+    public RerunRule rerunRule = new RerunRule();
 
     @Before
     public void setUp() throws Exception {

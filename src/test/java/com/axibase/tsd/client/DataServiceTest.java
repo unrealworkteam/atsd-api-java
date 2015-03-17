@@ -14,6 +14,7 @@
 */
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.RerunRule;
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
@@ -21,10 +22,7 @@ import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.plain.*;
 import com.axibase.tsd.util.AtsdUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import java.util.*;
@@ -42,6 +40,9 @@ public class DataServiceTest {
 
     private DataService dataService;
     private HttpClientManager httpClientManager;
+
+    @Rule
+    public RerunRule rerunRule = new RerunRule();
 
     @Before
     public void setUp() throws Exception {

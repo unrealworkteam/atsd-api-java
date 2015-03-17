@@ -26,7 +26,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -48,8 +47,10 @@ public class TestUtil {
     public static final String TTT_ENTITY_GROUP = "ttt-entity-group";
     public static final String NNN_ENTITY_GROUP = "nnn-entity-group";
 
-    public static final int MAX_TRIES = 33;
     public static final int WAIT_TIME = 1800;
+
+    static final int RERUN_COUNT = 3;
+    public static final int MAX_PING_TRIES = 77;
 
     // To overwrite client properties use Maven properties like:
     // -DargLine="-Daxibase.tsd.api.server.name=10.100.10.5 -Daxibase.tsd.api.server.port=8888"
@@ -72,7 +73,7 @@ public class TestUtil {
     }
 
     public static void waitWorkingServer(HttpClientManager httpClientManager) throws InterruptedException {
-        for (int i = 0; i < MAX_TRIES; i ++) {
+        for (int i = 0; i < MAX_PING_TRIES; i ++) {
             if (httpClientManager.canSendPlainCommand()) {
                 return;
             } else {
