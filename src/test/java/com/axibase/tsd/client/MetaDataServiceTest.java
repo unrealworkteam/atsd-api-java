@@ -236,7 +236,10 @@ public class MetaDataServiceTest {
     public void testCreateOrReplaceEntityGroup() throws Exception {
         EntityGroup entityGroup = metaDataService.retrieveEntityGroup(TTT_ENTITY_GROUP);
         assertEquals(TTT_ENTITY_GROUP, entityGroup.getName());
-        assertFalse(entityGroup.getTags().containsKey("uuu-tag-1"));
+        if (entityGroup.getTags().containsKey("uuu-tag-1")) {
+            entityGroup.getTags().remove("uuu-tag-1");
+            metaDataService.createOrReplaceEntityGroup(entityGroup);
+        }
 
         Map<String, String> tags = entityGroup.getTags();
         Map<String, String> savedTags = new HashMap<String, String>(tags);
