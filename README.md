@@ -70,7 +70,8 @@ Maven after checking out the code from GitHub.
 git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
-java -cp "atsd-api-java-0.3.11.jar:dependency/*" com.axibase.tsd.example.AtsdClientWriteExample
+cd target
+java -cp "atsd-api-java-0.3.11.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
 ```
 
 ## Examples
@@ -82,7 +83,7 @@ See:
 ### Client Configuration
 
 #### Option 1
-Use `-Daxibase.tsd.api.client.properties=./local.client.properties`
+Use `-Daxibase.tsd.api.client.properties=./client.properties`
 
 ```java
         ClientConfiguration clientConfiguration = ClientConfigurationFactory
@@ -93,7 +94,7 @@ Use `-Daxibase.tsd.api.client.properties=./local.client.properties`
         metaDataService = new MetaDataService(httpClientManager);
 ```
 
-**local.client.properties** example:
+**client.properties** example:
 ```
         axibase.tsd.api.server.name=atsd_server
         axibase.tsd.api.server.port=8080
