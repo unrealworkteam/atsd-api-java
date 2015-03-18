@@ -195,7 +195,7 @@
                     <execution>
                         <id>enforce-maven</id>
                         <goals>
-                            <goal>enforce</goal>
+                            <goal>jar</goal>
                         </goals>
                         <configuration>
                             <rules>
