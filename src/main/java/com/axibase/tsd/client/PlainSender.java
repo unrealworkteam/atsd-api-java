@@ -70,6 +70,10 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     }
 
     public void send(PlainCommand plainCommand) {
+        if (!correct) {
+            throw new IllegalStateException("Could not send command using incorrect sender");
+        }
+
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -86,6 +90,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             text = text + "\n";
         }
         messages.add(text);
+        log.debug("Message is added to queue, queue size = {}", (messages == null) ? 0 : messages.size());
     }
 
     @Override
@@ -114,13 +119,13 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             String message = null;
             try {
                 message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
-//                log.debug("message = {}", message);
             } catch (InterruptedException e) {
                 log.error("Could not poll message from queue", e);
             }
 
             try {
                 if (message != null) {
+                    log.debug("Write message: {}", message);
                     outputStream.write(message.getBytes());
                     outputStream.flush();
                     lastMessageTime = System.currentTimeMillis();
