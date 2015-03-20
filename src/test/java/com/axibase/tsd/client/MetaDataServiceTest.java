@@ -18,10 +18,7 @@ import com.axibase.tsd.RerunRule;
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.model.data.Property;
 import com.axibase.tsd.model.meta.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.*;
 
@@ -63,7 +60,6 @@ public class MetaDataServiceTest {
         Metric metric = metaDataService.retrieveMetric(TTT_METRIC);
         assertNotNull(metric);
         assertEquals(TTT_METRIC, metric.getName());
-        assertEquals(DataType.DOUBLE, metric.getDataType());
     }
 
     @Test
