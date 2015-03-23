@@ -193,8 +193,10 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         try {
             active = true;
             response = httpClient.execute(httpPost);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
+        } finally {
+            correct = false;
         }
     }
 
