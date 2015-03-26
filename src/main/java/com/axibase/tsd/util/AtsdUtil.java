@@ -29,6 +29,7 @@ public class AtsdUtil {
     public static final String JSON = MediaType.APPLICATION_JSON;
     public static final String ADD_COMMAND = "add";
     public static final String DELETE_COMMAND = "delete";
+    public static final String MARKER_KEYWORD = "marker ";
 
     public static Map<String, String> toMap(String... tagNamesAndValues) {
         if (tagNamesAndValues == null || tagNamesAndValues.length == 0) {

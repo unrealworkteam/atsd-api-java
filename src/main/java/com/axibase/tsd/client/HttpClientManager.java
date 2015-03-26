@@ -15,8 +15,11 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.model.system.MarkerState;
 import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
+import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -25,14 +28,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -44,7 +40,6 @@ public class HttpClientManager {
     private static final Logger log = LoggerFactory.getLogger(HttpClientManager.class);
 
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
-    private static final int DEFAULT_PING_PERIOD_MS = 5000;
     private static final int DEFAULT_MAX_TOTAL = 100;
     private static final int DEFAULT_MAX_IDLE = 100;
 
@@ -53,13 +48,7 @@ public class HttpClientManager {
 
     private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReference = new AtomicReference<GenericObjectPool<HttpClient>>();
     private int borrowMaxWaitMillis = DEFAULT_BORROW_MAX_TIME_MS;
-
-    // plain commands
-    private long pingPeriodMillis = DEFAULT_PING_PERIOD_MS;
-    private final AtomicReference<PlainSender> plainSender = new AtomicReference<PlainSender>();
-    private final AtomicLong lastPingTime = new AtomicLong(0);
-    private final List<PlainCommand> saved = new ArrayList<PlainCommand>();
-    private boolean lastPingResult = true;
+    private StreamingManager streamingManager = new DefaultStreamingManager(this);
 
     public HttpClientManager() {
         objectPoolConfig = new GenericObjectPoolConfig();
@@ -84,8 +73,8 @@ public class HttpClientManager {
         this.borrowMaxWaitMillis = borrowMaxWaitMillis;
     }
 
-    public void setPingPeriodMillis(long pingPeriodMillis) {
-        this.pingPeriodMillis = pingPeriodMillis;
+    public void setStreamingManager(StreamingManager streamingManager) {
+        this.streamingManager = streamingManager;
     }
 
     public <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
@@ -180,88 +169,19 @@ public class HttpClientManager {
         if (pool != null) {
             pool.close();
         }
-        PlainSender sender = plainSender.get();
-        if (sender != null) {
-            sender.close();
-        }
+        streamingManager.close();
     }
 
     public void send(PlainCommand plainCommand) {
-        if (!lastPingResult) {
-            throw new IllegalStateException("Last ping was bad");
-        }
-        PlainSender sender = prepareSender();
-        if (canSendPlainCommand()) {
-            try {
-                sender.send(plainCommand);
-            } finally {
-                saved.add(plainCommand);
-            }
-        }
-    }
-
-    private boolean ping() {
-        String dataUrl = clientConfiguration.getDataUrl();
-        Socket socket = null;
-        String host = null;
-        int port = -1;
-        try {
-            URI uri = new URI(dataUrl);
-            host = uri.getHost();
-            port = uri.getPort();
-            socket = new Socket(host, port);
-        } catch (Throwable e) {
-            log.info("Ping (host={}, port={}) error: ", host, port, e);
-            return false;
-        } finally {
-            if (socket != null) try {
-                socket.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-        return true;
-    }
-
-    private PlainSender prepareSender() {
-        PlainSender sender = plainSender.get();
-        if (sender == null || !sender.isCorrect()) {
-            PlainSender newSender = new PlainSender(clientConfiguration, sender);
-            if (plainSender.compareAndSet(sender, newSender)) {
-                Executors.newSingleThreadExecutor().execute(newSender);
-            }
-            sender = plainSender.get();
-        }
-        return sender;
+        streamingManager.send(plainCommand);
     }
 
     public boolean canSendPlainCommand() {
-        long last = lastPingTime.get();
-        long current = System.currentTimeMillis();
-        if (current - last > pingPeriodMillis) {
-            if (lastPingTime.compareAndSet(last, current)) {
-                boolean pingResult = lastPingResult;
-                lastPingResult = ping();
-                if (pingResult && lastPingResult) {
-                    saved.clear();
-                }
-            }
-        }
-        return lastPingResult;
+        return streamingManager.canSend();
     }
 
-    public List<PlainCommand> removeSavedPlainCommands() {
-        if (saved.isEmpty()) {
-            return Collections.emptyList();
-        }
-        synchronized (saved) {
-            List<PlainCommand> result = new ArrayList<PlainCommand>(saved);
-            saved.removeAll(result);
-            if (result.size() > 0) {
-                log.info("{} commands are removed from saved list", result.size());
-            }
-            return result;
-        }
+    public List<String> removeSavedPlainCommands() {
+        return streamingManager.removeSavedPlainCommands();
     }
 
     private class HttpClientBasePooledObjectFactory extends BasePooledObjectFactory<HttpClient> {
@@ -281,4 +201,7 @@ public class HttpClientManager {
         }
     }
 
+    public ClientConfiguration getClientConfiguration() {
+        return clientConfiguration;
+    }
 }

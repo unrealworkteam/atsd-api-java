@@ -16,8 +16,8 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.plain.MarkerCommand;
 import com.axibase.tsd.plain.PlainCommand;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -34,10 +34,13 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
 /**
  * @author Nikolay Malevanny.
@@ -51,8 +54,10 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
+    private Map<String, List<String>> markerToMessages = new LinkedHashMap<String, List<String>>();
+    private volatile boolean closed = false;
     private volatile boolean active;
-    private volatile boolean correct = true;
+    private volatile boolean correct = false;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
     private CloseableHttpResponse response;
@@ -115,6 +120,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
+        String marker = null;
         while (active) {
             String message = null;
             try {
@@ -125,9 +131,24 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
             try {
                 if (message != null) {
+                    if (marker == null && !message.startsWith(MARKER_KEYWORD)) {
+                        MarkerCommand markerCommand = new MarkerCommand();
+                        marker = markerCommand.getMarker();
+                        write(outputStream, markerCommand.compose());
+                    }
+
                     log.debug("Write message: {}", message);
-                    outputStream.write(message.getBytes());
-                    outputStream.flush();
+                    write(outputStream, message);
+
+                    if (message.startsWith(MARKER_KEYWORD)) {
+                        marker = StringUtils.removeStart(message, MARKER_KEYWORD).trim();
+                        if (StringUtils.isBlank(marker)) {
+                            throw new IllegalArgumentException("Bad marker message: " + message);
+                        }
+                    } else {
+                        add(marker, message);
+                    }
+
                     lastMessageTime = System.currentTimeMillis();
                 }
             } catch (Throwable e) {
@@ -139,11 +160,25 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
                 return;
             }
             if (lastMessageTime - System.currentTimeMillis() > pingTimeoutMillis) {
-                outputStream.write(PING_COMMAND.getBytes());
-                outputStream.flush();
+                write(outputStream, PING_COMMAND);
+                add(marker, PING_COMMAND);
                 lastMessageTime = System.currentTimeMillis();
             }
         }
+    }
+
+    private void write(OutputStream outputStream, String text) throws IOException {
+        outputStream.write(text.getBytes());
+        outputStream.flush();
+    }
+
+    private void add(String marker, String message) {
+        List<String> stored = markerToMessages.get(marker);
+        if (stored == null) {
+            stored = new ArrayList<String>();
+            markerToMessages.put(marker, stored);
+        }
+        stored.add(message);
     }
 
     @Override
@@ -152,7 +187,11 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     }
 
     public void close() {
+        if (closed) {
+            return;
+        }
         active = false;
+        correct = false;
         if (response != null) {
             try {
                 response.close();
@@ -170,6 +209,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         if (connectionManager != null) {
             connectionManager.close();
         }
+        closed = true;
     }
 
     @Override
@@ -197,10 +237,19 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
         } finally {
             correct = false;
+            active = false;
         }
     }
 
     public boolean isCorrect() {
         return correct;
+    }
+
+    Map<String, List<String>> getMarkerToMessages() {
+        return markerToMessages;
+    }
+
+    void setCorrect(boolean correct) {
+        this.correct = correct;
     }
 }

@@ -215,7 +215,7 @@ public class DataService {
         return httpClientManager.canSendPlainCommand();
     }
 
-    public List<PlainCommand> removeSavedPlainCommands() {
+    public List<String> removeSavedPlainCommands() {
         return httpClientManager.removeSavedPlainCommands();
     }
 

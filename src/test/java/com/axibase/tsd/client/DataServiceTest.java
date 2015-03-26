@@ -322,7 +322,7 @@ public class DataServiceTest {
 //        for (int i = 0; i < size; i++) {
         tags.add(SSS_TAG, tagValue);
 //        }
-        int resCnt = countSssSeries(size, cnt, start, tags);
+        int resCnt = countSssSeries(start, tags);
         assertEquals(cnt, resCnt);
     }
 
@@ -344,36 +344,36 @@ public class DataServiceTest {
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add(SSS_TAG, tagValue);
-        int resCnt = countSssSeries(size, cnt, start, tags);
+        int resCnt = countSssSeries(start, tags);
         assertEquals(cnt, resCnt);
     }
 
     @Ignore
     @Test
     public void testStreamingCommandsUnstableNetwork() throws Exception {
-        final int size = 5;
         final int cnt = 1200;
-        int pauseMs = 100;
+        int pauseMs = 1000;
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
-        List<PlainCommand> simpleCache = new ArrayList<PlainCommand>();
+        List<String> simpleCache = new ArrayList<String>();
         for (int i = 0; i < cnt; i++) {
             Thread.sleep(pauseMs);
 
-            Series series = new Series(start + i, Math.random());
+            Series series = new Series(start + i * pauseMs, i);
             AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
                     "thread", Thread.currentThread().getName());
             if (dataService.canSendPlainCommand()) {
                 dataService.sendPlainCommand(plainCommand);
                 if (!simpleCache.isEmpty()) {
                     System.out.println("Resend " + simpleCache.size() + " commands");
-                    for (PlainCommand command : simpleCache) {
-                        dataService.sendPlainCommand(command);
+                    for (final String command : simpleCache) {
+                        dataService.sendPlainCommand(new SimpleCommand(command));
                     }
                     simpleCache.clear();
                 }
             } else {
-                simpleCache.add(plainCommand);
+                System.out.println("Could not send command, it's added to local cache ");
+                simpleCache.add(plainCommand.compose());
                 simpleCache.addAll(dataService.removeSavedPlainCommands());
             }
         }
@@ -382,7 +382,7 @@ public class DataServiceTest {
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add("thread", "main");
-        int resCnt = countSssSeries(size, cnt, start, tags);
+        int resCnt = countSssSeries(start, tags);
         assertEquals(cnt, resCnt);
     }
 
@@ -448,7 +448,7 @@ public class DataServiceTest {
 
     }
 
-    private int countSssSeries(int size, int cnt, long start, MultivaluedHashMap<String, String> tags) {
+    private int countSssSeries(long start, MultivaluedHashMap<String, String> tags) {
         GetSeriesQuery seriesQuery = new GetSeriesQuery(SSS_ENTITY, SSS_METRIC);
         seriesQuery.setStartTime(start - 1);
         seriesQuery.setEndTime(System.currentTimeMillis());

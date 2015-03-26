@@ -30,7 +30,7 @@ public abstract class AbstractQueryPart<T> implements QueryPart<T> {
 
     public QueryPart<T> path(String path) {
         if (StringUtils.isBlank(path)) {
-            throw new IllegalArgumentException("Path element is empty");
+            throw new IllegalArgumentException("Path element is empty: " + path);
         }
         return new Query<T>(path, this);
     }
