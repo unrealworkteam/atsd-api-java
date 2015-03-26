@@ -70,6 +70,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         this.pingTimeoutMillis = clientConfiguration.getPingTimeoutMillis();
         if (old != null) {
             messages = old.messages;
+            markerToMessages = old.markerToMessages;
             log.info("Reborn plain commands sender using previous messages, size: {}", messages.size());
         }
     }
