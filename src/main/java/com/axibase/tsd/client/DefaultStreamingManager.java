@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,9 +35,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DefaultStreamingManager implements StreamingManager {
     private static final Logger log = LoggerFactory.getLogger(DefaultStreamingManager.class);
-    public static final String PING = "ping";
-    private static final int DEFAULT_PING_PERIOD_MS = 5000;
-    private long pingPeriodMillis = DEFAULT_PING_PERIOD_MS;
+    public static final String CHECK = "check";
+    private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
+    private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
     private final AtomicReference<PlainSender> plainSender = new AtomicReference<PlainSender>();
     private final AtomicLong lastPingTime = new AtomicLong(0);
     private final AtomicReference<String> marker = new AtomicReference<String>();
@@ -44,30 +45,36 @@ public class DefaultStreamingManager implements StreamingManager {
     private final List<String> saved = new ArrayList<String>();
     private final HttpClientManager httpClientManager;
     private Future<?> senderFuture;
+    private ExecutorService checkExecutor;
+    private ExecutorService senderExecutor;
 
     public DefaultStreamingManager(HttpClientManager httpClientManager) {
         if (httpClientManager == null) {
             throw new IllegalArgumentException("httpClientManager is null");
         }
         this.httpClientManager = httpClientManager;
+        checkExecutor = Executors.newSingleThreadExecutor();
+        senderExecutor = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public void close() {
+        log.info("Close streaming manager");
         PlainSender sender = plainSender.get();
         if (sender != null) {
             sender.close();
         }
-
+        checkExecutor.shutdown();
+        senderExecutor.shutdown();
     }
 
     @Override
     public void send(PlainCommand plainCommand) {
         if (!lastPingResult) {
-            throw new IllegalStateException("Last ping was bad, call canSend() method before command sending");
+            throw new IllegalStateException("Last check was bad, call canSend() method before command sending");
         }
         PlainSender sender = plainSender.get();
-        if (sender ==null) {
+        if (sender == null) {
             throw new IllegalStateException("Sender is null");
         } else if (!sender.isCorrect()) {
             throw new IllegalStateException("Sender is in the wrong state");
@@ -79,55 +86,67 @@ public class DefaultStreamingManager implements StreamingManager {
     public boolean canSend() {
         long last = lastPingTime.get();
         long current = System.currentTimeMillis();
-        PlainSender sender = plainSender.get();
-        if (current - last > pingPeriodMillis) {
+        if (current - last > checkPeriodMillis) {
             if (lastPingTime.compareAndSet(last, current)) {
-                sender = prepareSender();
-                boolean beforeLastResult = lastPingResult;
-                if (beforeLastResult && lastPingResult) {
-                    saved.clear();
-                }
+                checkExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            boolean beforeLastResult = lastPingResult;
+                            prepareAndCheckSender();
+                            if (beforeLastResult && lastPingResult) {
+                                saved.clear();
+                            }
+                        } catch (Throwable e) {
+                            log.error("Could not prepare sender: ", e);
+                        }
+                    }
+                });
             }
         }
-        return lastPingResult && sender != null && sender.isCorrect();
+        return lastPingResult && plainSender.get() != null && plainSender.get().isCorrect();
     }
 
-    private PlainSender prepareSender() {
+    private void prepareAndCheckSender() {
         PlainSender sender = plainSender.get();
         if (sender == null || !sender.isCorrect()) {
             PlainSender newSender = new PlainSender(httpClientManager.getClientConfiguration(), sender);
             if (plainSender.compareAndSet(sender, newSender)) {
-                if (sender !=null) {
+                if (sender != null) {
+                    log.info("Prepare new sender, close old");
                     sender.close();
                 }
-                if (senderFuture!=null) {
+                if (senderFuture != null) {
                     senderFuture.cancel(true);
                 }
-                senderFuture = Executors.newSingleThreadExecutor().submit(newSender);
-                newSender.setCorrect(true);
+                senderFuture = senderExecutor.submit(newSender);
             }
-            sender = plainSender.get();
         }
-        lastPingResult = ping(sender);
+        lastPingResult = check();
         if (lastPingResult) {
             compareAndSendNewMarker(marker.get());
         }
-        return sender;
     }
 
-    private boolean ping(PlainSender sender) {
+    private boolean check() {
+        if (httpClientManager.getClientConfiguration().isSkipStreamingControl()) {
+            return true;
+        }
+
+        PlainSender sender = plainSender.get();
         try {
             if (sender != null) {
                 Map<String, List<String>> markerToMessages = sender.getMarkerToMessages();
                 int size = markerToMessages.size();
                 if (size <= 2) {
-                    // just ping
-                    MarkerState markerState = askMarkerState(PING);
-                    boolean result = PING.equals(markerState.getMarker());
-                    if (result) {
-                        sender.setCorrect(result);
+                    // just check
+                    MarkerState markerState = askMarkerState(CHECK);
+                    boolean checkResult = markerState != null && CHECK.equals(markerState.getMarker());
+                    if (!checkResult) {
+                        log.warn("Bad check result, close sender");
+                        sender.close();
                     }
-                    return result;
+                    return checkResult;
                 }
 
                 int i = 0;
@@ -138,7 +157,7 @@ public class DefaultStreamingManager implements StreamingManager {
                     String checkedMarker = markerAndCommands.getKey();
                     MarkerState markerState = askMarkerState(checkedMarker);
                     List<String> commands = markerAndCommands.getValue();
-                    if (markerState.getCount() != null) {
+                    if (markerState != null && markerState.getCount() != null) {
                         if (markerState.getCount() > commands.size()) {
                             log.warn("Server received more ({}) commands then client sent ({}), marker: {}",
                                     markerState.getCount(), commands.size(), checkedMarker);
@@ -159,7 +178,6 @@ public class DefaultStreamingManager implements StreamingManager {
                 }
 
                 if (saved.isEmpty()) {
-                    sender.setCorrect(true);
                     return true;
                 } else {
                     for (Iterator<Map.Entry<String, List<String>>> iterator = markerToMessages.entrySet().iterator();
@@ -169,7 +187,7 @@ public class DefaultStreamingManager implements StreamingManager {
                         saved.addAll(commands);
                         iterator.remove();
                     }
-                    log.error("Save {} commands, broken sender will be killed", saved.size());
+                    log.error("Save {} commands, broken sender will be closed", saved.size());
                     sender.close();
                     return false;
                 }
@@ -184,12 +202,24 @@ public class DefaultStreamingManager implements StreamingManager {
     }
 
     private MarkerState askMarkerState(String marker) {
-        QueryPart<MarkerState> markersPath = new Query<MarkerState>("command").path("marker");
-        QueryPart<MarkerState> query = markersPath.path(marker);
-        return httpClientManager.requestData(MarkerState.class, query, null);
+        MarkerState markerState = null;
+        try {
+            QueryPart<MarkerState> markersPath = new Query<MarkerState>("command").path("marker");
+            QueryPart<MarkerState> query = markersPath.path(marker);
+            markerState = httpClientManager.requestData(MarkerState.class, query, null);
+            log.debug("From server {} received the following state of marker: {}",
+                    httpClientManager.getClientConfiguration().getDataUrl(), markerState);
+        } catch (Throwable e) {
+            log.error("Error while checking marker count: ", e);
+        }
+        return markerState;
     }
 
     private void compareAndSendNewMarker(String current) {
+        if (httpClientManager.getClientConfiguration().isSkipStreamingControl()) {
+            return;
+        }
+
         MarkerCommand markerCommand = new MarkerCommand();
         final String newMarker = markerCommand.getMarker();
 

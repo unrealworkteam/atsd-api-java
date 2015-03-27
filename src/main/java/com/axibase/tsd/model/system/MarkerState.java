@@ -37,4 +37,12 @@ public class MarkerState {
     public void setCount(Integer count) {
         this.count = count;
     }
+
+    @Override
+    public String toString() {
+        return "MarkerState{" +
+                "marker='" + marker + '\'' +
+                ", count=" + count +
+                '}';
+    }
 }

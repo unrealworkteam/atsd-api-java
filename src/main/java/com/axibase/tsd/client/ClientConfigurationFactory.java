@@ -53,7 +53,8 @@ public class ClientConfigurationFactory {
     private int connectTimeoutMillis;
     private int readTimeoutMillis;
     private long pingTimeoutMillis;
-    boolean ignoreSSLErrors;
+    private boolean ignoreSSLErrors;
+    private boolean skipStreamingControl;
 
     private ClientConfigurationFactory() {
     }
@@ -105,6 +106,8 @@ public class ClientConfigurationFactory {
                 , clientProperties, DEFAULT_PING_TIMEOUT_MS);
         configurationFactory.ignoreSSLErrors = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".ssl.errors.ignore"
                 , clientProperties, "false").toLowerCase().trim());
+        configurationFactory.skipStreamingControl = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".streaming.control.skip"
+                , clientProperties, "false").toLowerCase().trim());
         return configurationFactory;
     }
 
@@ -113,7 +116,8 @@ public class ClientConfigurationFactory {
                                       int connectTimeoutMillis,
                                       int readTimeoutMillis,
                                       long pingTimeoutMillis,
-                                      boolean ignoreSSLErrors) {
+                                      boolean ignoreSSLErrors,
+                                      boolean skipStreamingControl) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -125,6 +129,7 @@ public class ClientConfigurationFactory {
         this.readTimeoutMillis = readTimeoutMillis;
         this.pingTimeoutMillis = pingTimeoutMillis;
         this.ignoreSSLErrors = ignoreSSLErrors;
+        this.skipStreamingControl = skipStreamingControl;
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, int serverPort,
@@ -132,9 +137,10 @@ public class ClientConfigurationFactory {
                                       int connectTimeoutMillis,
                                       int readTimeoutMillis,
                                       long pingTimeoutMillis,
-                                      boolean ignoreSSLErrors) {
+                                      boolean ignoreSSLErrors,
+                                      boolean skipStreamingControl) {
         this(protocol, serverName, Integer.toString(serverPort), metadataPath, dataPath, username, password,
-                connectTimeoutMillis, readTimeoutMillis, pingTimeoutMillis, ignoreSSLErrors);
+                connectTimeoutMillis, readTimeoutMillis, pingTimeoutMillis, ignoreSSLErrors, skipStreamingControl);
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -146,6 +152,7 @@ public class ClientConfigurationFactory {
         clientConfiguration.setReadTimeoutMillis(readTimeoutMillis);
         clientConfiguration.setPingTimeoutMillis(pingTimeoutMillis);
         clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
+        clientConfiguration.setSkipStreamingControl(skipStreamingControl);
         return clientConfiguration;
     }
 

@@ -31,6 +31,7 @@ public class ClientConfiguration {
     private int readTimeoutMillis = DEFAULT_TIMEOUT_MS;
     private boolean ignoreSSLErrors = false;
     private long pingTimeoutMillis = DEFAULT_PING_TIMEOUT_MS;
+    private boolean skipStreamingControl = false;
 
     /**
      * @param metadataUrl full URL to Metadata ATSD API
@@ -85,6 +86,10 @@ public class ClientConfiguration {
         return ignoreSSLErrors;
     }
 
+    public boolean isSkipStreamingControl() {
+        return skipStreamingControl;
+    }
+
     public long getPingTimeoutMillis() {
         return pingTimeoutMillis;
     }
@@ -103,5 +108,9 @@ public class ClientConfiguration {
 
     public void setPingTimeoutMillis(long pingTimeoutMillis) {
         this.pingTimeoutMillis = pingTimeoutMillis;
+    }
+
+    public void setSkipStreamingControl(boolean skipStreamingControl) {
+        this.skipStreamingControl = skipStreamingControl;
     }
 }

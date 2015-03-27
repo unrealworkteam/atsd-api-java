@@ -55,9 +55,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
     private Map<String, List<String>> markerToMessages = new LinkedHashMap<String, List<String>>();
-    private volatile boolean closed = false;
-    private volatile boolean active;
-    private volatile boolean correct = false;
+    private volatile SenderState state = SenderState.NEW;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
     private CloseableHttpResponse response;
@@ -76,7 +74,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     }
 
     public void send(PlainCommand plainCommand) {
-        if (!correct) {
+        if (state != SenderState.WORKING) {
             throw new IllegalStateException("Could not send command using incorrect sender");
         }
 
@@ -122,47 +120,53 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
         String marker = null;
-        while (active) {
+        while (state == SenderState.WORKING) {
             String message = null;
             try {
                 message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
-                log.error("Could not poll message from queue", e);
+                if (state != SenderState.WORKING) {
+                    log.error("Could not poll message from queue", e);
+                }
             }
 
             try {
                 if (message != null) {
-                    if (marker == null && !message.startsWith(MARKER_KEYWORD)) {
-                        MarkerCommand markerCommand = new MarkerCommand();
-                        marker = markerCommand.getMarker();
-                        write(outputStream, markerCommand.compose());
+                    if (!clientConfiguration.isSkipStreamingControl()) {
+                        if (marker == null && !message.startsWith(MARKER_KEYWORD)) {
+                            MarkerCommand markerCommand = new MarkerCommand();
+                            marker = markerCommand.getMarker();
+                            write(outputStream, markerCommand.compose());
+                        }
                     }
 
                     log.debug("Write message: {}", message);
                     write(outputStream, message);
 
-                    if (message.startsWith(MARKER_KEYWORD)) {
-                        marker = StringUtils.removeStart(message, MARKER_KEYWORD).trim();
-                        if (StringUtils.isBlank(marker)) {
-                            throw new IllegalArgumentException("Bad marker message: " + message);
+                    if (!clientConfiguration.isSkipStreamingControl()) {
+                        if (message.startsWith(MARKER_KEYWORD)) {
+                            marker = StringUtils.removeStart(message, MARKER_KEYWORD).trim();
+                            if (StringUtils.isBlank(marker)) {
+                                throw new IllegalArgumentException("Bad marker message: " + message);
+                            }
+                        } else {
+                            add(marker, message);
                         }
-                    } else {
-                        add(marker, message);
                     }
 
                     lastMessageTime = System.currentTimeMillis();
                 }
             } catch (Throwable e) {
-                active = false;
-                correct = false;
-                log.error("Sender is died. Could not send message: {}", message, e);
+                log.error("Sender is broken, close it. Could not send message: {}", message, e);
                 messages.add(message);
                 close();
                 return;
             }
             if (lastMessageTime - System.currentTimeMillis() > pingTimeoutMillis) {
                 write(outputStream, PING_COMMAND);
-                add(marker, PING_COMMAND);
+                if (!clientConfiguration.isSkipStreamingControl()) {
+                    add(marker, PING_COMMAND);
+                }
                 lastMessageTime = System.currentTimeMillis();
             }
         }
@@ -174,6 +178,12 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     }
 
     private void add(String marker, String message) {
+        if (clientConfiguration.isSkipStreamingControl()) {
+            log.error("Could not add message to marker, because streaming control is skipped, marker = {}, message= {}",
+                    marker, message);
+            throw new IllegalStateException("Could not add message to marker during skipped streaming control");
+        }
+
         List<String> stored = markerToMessages.get(marker);
         if (stored == null) {
             stored = new ArrayList<String>();
@@ -187,12 +197,40 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         return true;
     }
 
+    @Override
+    public void run() {
+        if (messages == null) {
+            messages = new LinkedBlockingQueue<String>();
+        }
+        latch.countDown();
+        SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
+        connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
+        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
+        httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+        HttpPost httpPost = new HttpPost(fullUrl());
+        httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
+                (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
+        ));
+        httpPost.setEntity(this);
+        try {
+            log.info("Start writing commands to {}", fullUrl());
+            state = SenderState.WORKING;
+            response = httpClient.execute(httpPost);
+        } catch (Throwable e) {
+            log.error("Could not execute HTTP POST: {}", httpPost, e);
+        } finally {
+            log.warn("Http post execution is finished, close sender");
+            close();
+        }
+    }
+
     public void close() {
-        if (closed) {
+        if (state == SenderState.CLOSED) {
             return;
         }
-        active = false;
-        correct = false;
+        log.info("Stop writing commands to {}", fullUrl());
         if (response != null) {
             try {
                 response.close();
@@ -210,47 +248,24 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         if (connectionManager != null) {
             connectionManager.close();
         }
-        closed = true;
+        state = SenderState.CLOSED;
     }
 
-    @Override
-    public void run() {
-        if (messages == null) {
-            messages = new LinkedBlockingQueue<String>();
-        }
-        latch.countDown();
-        SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
-        connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
-        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
-        httpClient = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .build();
-        HttpPost httpPost = new HttpPost(url +
-                "/command");
-        httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
-                (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
-        ));
-        httpPost.setEntity(this);
-        try {
-            active = true;
-            response = httpClient.execute(httpPost);
-        } catch (Throwable e) {
-            log.error("Could not execute HTTP POST: {}", httpPost, e);
-        } finally {
-            correct = false;
-            active = false;
-        }
+    private String fullUrl() {
+        return url + "/command";
     }
 
     public boolean isCorrect() {
-        return correct;
+        return state == SenderState.NEW || state == SenderState.WORKING;
     }
 
     Map<String, List<String>> getMarkerToMessages() {
         return markerToMessages;
     }
 
-    void setCorrect(boolean correct) {
-        this.correct = correct;
+    private static enum SenderState {
+        NEW,
+        WORKING,
+        CLOSED
     }
 }

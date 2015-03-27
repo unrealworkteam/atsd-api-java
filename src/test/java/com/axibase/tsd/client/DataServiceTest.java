@@ -331,16 +331,27 @@ public class DataServiceTest {
         String tagValue = "streaming";
         final int size = 5;
         final int cnt = 30;
+//        final int cnt = 30000;
         int pauseMs = 50;
+//        int pauseMs = 0;
         long start = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(cnt);
         for (int i = 0; i < cnt; i++) {
-            Thread.sleep(pauseMs);
-
+            if (pauseMs > 0) {
+                Thread.sleep(pauseMs);
+            }
             new SimpleSeriesSender(start, dataService, latch, tagValue).run();
         }
 
-        Thread.sleep(WAIT_TIME);
+        try {
+            latch.await(30, TimeUnit.SECONDS);
+            System.out.println(cnt + " commands are sent, time = " + (System.currentTimeMillis() - start) + " ms");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        Thread.sleep(WAIT_TIME * (1 + cnt/1000));
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add(SSS_TAG, tagValue);
