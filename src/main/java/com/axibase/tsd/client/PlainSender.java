@@ -74,14 +74,14 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     }
 
     public void send(PlainCommand plainCommand) {
-        if (state != SenderState.WORKING) {
-            throw new IllegalStateException("Could not send command using incorrect sender");
-        }
-
         try {
             latch.await();
         } catch (InterruptedException e) {
             log.error("Initialization error:", e);
+        }
+
+        if (state != SenderState.WORKING) {
+            throw new IllegalStateException("Could not send command using incorrect sender");
         }
 
         String text = plainCommand.compose();
@@ -202,21 +202,29 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         if (messages == null) {
             messages = new LinkedBlockingQueue<String>();
         }
-        latch.countDown();
-        SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
-        connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
-        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
-        httpClient = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .build();
-        HttpPost httpPost = new HttpPost(fullUrl());
-        httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
-                (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
-        ));
-        httpPost.setEntity(this);
+        HttpPost httpPost = null;
+        try {
+            SslConfigurator sslConfig = SslConfigurator.newInstance().securityProtocol("SSL");
+            connectionManager = HttpClient.createConnectionManager(clientConfiguration, sslConfig);
+            connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(SMALL).build());
+            httpClient = HttpClients.custom()
+                    .setConnectionManager(connectionManager)
+                    .build();
+            httpPost = new HttpPost(fullUrl());
+            httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
+                    (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
+            ));
+            httpPost.setEntity(this);
+        } catch (Throwable e) {
+            log.error("Could not create http client: ", e);
+            latch.countDown();
+            close();
+            return;
+        }
         try {
             log.info("Start writing commands to {}", fullUrl());
             state = SenderState.WORKING;
+            latch.countDown();
             response = httpClient.execute(httpPost);
         } catch (Throwable e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
