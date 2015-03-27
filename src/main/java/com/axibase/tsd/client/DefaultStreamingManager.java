@@ -76,7 +76,7 @@ public class DefaultStreamingManager implements StreamingManager {
         PlainSender sender = plainSender.get();
         if (sender == null) {
             throw new IllegalStateException("Sender is null");
-        } else if (!sender.isCorrect()) {
+        } else if (!sender.isWorking()) {
             throw new IllegalStateException("Sender is in the wrong state");
         }
         sender.send(plainCommand);
@@ -104,12 +104,12 @@ public class DefaultStreamingManager implements StreamingManager {
                 });
             }
         }
-        return lastPingResult && plainSender.get() != null && plainSender.get().isCorrect();
+        return lastPingResult && plainSender.get() != null && plainSender.get().isWorking();
     }
 
     private void prepareAndCheckSender() {
         PlainSender sender = plainSender.get();
-        if (sender == null || !sender.isCorrect()) {
+        if (sender == null || sender.isClosed()) {
             PlainSender newSender = new PlainSender(httpClientManager.getClientConfiguration(), sender);
             if (plainSender.compareAndSet(sender, newSender)) {
                 if (sender != null) {
@@ -227,7 +227,7 @@ public class DefaultStreamingManager implements StreamingManager {
             PlainSender sender = plainSender.get();
             if (sender == null) {
                 throw new IllegalStateException("Sender is null");
-            } else if (!sender.isCorrect()) {
+            } else if (!sender.isWorking()) {
                 throw new IllegalStateException("Sender is incorrect");
             } else {
                 sender.send(markerCommand);

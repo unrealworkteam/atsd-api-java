@@ -263,12 +263,16 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         return url + "/command";
     }
 
-    public boolean isCorrect() {
-        return state == SenderState.NEW || state == SenderState.WORKING;
+    public boolean isWorking() {
+        return state == SenderState.WORKING;
     }
 
     Map<String, List<String>> getMarkerToMessages() {
         return markerToMessages;
+    }
+
+    public boolean isClosed() {
+        return state == SenderState.CLOSED;
     }
 
     private static enum SenderState {
