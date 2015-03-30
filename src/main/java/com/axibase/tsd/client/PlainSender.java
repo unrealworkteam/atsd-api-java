@@ -23,6 +23,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -114,7 +115,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
 
     @Override
     public InputStream getContent() throws IOException, IllegalStateException {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     @Override
@@ -214,7 +215,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
                     (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
             ));
-            httpPost.setEntity(this);
+            httpPost.setEntity(new BufferedHttpEntity(this));
         } catch (Throwable e) {
             log.error("Could not create http client: ", e);
             latch.countDown();
