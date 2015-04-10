@@ -261,7 +261,10 @@ public class MetaDataServiceTest {
 
     @Test
     public void testCreateAndDeleteEntityGroup() throws Exception {
-        assertNull(metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP));
+        EntityGroup nullGroup = metaDataService.retrieveEntityGroup(NNN_ENTITY_GROUP);
+        if (nullGroup != null) {
+            metaDataService.deleteEntityGroup(nullGroup);
+        }
 
         EntityGroup entityGroup = new EntityGroup(NNN_ENTITY_GROUP);
         entityGroup.setTags("nnn-test-tag-1", "nnn-test-tag-value-1");
