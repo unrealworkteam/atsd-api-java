@@ -17,7 +17,7 @@ By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get star
 
 ## Implemented Methods
 
-The **ATSD Client for Java** provides is an easy-to-use client for interfacing with **ATSD** metadata and data REST API services.
+The **ATSD Client for Java** provides an easy-to-use client for interfacing with **ATSD** metadata and data REST API services.
 It has the ability to read and write time-series values, statistics, properties, alerts, and messages.
 
 - Data API
