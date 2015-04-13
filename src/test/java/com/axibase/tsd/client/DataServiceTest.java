@@ -385,7 +385,11 @@ public class DataServiceTest {
             } else {
                 System.out.println("Could not send command, it's added to local cache ");
                 simpleCache.add(plainCommand.compose());
-                simpleCache.addAll(dataService.removeSavedPlainCommands());
+                List<String> commands = dataService.removeSavedPlainCommands();
+                for (String command : commands) {
+                    System.out.println("command = " + command);
+                }
+                simpleCache.addAll(commands);
             }
         }
 

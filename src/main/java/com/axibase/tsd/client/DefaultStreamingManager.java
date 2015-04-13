@@ -29,6 +29,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author Nikolay Malevanny.
@@ -38,7 +41,7 @@ public class DefaultStreamingManager implements StreamingManager {
     public static final String CHECK = "check";
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
     private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
-    private final AtomicReference<PlainSender> plainSender = new AtomicReference<PlainSender>();
+    private PlainSender plainSender = null;
     private final AtomicLong lastPingTime = new AtomicLong(0);
     private final AtomicReference<String> marker = new AtomicReference<String>();
     private boolean lastPingResult = false;
@@ -47,6 +50,7 @@ public class DefaultStreamingManager implements StreamingManager {
     private Future<?> senderFuture;
     private ExecutorService checkExecutor;
     private ExecutorService senderExecutor;
+    private ReadWriteLock senderLock = new ReentrantReadWriteLock();
 
     public DefaultStreamingManager(HttpClientManager httpClientManager) {
         if (httpClientManager == null) {
@@ -60,7 +64,7 @@ public class DefaultStreamingManager implements StreamingManager {
     @Override
     public void close() {
         log.info("Close streaming manager");
-        PlainSender sender = plainSender.get();
+        PlainSender sender = plainSender;
         if (sender != null) {
             sender.close();
         }
@@ -73,13 +77,19 @@ public class DefaultStreamingManager implements StreamingManager {
         if (!lastPingResult) {
             throw new IllegalStateException("Last check was bad, call canSend() method before command sending");
         }
-        PlainSender sender = plainSender.get();
-        if (sender == null) {
-            throw new IllegalStateException("Sender is null");
-        } else if (!sender.isWorking()) {
-            throw new IllegalStateException("Sender is in the wrong state");
+        Lock readLock = senderLock.readLock();
+        readLock.lock();
+        try {
+            PlainSender sender = plainSender;
+            if (sender == null) {
+                throw new IllegalStateException("Sender is null");
+            } else if (!sender.isWorking()) {
+                throw new IllegalStateException("Sender is in the wrong state");
+            }
+            sender.send(plainCommand);
+        } finally {
+            readLock.unlock();
         }
-        sender.send(plainCommand);
     }
 
     @Override
@@ -104,22 +114,36 @@ public class DefaultStreamingManager implements StreamingManager {
                 });
             }
         }
-        return lastPingResult && plainSender.get() != null && plainSender.get().isWorking();
+        Lock readLock = senderLock.readLock();
+        readLock.lock();
+        try {
+            return lastPingResult && plainSender != null && plainSender.isWorking();
+        } finally {
+            readLock.unlock();
+        }
     }
 
     private void prepareAndCheckSender() {
-        PlainSender sender = plainSender.get();
-        if (sender == null || sender.isClosed()) {
-            PlainSender newSender = new PlainSender(httpClientManager.getClientConfiguration(), sender);
-            if (plainSender.compareAndSet(sender, newSender)) {
-                if (sender != null) {
-                    log.info("Prepare new sender, close old");
-                    sender.close();
+        if (plainSender == null || plainSender.isClosed()) {
+            Lock writeLock = senderLock.writeLock();
+            writeLock.lock();
+
+            try {
+                if (plainSender == null || plainSender.isClosed()) {
+
+                    PlainSender newSender = new PlainSender(httpClientManager.getClientConfiguration(), plainSender);
+                    if (plainSender != null) {
+                        log.info("Prepare new sender, close old");
+                        plainSender.close();
+                    }
+                    if (senderFuture != null) {
+                        senderFuture.cancel(true);
+                    }
+                    senderFuture = senderExecutor.submit(newSender);
+                    plainSender = newSender;
                 }
-                if (senderFuture != null) {
-                    senderFuture.cancel(true);
-                }
-                senderFuture = senderExecutor.submit(newSender);
+            } finally {
+                writeLock.unlock();
             }
         }
         lastPingResult = check();
@@ -132,11 +156,13 @@ public class DefaultStreamingManager implements StreamingManager {
         if (httpClientManager.getClientConfiguration().isSkipStreamingControl()) {
             return true;
         }
-
-        PlainSender sender = plainSender.get();
+        boolean needClosing = false;
+        Lock readLock = senderLock.readLock();
+        readLock.lock();
         try {
-            if (sender != null) {
-                Map<String, List<String>> markerToMessages = sender.getMarkerToMessages();
+
+            if (plainSender != null) {
+                Map<String, List<String>> markerToMessages = plainSender.getMarkerToMessages();
                 int size = markerToMessages.size();
                 if (size <= 2) {
                     // just check
@@ -144,7 +170,7 @@ public class DefaultStreamingManager implements StreamingManager {
                     boolean checkResult = markerState != null && CHECK.equals(markerState.getMarker());
                     if (!checkResult) {
                         log.warn("Bad check result, close sender");
-                        sender.close();
+                        needClosing = true;
                     }
                     return checkResult;
                 }
@@ -188,7 +214,7 @@ public class DefaultStreamingManager implements StreamingManager {
                         iterator.remove();
                     }
                     log.error("Save {} commands, broken sender will be closed", saved.size());
-                    sender.close();
+                    needClosing = true;
                     return false;
                 }
             } else {
@@ -198,6 +224,17 @@ public class DefaultStreamingManager implements StreamingManager {
         } catch (Throwable e) {
             log.warn("Ping error: ", e);
             return false;
+        } finally {
+            readLock.unlock();
+            if (needClosing) {
+                Lock writeLock = senderLock.writeLock();
+                writeLock.lock();
+                try {
+                    plainSender.close();
+                } finally {
+                    writeLock.unlock();
+                }
+            }
         }
     }
 
@@ -224,13 +261,18 @@ public class DefaultStreamingManager implements StreamingManager {
         final String newMarker = markerCommand.getMarker();
 
         if (marker.compareAndSet(current, newMarker)) {
-            PlainSender sender = plainSender.get();
-            if (sender == null) {
-                throw new IllegalStateException("Sender is null");
-            } else if (!sender.isWorking()) {
-                throw new IllegalStateException("Sender is incorrect");
-            } else {
-                sender.send(markerCommand);
+            Lock readLock = senderLock.readLock();
+            readLock.lock();
+            try {
+                if (plainSender == null) {
+                    throw new IllegalStateException("Sender is null");
+                } else if (!plainSender.isWorking()) {
+                    throw new IllegalStateException("Sender is incorrect");
+                } else {
+                    plainSender.send(markerCommand);
+                }
+            } finally {
+                readLock.unlock();
             }
         } else {
             log.warn("Current marker:{} is already replaced by another marker:", current, marker.get());
