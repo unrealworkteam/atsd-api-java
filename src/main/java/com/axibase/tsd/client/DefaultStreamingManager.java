@@ -244,8 +244,8 @@ public class DefaultStreamingManager implements StreamingManager {
             QueryPart<MarkerState> markersPath = new Query<MarkerState>("command").path("marker");
             QueryPart<MarkerState> query = markersPath.path(marker);
             markerState = httpClientManager.requestData(MarkerState.class, query, null);
-            log.debug("From server {} received the following state of marker: {}",
-                    httpClientManager.getClientConfiguration().getDataUrl(), markerState);
+            log.debug("From server {} received the following state of marker ({}): {}",
+                    httpClientManager.getClientConfiguration().getDataUrl(), marker, markerState);
         } catch (Throwable e) {
             log.error("Error while checking marker count: ", e);
         }
