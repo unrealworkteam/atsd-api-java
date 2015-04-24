@@ -31,6 +31,9 @@ import java.util.Map;
 public class GetSeriesQuery {
     private Long startTime;
     private Long endTime;
+    private String startDate;
+    private String endDate;
+    private String interval;
     private Integer limit;
     private Boolean last;
     @JsonProperty("entity")
@@ -82,6 +85,18 @@ public class GetSeriesQuery {
 
     public Long getEndTime() {
         return endTime;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public String getInterval() {
+        return interval;
     }
 
     public Integer getLimit() {
@@ -136,6 +151,27 @@ public class GetSeriesQuery {
      */
     public void setEndTime(Long endTime) {
         this.endTime = endTime;
+    }
+
+    /**
+     * @param startDate start of the selection interval. Specified in ISO format or using endtime syntax.
+     */
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    /**
+     * @param endDate end of the selection interval. Specified in ISO format or using endtime syntax.
+     */
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    /**
+     * @param interval Duration of the selection interval, specified as <code>count-timeunit</code>, for example, 1-hour
+     */
+    public void setInterval(String interval) {
+        this.interval = interval;
     }
 
     /**

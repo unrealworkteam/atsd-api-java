@@ -15,11 +15,8 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
-import com.axibase.tsd.model.system.MarkerState;
 import com.axibase.tsd.plain.PlainCommand;
-import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
-import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -28,6 +25,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -135,6 +133,15 @@ public class HttpClientManager {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.requestData(clazz, query, requestProcessor);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
+
+    public InputStream requestInputStream(QueryPart query, RequestProcessor requestProcessor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            return httpClient.requestInputStream(query, requestProcessor);
         } finally {
             returnClient(httpClient);
         }

@@ -36,10 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
@@ -55,7 +52,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
-    private Map<String, List<String>> markerToMessages = new LinkedHashMap<String, List<String>>();
+    private Map<String, List<String>> markerToMessages = new ConcurrentHashMap<String, List<String>>();
     private volatile SenderState state = SenderState.NEW;
     private final long pingTimeoutMillis;
     private long lastMessageTime;

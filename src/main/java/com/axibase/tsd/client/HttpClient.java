@@ -216,6 +216,17 @@ class HttpClient {
         }
     }
 
+    public InputStream requestInputStream(QueryPart query, RequestProcessor requestProcessor) {
+        String url = clientConfiguration.getDataUrl();
+        Response response = doRequest(url, query, requestProcessor);
+        Object entity = response.getEntity();
+        if (response.getStatus() == HTTP_STATUS_OK && entity instanceof InputStream) {
+            return (InputStream) entity;
+        } else {
+            throw buildException(response);
+        }
+    }
+
     private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
         fixApacheHttpClientBlocking(response);

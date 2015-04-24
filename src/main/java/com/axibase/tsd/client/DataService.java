@@ -20,10 +20,13 @@ import com.axibase.tsd.model.data.Property;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
+import com.axibase.tsd.model.data.series.aggregate.AggregateType;
+import com.axibase.tsd.model.system.Format;
 import com.axibase.tsd.plain.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 
+import java.io.InputStream;
 import java.util.*;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
@@ -112,6 +115,51 @@ public class DataService {
      */
     public List<GetSeriesResult> retrieveLastSeries(GetSeriesQuery... seriesQueries) {
         return retrieveSeries(LAST_PREPARER, seriesQueries);
+    }
+
+    /**
+     * @param format CSV or JSON.
+     * @param entityName Filter entities by entity name. Support wildcards and expressions.
+     * @param metricName Metric name.
+     * @param tags entity tags
+     * @param startTime start of the selection interval. Specified in UNIX milliseconds.
+     * @param endTime end of the selection interval. Specified in UNIX milliseconds.
+     * @param period Duration of regular time period for grouping raw values. Specified as count timeunit,
+     *               for example, 1 hour.
+     * @param aggregateType Statistical function to compute aggregated values for values in each period
+     * @param limit maximum number of data samples returned. Default value: 0
+     * @param last Performs GET instead of scan. Retrieves only 1 most recent value. Boolean. Default value: false
+     * @param columns Specify which columns must be included. Possible values: time, date (time in ISO), entity, metric,
+     *                t:{name}, value. Default: time, entity, metric, requested tag names, value
+     * @return Series in specified format as InputStream.
+     */
+    public InputStream querySeriesPack(Format format,
+                                  String entityName,
+                                  String metricName,
+                                  Map<String, String> tags,
+                                  long startTime,
+                                  long endTime,
+                                  String period,
+                                  AggregateType aggregateType,
+                                  Integer limit,
+                                  Boolean last,
+                                  String columns) {
+        QueryPart seriesQuery = new Query("series")
+                .path(format.name().toLowerCase())
+                .path(entityName)
+                .path(metricName)
+                .param("startTime", startTime)
+                .param("endTime", endTime)
+                .param("period", period)
+                .param("aggregate", aggregateType==null?null:aggregateType.name().toLowerCase())
+                .param("limit", limit)
+                .param("last", last)
+                .param("columns", columns);
+        for (Map.Entry<String, String> tagAndValue : tags.entrySet()) {
+            seriesQuery = seriesQuery.param("t:"+tagAndValue.getKey(), tagAndValue.getValue());
+        }
+
+        return httpClientManager.requestInputStream(seriesQuery, null);
     }
 
     /**

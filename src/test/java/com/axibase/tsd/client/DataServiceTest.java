@@ -20,11 +20,14 @@ import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
+import com.axibase.tsd.model.system.Format;
 import com.axibase.tsd.plain.*;
 import com.axibase.tsd.util.AtsdUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.*;
 
 import javax.ws.rs.core.MultivaluedHashMap;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -57,6 +60,43 @@ public class DataServiceTest {
     public void testRetrieveSeries() throws Exception {
         GetSeriesQuery c1 = createTestGetTestCommand();
         List<GetSeriesResult> seriesList = dataService.retrieveSeries(c1);
+
+        assertTrue(seriesList.get(0) instanceof GetSeriesResult);
+        assertTrue(seriesList.size() > 0);
+    }
+
+    @Test
+    public void testRetrieveSeriesWithEndtime() throws Exception {
+        GetSeriesQuery c1 = createTestGetTestCommand();
+        c1.setStartTime(null);
+        c1.setEndTime(null);
+
+        List<GetSeriesResult> seriesList = null;
+        try {
+            seriesList = dataService.retrieveSeries(c1);
+            fail();
+        } catch (Exception e) {
+            assertEquals("Bad Request (400), IllegalArgumentException: endTime or endDate is required", e.getMessage());
+        }
+
+        c1.setEndDate("current_hour + 1 * hour");
+        c1.setStartDate("current_hour - 5 * year");
+        seriesList = dataService.retrieveSeries(c1);
+
+        assertTrue(seriesList.get(0) instanceof GetSeriesResult);
+        assertTrue(seriesList.size() > 0);
+
+        c1.setStartDate(null);
+        try {
+            seriesList = dataService.retrieveSeries(c1);
+            fail();
+        } catch (Exception e) {
+            assertEquals("Bad Request (400), IllegalArgumentException: startTime or startDate or interval is required",
+                    e.getMessage());
+        }
+
+        c1.setInterval("5-year");
+        seriesList = dataService.retrieveSeries(c1);
 
         assertTrue(seriesList.get(0) instanceof GetSeriesResult);
         assertTrue(seriesList.size() > 0);
@@ -105,11 +145,11 @@ public class DataServiceTest {
 
     @Test
     public void testInsertSeriesCsv() throws Exception {
-        long ct = System.currentTimeMillis();
+        final long st = System.currentTimeMillis();
         StringBuilder sb = new StringBuilder("time, ").append(TTT_METRIC).append('\n');
-        int testCnt = 10;
+        final int testCnt = 10;
         for (int i = 0; i < testCnt; i++) {
-            sb.append(ct + i).append(",").append(i * i * i).append('\n');
+            sb.append(st + i).append(",").append(i * i * i).append('\n');
         }
 
         dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
@@ -121,12 +161,49 @@ public class DataServiceTest {
                     @Override
                     public void prepare(GetSeriesQuery command) {
                         command.setLimit(10);
+                        command.setStartTime(st - 100);
+                        command.setEndTime(st + testCnt + 100);
                     }
                 },
                 new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1"))
         );
         assertEquals(1, getSeriesResults.size());
         assertEquals(10, getSeriesResults.get(0).getData().size());
+    }
+
+    @Test
+    public void testQuerySeriesCsv() throws Exception {
+        final long st = System.currentTimeMillis();
+        StringBuilder sb = new StringBuilder("time, ").append(TTT_METRIC).append('\n');
+        final int testCnt = 10;
+        for (int i = 0; i < testCnt; i++) {
+            sb.append(st + i).append(",").append(i * i * i).append('\n');
+        }
+
+        dataService.addSeriesCsv(TTT_ENTITY, sb.toString(), "ttt-tag-1", "ttt-tag-value-1");
+
+        Thread.sleep(3000);
+
+        Map<String, String> tags = AtsdUtil.toMap("ttt-tag-1", "ttt-tag-value-1");
+        long startTime = st - 100;
+        long endTime = st + testCnt + 100;
+        String period = null;
+        Integer limit = 10;
+        boolean last = false;
+//        String entity = TTT_ENTITY;
+        String entity = "ttt*";
+        String columns = "entity, metric, time, value";
+
+        InputStream inputStream = null;
+        try {
+            inputStream = dataService.querySeriesPack(Format.CSV, entity, TTT_METRIC, tags, startTime, endTime, period,
+                    AggregateType.DETAIL, limit, last, columns);
+            List<String> lines = IOUtils.readLines(inputStream);
+            assertEquals("entity,metric,time,value", lines.get(0));
+            assertEquals(11, lines.size());
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
     }
 
     @Test
@@ -170,9 +247,9 @@ public class DataServiceTest {
         { // check that new property does not exist
             GetPropertiesQuery newPropCommand = createGetNewPropCommand();
             List<Property> properties = dataService.retrieveProperties(newPropCommand);
-            if (properties.size()>0) {
+            if (properties.size() > 0) {
                 dataService.batchUpdateProperties(BatchPropertyCommand.createDeleteCommand(
-                        new Property(NNN_TYPE, NNN_ENTITY,null,null)));
+                        new Property(NNN_TYPE, NNN_ENTITY, null, null)));
             }
         }
         { // create new property
@@ -351,7 +428,7 @@ public class DataServiceTest {
             fail();
         }
 
-        Thread.sleep(WAIT_TIME * (1 + cnt/1000));
+        Thread.sleep(WAIT_TIME * (1 + cnt / 1000));
 
         MultivaluedHashMap<String, String> tags = new MultivaluedHashMap<String, String>();
         tags.add(SSS_TAG, tagValue);
@@ -502,6 +579,9 @@ public class DataServiceTest {
         command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
                 Interpolate.LINEAR,
                 AggregateType.DETAIL));
+        command.setStartTime(System.currentTimeMillis() - 100000000L);
+        command.setEndTime(System.currentTimeMillis() + 100000000L);
+
         return command;
     }
 
