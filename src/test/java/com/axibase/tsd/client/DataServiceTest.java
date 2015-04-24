@@ -104,12 +104,12 @@ public class DataServiceTest {
 
     @Test
     public void testInsertSeries() throws Exception {
-        long ct = System.currentTimeMillis();
+        final long st = System.currentTimeMillis();
         AddSeriesCommand c1 = new AddSeriesCommand(TTT_ENTITY, TTT_METRIC, "ttt-tag-1", "ttt-tag-value-1");
         int testCnt = 10;
         for (int i = 0; i < testCnt; i++) {
             c1.addSeries(
-                    new Series(ct + i, i)
+                    new Series(st + i, i)
             );
         }
         AddSeriesCommand c2 = new AddSeriesCommand(TTT_ENTITY, TTT_METRIC
@@ -118,7 +118,7 @@ public class DataServiceTest {
         );
         for (int i = 0; i < testCnt; i++) {
             c2.addSeries(
-                    new Series(ct + i, i * i)
+                    new Series(st + i, i * i)
             );
         }
         dataService.addSeries(c1, c2);
@@ -131,6 +131,8 @@ public class DataServiceTest {
                     public void prepare(GetSeriesQuery command) {
 //                        command.setAggregateMatcher(new AggregateMatcher(new Interval(20, IntervalUnit.SECOND), Interpolate.NONE, AggregateType.DETAIL));
                         command.setLimit(10);
+                        command.setStartTime(st - 100);
+                        command.setEndTime(st + 100);
                     }
                 },
                 new GetSeriesQuery(TTT_ENTITY, TTT_METRIC, TestUtil.toMVM("ttt-tag-1", "ttt-tag-value-1")),
