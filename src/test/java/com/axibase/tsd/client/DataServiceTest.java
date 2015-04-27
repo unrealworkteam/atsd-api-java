@@ -140,9 +140,10 @@ public class DataServiceTest {
                         "ttt-tag-1", "ttt-tag-value-1"
                         , "ttt-tag-2", "ttt-tag-value-2"))
         );
-        assertEquals(2, getSeriesResults.size());
+        assertEquals(3, getSeriesResults.size());
         assertEquals(10, getSeriesResults.get(0).getData().size());
         assertEquals(10, getSeriesResults.get(1).getData().size());
+        assertEquals(10, getSeriesResults.get(2).getData().size());
     }
 
     @Test
