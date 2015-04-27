@@ -242,7 +242,7 @@ public class DefaultStreamingManager implements StreamingManager {
         MarkerState markerState = null;
         try {
             QueryPart<MarkerState> markersPath = new Query<MarkerState>("command").path("marker");
-            QueryPart<MarkerState> query = markersPath.path(marker);
+            QueryPart<MarkerState> query = markersPath.param("v",marker);
             markerState = httpClientManager.requestData(MarkerState.class, query, null);
             log.debug("From server {} received the following state of marker ({}): {}",
                     httpClientManager.getClientConfiguration().getDataUrl(), marker, markerState);
