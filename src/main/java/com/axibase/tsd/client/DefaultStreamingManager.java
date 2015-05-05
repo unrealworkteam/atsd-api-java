@@ -197,7 +197,7 @@ public class DefaultStreamingManager implements StreamingManager {
                         }
                         iterator.remove();
                     } else {
-                        log.error("Could not get command count for marker {}", marker);
+                        log.warn("Could not get command count for marker {}", marker);
                         saved.addAll(commands);
                         iterator.remove();
                     }
@@ -213,7 +213,7 @@ public class DefaultStreamingManager implements StreamingManager {
                         saved.addAll(commands);
                         iterator.remove();
                     }
-                    log.error("Save {} commands, broken sender will be closed", saved.size());
+                    log.warn("Save {} commands, broken sender will be closed", saved.size());
                     needClosing = true;
                     return false;
                 }

@@ -37,6 +37,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
@@ -52,7 +55,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
-    private Map<String, List<String>> markerToMessages = new ConcurrentHashMap<String, List<String>>();
+    private Map<String, List<String>> markerToMessages = Collections.synchronizedMap(new LinkedHashMap());
     private volatile SenderState state = SenderState.NEW;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
@@ -123,7 +126,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             try {
                 message = messages.poll(pingTimeoutMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
-                if (state != SenderState.WORKING) {
+                if (state == SenderState.WORKING) {
                     log.error("Could not poll message from queue", e);
                 }
             }
@@ -224,10 +227,12 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             state = SenderState.WORKING;
             latch.countDown();
             response = httpClient.execute(httpPost);
+        } catch (IllegalStateException e) {
+            log.info("HTTP POST has been interrupted: {}", e.getMessage());
         } catch (Throwable e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
         } finally {
-            log.warn("Http post execution is finished, close sender");
+            log.info("Http post execution is finished, close sender");
             close();
         }
     }
@@ -265,12 +270,12 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         return state == SenderState.WORKING;
     }
 
-    Map<String, List<String>> getMarkerToMessages() {
-        return markerToMessages;
-    }
-
     public boolean isClosed() {
         return state == SenderState.CLOSED;
+    }
+
+    public Map<String, List<String>> getMarkerToMessages() {
+        return markerToMessages;
     }
 
     private static enum SenderState {
