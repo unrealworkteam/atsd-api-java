@@ -15,6 +15,7 @@
 package com.axibase.tsd.model.data.command;
 
 import com.axibase.tsd.model.data.SeriesType;
+import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.series.Join;
 import com.axibase.tsd.model.data.series.Rate;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -47,6 +48,7 @@ public class GetSeriesQuery {
     @JsonProperty("aggregate")
     private SimpleAggregateMatcher aggregateMatcher;
     private String requestId;
+    private TimeFormat timeFormat;
 
     /**
      * @param entityName an entity's name of the requested time series. User defined values (case insensitive).
@@ -137,6 +139,10 @@ public class GetSeriesQuery {
 
     public String getRequestId() {
         return requestId;
+    }
+
+    public TimeFormat getTimeFormat() {
+        return timeFormat;
     }
 
     /**
@@ -237,11 +243,18 @@ public class GetSeriesQuery {
         this.requestId = requestId;
     }
 
+    public void setTimeFormat(TimeFormat timeFormat) {
+        this.timeFormat = timeFormat;
+    }
+
     @Override
     public String toString() {
         return "GetSeriesQuery{" +
                 "startTime=" + startTime +
                 ", endTime=" + endTime +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", interval='" + interval + '\'' +
                 ", limit=" + limit +
                 ", last=" + last +
                 ", entityName='" + entityName + '\'' +
@@ -252,6 +265,7 @@ public class GetSeriesQuery {
                 ", rate=" + rate +
                 ", aggregateMatcher=" + aggregateMatcher +
                 ", requestId='" + requestId + '\'' +
+                ", timeFormat=" + timeFormat +
                 '}';
     }
 }

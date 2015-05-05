@@ -33,11 +33,11 @@ public class Alert {
     private String entityName;
     @JsonProperty("metric")
     private String metricName;
-    @JsonProperty("lastEventDate")
     private Long lastEventTime;
+    private String lastEventDate;
     private Double openValues;
-    @JsonProperty("openDate")
     private Long openTime;
+    private String openDate;
     private Integer repeatCount;
     private String message;
     private String textValue;
@@ -150,6 +150,22 @@ public class Alert {
         this.tags = tags;
     }
 
+    public String getLastEventDate() {
+        return lastEventDate;
+    }
+
+    public void setLastEventDate(String lastEventDate) {
+        this.lastEventDate = lastEventDate;
+    }
+
+    public String getOpenDate() {
+        return openDate;
+    }
+
+    public void setOpenDate(String openDate) {
+        this.openDate = openDate;
+    }
+
     @Override
     public String toString() {
         return "Alert{" +
@@ -158,8 +174,10 @@ public class Alert {
                 ", entityName='" + entityName + '\'' +
                 ", metricName='" + metricName + '\'' +
                 ", lastEventTime=" + lastEventTime +
+                ", lastEventDate='" + lastEventDate + '\'' +
                 ", openValues=" + openValues +
                 ", openTime=" + openTime +
+                ", openDate='" + openDate + '\'' +
                 ", repeatCount=" + repeatCount +
                 ", message='" + message + '\'' +
                 ", textValue='" + textValue + '\'' +

@@ -24,6 +24,7 @@ import com.axibase.tsd.model.system.Format;
 import com.axibase.tsd.plain.*;
 import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -63,6 +64,22 @@ public class DataServiceTest {
 
         assertTrue(seriesList.get(0) instanceof GetSeriesResult);
         assertTrue(seriesList.size() > 0);
+    }
+
+    @Test
+    public void testRetrieveSeriesWithDate() throws Exception {
+        GetSeriesQuery c1 = createTestGetTestCommand();
+        c1.setTimeFormat(TimeFormat.ISO);
+        c1.setStartTime(0L);
+        c1.setEndTime(System.currentTimeMillis() + 100);
+        List<GetSeriesResult> seriesList = dataService.retrieveSeries(c1);
+
+        GetSeriesResult getSeriesResult = seriesList.get(0);
+        assertTrue(getSeriesResult instanceof GetSeriesResult);
+        assertTrue(seriesList.size() > 0);
+        Series s = getSeriesResult.getData().get(0);
+        assertNull(s.getTimeMillis());
+        assertTrue(StringUtils.isNoneBlank(s.getDate()));
     }
 
     @Test
@@ -234,6 +251,23 @@ public class DataServiceTest {
     }
 
     @Test
+    public void testRetrievePropertiesWithDate() throws Exception {
+        GetPropertiesQuery getPropertiesQuery = buildPropertiesQuery();
+        getPropertiesQuery.setTimeFormat(TimeFormat.ISO);
+        List<Property> properties = dataService.retrieveProperties(getPropertiesQuery);
+        if (properties.size() == 0) {
+            properties = fixTestDataProperty(dataService);
+        }
+
+        for (Property property : properties) {
+            System.out.println("property = " + property);
+        }
+        Property property = properties.get(0);
+        assertEquals(1, properties.size());
+        assertTrue(StringUtils.isNoneBlank(property.getDate()));
+    }
+
+    @Test
     public void testRetrievePropertiesByEntityNameAndPropertyTypeName() throws Exception {
         List<Property> properties = dataService.retrieveProperties(TTT_ENTITY, TTT_TYPE);
         if (properties.size() == 0) {
@@ -302,13 +336,24 @@ public class DataServiceTest {
         {
             List<String> metrics = Arrays.asList(TTT_METRIC);
             List<String> entities = Arrays.asList(TTT_ENTITY);
-            List<Alert> alerts = dataService.retrieveAlerts(metrics, entities, null, null, null);
+            List<Alert> alerts = dataService.retrieveAlerts(metrics, entities, null, null, null, TimeFormat.MILLISECONDS);
             assertNotNull(alerts);
         }
         {
-            List<Alert> alerts = dataService.retrieveAlerts(null, null, null, null, null);
-            assertNotNull(alerts);
-            assertTrue(alerts.size() > 0);
+            {
+                List<Alert> alerts = dataService.retrieveAlerts(null, null, null, null, null, TimeFormat.MILLISECONDS);
+                assertNotNull(alerts);
+                assertTrue(alerts.size() > 0);
+            }
+
+            List<Alert> alerts;
+            {
+                alerts = dataService.retrieveAlerts(null, null, null, null, null, TimeFormat.ISO);
+                assertNotNull(alerts);
+                assertTrue(alerts.size() > 0);
+                Alert alert = alerts.get(0);
+                assertTrue(StringUtils.isNoneBlank(alert.getOpenDate()));
+            }
 
             // clean
             String[] ids = toIds(alerts);
@@ -323,7 +368,8 @@ public class DataServiceTest {
                 Arrays.asList(TTT_ENTITY),
                 Arrays.asList(TTT_RULE),
                 Collections.<Integer>emptyList(),
-                Severity.UNKNOWN.getId()
+                Severity.UNKNOWN.getId(),
+                TimeFormat.MILLISECONDS
         );
 
         { // clean

@@ -15,6 +15,7 @@
 
 package com.axibase.tsd.model.data.command;
 
+import com.axibase.tsd.model.data.TimeFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -35,20 +36,22 @@ public class GetAlertQuery {
     private List<Integer> severityIds;
     @JsonProperty(value = "minSeverity")
     private Integer minSeverityId;
+    private TimeFormat timeFormat;
 
     public GetAlertQuery() {
     }
 
+
     public GetAlertQuery(List<String> metricNames,
                          List<String> entityNames,
                          List<String> ruleNames,
-                         List<Integer> severityIds,
-                         Integer minSeverityId) {
+                         List<Integer> severityIds, Integer minSeverityId, TimeFormat timeFormat) {
         this.metricNames = metricNames;
         this.entityNames = entityNames;
         this.ruleNames = ruleNames;
         this.severityIds = severityIds;
         this.minSeverityId = minSeverityId;
+        this.timeFormat = timeFormat;
     }
 
     public List<String> getMetricNames() {
@@ -71,6 +74,10 @@ public class GetAlertQuery {
         return minSeverityId;
     }
 
+    public TimeFormat getTimeFormat() {
+        return timeFormat;
+    }
+
     public void setMetricNames(List<String> metricNames) {
         this.metricNames = metricNames;
     }
@@ -91,6 +98,10 @@ public class GetAlertQuery {
         this.minSeverityId = minSeverityId;
     }
 
+    public void setTimeFormat(TimeFormat timeFormat) {
+        this.timeFormat = timeFormat;
+    }
+
     @Override
     public String toString() {
         return "GetAlertQuery{" +
@@ -99,6 +110,7 @@ public class GetAlertQuery {
                 ", ruleNames=" + ruleNames +
                 ", severityIds=" + severityIds +
                 ", minSeverityId=" + minSeverityId +
+                ", timeFormat=" + timeFormat +
                 '}';
     }
 }

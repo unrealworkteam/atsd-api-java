@@ -17,6 +17,7 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.data.Alert;
 import com.axibase.tsd.model.data.AlertHistory;
 import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
@@ -210,6 +211,7 @@ public class DataService {
      * @param ruleNames     rule filter, multiple values allowed
      * @param severityIds   severity filter, multiple values allowed
      * @param minSeverityId minimal severity filter
+     * @param timeFormat
      * @return list of {@code Alert}
      */
     public List<Alert> retrieveAlerts(
@@ -217,8 +219,10 @@ public class DataService {
             List<String> entityNames,
             List<String> ruleNames,
             List<Integer> severityIds,
-            Integer minSeverityId) {
-        GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames, ruleNames, severityIds, minSeverityId);
+            Integer minSeverityId,
+            TimeFormat timeFormat) {
+        GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames,
+                ruleNames, severityIds, minSeverityId, timeFormat);
         return retrieveAlerts(alertQuery);
     }
 

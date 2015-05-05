@@ -26,8 +26,6 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GetSeriesResult {
-    private Long startTime;
-    private Long endTime;
     private String requestId;
     @JsonProperty("entity")
     private String entityName;
@@ -40,14 +38,6 @@ public class GetSeriesResult {
     private List<Series> data;
 
     public GetSeriesResult() {
-    }
-
-    public Long getStartTime() {
-        return startTime;
-    }
-
-    public Long getEndTime() {
-        return endTime;
     }
 
     public String getRequestId() {
@@ -80,14 +70,6 @@ public class GetSeriesResult {
 
     public List<Series> getData() {
         return data;
-    }
-
-    public void setStartTime(Long startTime) {
-        this.startTime = startTime;
-    }
-
-    public void setEndTime(Long endTime) {
-        this.endTime = endTime;
     }
 
     public void setRequestId(String requestId) {
@@ -133,8 +115,6 @@ public class GetSeriesResult {
     @Override
     public String toString() {
         return "GetSeriesResult{" +
-                "startTime=" + startTime +
-                ", endTime=" + endTime +
                 ", requestId='" + requestId + '\'' +
                 ", entityName='" + entityName + '\'' +
                 ", metricName='" + metricName + '\'' +

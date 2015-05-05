@@ -14,6 +14,7 @@
 */
 package com.axibase.tsd.model.data.command;
 
+import com.axibase.tsd.model.data.TimeFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -33,6 +34,7 @@ public class GetPropertiesQuery {
     private boolean last;
     private Map<String, String> key;
     private String keyExpression;
+    private TimeFormat timeFormat;
 
     public GetPropertiesQuery(String type, String entityName) {
         this.entityName = entityName;
@@ -71,6 +73,10 @@ public class GetPropertiesQuery {
         return keyExpression;
     }
 
+    public TimeFormat getTimeFormat() {
+        return timeFormat;
+    }
+
     public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
@@ -95,6 +101,10 @@ public class GetPropertiesQuery {
         this.keyExpression = keyExpression;
     }
 
+    public void setTimeFormat(TimeFormat timeFormat) {
+        this.timeFormat = timeFormat;
+    }
+
     @Override
     public String toString() {
         return "GetPropertiesQuery{" +
@@ -106,6 +116,7 @@ public class GetPropertiesQuery {
                 ", last=" + last +
                 ", key=" + key +
                 ", keyExpression='" + keyExpression + '\'' +
+                ", timeFormat=" + timeFormat +
                 '}';
     }
 }

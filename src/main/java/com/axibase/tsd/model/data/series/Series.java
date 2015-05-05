@@ -15,15 +15,19 @@
 package com.axibase.tsd.model.data.series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Series {
     @JsonProperty("t")
-    private long timeMillis;
+    private Long timeMillis;
+    @JsonProperty("d")
+    private String date;
     @JsonProperty("v")
     private double value;
 
@@ -35,12 +39,20 @@ public class Series {
         this.value = value;
     }
 
-    public long getTimeMillis() {
+    public Long getTimeMillis() {
         return timeMillis;
     }
 
-    public void setTimeMillis(long timeMillis) {
+    public void setTimeMillis(Long timeMillis) {
         this.timeMillis = timeMillis;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public double getValue() {
@@ -55,6 +67,7 @@ public class Series {
     public String toString() {
         return "Series{" +
                 "timeMillis=" + timeMillis +
+                ", date='" + date + '\'' +
                 ", value=" + value +
                 '}';
     }

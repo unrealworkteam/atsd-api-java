@@ -33,6 +33,7 @@ public class Property {
     private Map<String, String> key;
     private Map<String, String> tags;
     private Long timestamp;
+    private String date;
 
     public Property() {
     }
@@ -89,14 +90,23 @@ public class Property {
         this.timestamp = timestamp;
     }
 
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
     @Override
     public String toString() {
         return "Property{" +
                 "type='" + type + '\'' +
                 ", entityName='" + entityName + '\'' +
-                ", compositeKey=" + key +
+                ", key=" + key +
                 ", tags=" + tags +
                 ", timestamp=" + timestamp +
+                ", date='" + date + '\'' +
                 '}';
     }
 }
