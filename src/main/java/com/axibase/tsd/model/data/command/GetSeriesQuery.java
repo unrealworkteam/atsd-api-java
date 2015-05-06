@@ -16,6 +16,7 @@ package com.axibase.tsd.model.data.command;
 
 import com.axibase.tsd.model.data.SeriesType;
 import com.axibase.tsd.model.data.TimeFormat;
+import com.axibase.tsd.model.data.series.Interval;
 import com.axibase.tsd.model.data.series.Join;
 import com.axibase.tsd.model.data.series.Rate;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,7 +35,7 @@ public class GetSeriesQuery {
     private Long endTime;
     private String startDate;
     private String endDate;
-    private String interval;
+    private Interval interval;
     private Integer limit;
     private Boolean last;
     @JsonProperty("entity")
@@ -97,7 +98,7 @@ public class GetSeriesQuery {
         return endDate;
     }
 
-    public String getInterval() {
+    public Interval getInterval() {
         return interval;
     }
 
@@ -176,7 +177,7 @@ public class GetSeriesQuery {
     /**
      * @param interval Duration of the selection interval, specified as <code>count-timeunit</code>, for example, 1-hour
      */
-    public void setInterval(String interval) {
+    public void setInterval(Interval interval) {
         this.interval = interval;
     }
 

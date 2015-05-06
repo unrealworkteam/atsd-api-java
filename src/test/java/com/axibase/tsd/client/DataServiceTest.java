@@ -112,7 +112,7 @@ public class DataServiceTest {
                     e.getMessage());
         }
 
-        c1.setInterval("5-year");
+        c1.setInterval(new Interval(5, IntervalUnit.YEAR));
         seriesList = dataService.retrieveSeries(c1);
 
         assertTrue(seriesList.get(0) instanceof GetSeriesResult);
