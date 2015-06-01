@@ -28,6 +28,8 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
+import static com.axibase.tsd.util.AtsdUtil.toMap;
+
 /**
  * @author Nikolay Malevanny.
  */
@@ -83,15 +85,25 @@ public class TestUtil {
     }
 
     public static List<Property> fixTestDataProperty(DataService ds) throws InterruptedException {
+        ds.insertProperties(new Property(TTT_TYPE+".t", TTT_ENTITY,
+                AtsdUtil.toMap("key1", "ttt.t-key-1", "key2", "ttt.t-key-2"),
+                AtsdUtil.toMap("val1", "ttt.t-key-value-1", "val2", "ttt.t-key-value-3")));
+        Thread.sleep(WAIT_TIME);
+
         // "property type:ttt-type entity:ttt-entity time:111 key:key1=ttt-key-1 key2=ttt-key-2 " +
         // "values: key1=ttt-key-value-1 key2=ttt-key-value-3"
         PropertyInsertCommand command = new PropertyInsertCommand(
                 TTT_ENTITY, TTT_TYPE, System.currentTimeMillis() - 1000,
                 AtsdUtil.toMap("key1", "ttt-key-1", "key2", "ttt-key-2"),
-                AtsdUtil.toMap("key1", "ttt-key-value-1", "key2", "ttt-key-value-3")
+                AtsdUtil.toMap("val1", "ttt-key-value-1", "val2", "ttt-key-value-3")
         );
         System.out.println("command = " + command.compose());
         ds.sendPlainCommand(command);
+        ds.sendPlainCommand(new PropertyInsertCommand(
+                TTT_ENTITY, TTT_TYPE+".t", System.currentTimeMillis() - 1000,
+                AtsdUtil.toMap("key1", "ttt.t-key-1", "key2", "ttt.t-key-2"),
+                AtsdUtil.toMap("val1", "ttt.t-key-value-1", "val2", "ttt.t-key-value-3")
+        ));
         Thread.sleep(WAIT_TIME);
         return ds.retrieveProperties(buildPropertiesQuery());
     }

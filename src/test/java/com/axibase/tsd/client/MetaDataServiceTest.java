@@ -366,12 +366,13 @@ public class MetaDataServiceTest {
     @Test
     public void testRetrievePropertyTypes() throws Exception {
         List<Property> properties = dataService.retrieveProperties(buildPropertiesQuery());
-        if (properties.size() == 0) {
+        if (properties.size() < 2) {
             fixTestDataProperty(dataService);
         }
         Set<String> propertyTypes = metaDataService.retrievePropertyTypes(TTT_ENTITY, 0L);
         assertTrue(propertyTypes.size() > 0 );
         assertTrue(propertyTypes.contains(TTT_TYPE));
+        assertTrue(propertyTypes.contains(TTT_TYPE+".t"));
     }
 
 
