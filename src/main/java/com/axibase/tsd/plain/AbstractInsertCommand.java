@@ -62,7 +62,7 @@ public abstract class AbstractInsertCommand implements PlainCommand {
     protected abstract void appendValues(StringBuilder sb);
 
     protected static String normalize(String value) {
-        if (value.contains(" ")) {
+        if (value.contains(" ") || value.contains("\"") || value.contains("=")) {
             return "\"" + value + "\"";
         } else {
             return value;
