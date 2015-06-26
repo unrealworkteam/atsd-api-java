@@ -38,7 +38,7 @@ It has the ability to read and write time-series values, statistics, properties,
         - Get Metrics
         - Get Metric
         - Create/Update Metric
-        - Delete Metric
+        - Delete Metric  
         - Get Entities and Series Tags for Metric
     - Entities
         - Get Entities
