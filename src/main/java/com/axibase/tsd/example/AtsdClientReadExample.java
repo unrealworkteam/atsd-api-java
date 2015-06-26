@@ -60,7 +60,8 @@ public class AtsdClientReadExample extends AbstractAtsdClientExample {
             }
 
             System.out.println("===Series===");
-            GetSeriesQuery command = new GetSeriesQuery(entityName, metric.getName(), tags);
+            GetSeriesQuery command = new GetSeriesQuery(entityName, metric.getName(), tags,
+                    System.currentTimeMillis() - 3600, System.currentTimeMillis());
             command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(1, IntervalUnit.MINUTE),
                     Interpolate.NONE,
                     AggregateType.DETAIL));

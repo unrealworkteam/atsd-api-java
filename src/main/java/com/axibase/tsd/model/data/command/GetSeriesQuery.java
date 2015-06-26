@@ -82,6 +82,16 @@ public class GetSeriesQuery {
         this.tags = new MultivaluedHashMap<String, String>(tags);
     }
 
+    public GetSeriesQuery(String entityName,
+                          String metricName,
+                          Map<String, String> tags,
+                          long startTime,
+                          long endTime) {
+        this(entityName, metricName, tags);
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
     public Long getStartTime() {
         return startTime;
     }

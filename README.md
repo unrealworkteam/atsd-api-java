@@ -122,7 +122,9 @@ Use pure Java.
                 "username", "pwd",
                 3000, // connectTimeoutMillis
                 3000, // readTimeoutMillis
-                false // ignoreSSLErrors
+                600000, // pingTimeout
+                false, // ignoreSSLErrors
+                false // skipStreamingControl
         );
         ClientConfiguration clientConfiguration = configurationFactory
             .createClientConfiguration();
@@ -136,8 +138,8 @@ Use pure Java.
         httpClientManager.setObjectPoolConfig(objectPoolConfig);
         httpClientManager.setBorrowMaxWaitMillis(1000);
 
-        dataService = new DataService(httpClientManager);
-        metaDataService = new MetaDataService(httpClientManager);
+        DataService dataService = new DataService(httpClientManager);
+        MetaDataService metaDataService = new MetaDataService(httpClientManager);
 ```
 
 Usage
@@ -205,8 +207,8 @@ Usage
 
 ### Data Queries
 ```java
-        GetSeriesCommand command =
-            new GetSeriesCommand(entityName, metric.getName(), tags);
+        GetSeriesQuery command = new GetSeriesQuery(entityName, metric.getName(), tags,
+            System.currentTimeMillis() - 3600, System.currentTimeMillis());
         command.setAggregateMatcher(
             new SimpleAggregateMatcher(new Interval(1, IntervalUnit.MINUTE),
             Interpolate.NONE,
