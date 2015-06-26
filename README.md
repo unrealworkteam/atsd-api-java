@@ -90,8 +90,8 @@ Use `-Daxibase.tsd.api.client.properties=./client.properties`
             .createInstance()
             .createClientConfiguration();
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
-        dataService = new DataService(httpClientManager);
-        metaDataService = new MetaDataService(httpClientManager);
+        DataService dataService = new DataService(httpClientManager);
+        MetaDataService metaDataService = new MetaDataService(httpClientManager);
 ```
 
 **client.properties** example:
