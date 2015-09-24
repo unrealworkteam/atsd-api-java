@@ -341,14 +341,14 @@ public class DataServiceTest {
         }
         {
             {
-                List<Alert> alerts = dataService.retrieveAlerts(null, null, null, null, null, TimeFormat.MILLISECONDS);
+                List<Alert> alerts = dataService.retrieveAlerts(null, Collections.singletonList("ttt-entity"), null, null, null, TimeFormat.MILLISECONDS);
                 assertNotNull(alerts);
                 assertTrue(alerts.size() > 0);
             }
 
             List<Alert> alerts;
             {
-                alerts = dataService.retrieveAlerts(null, null, null, null, null, TimeFormat.ISO);
+                alerts = dataService.retrieveAlerts(null, Collections.singletonList("ttt-entity"), null, null, null, TimeFormat.ISO);
                 assertNotNull(alerts);
                 assertTrue(alerts.size() > 0);
                 Alert alert = alerts.get(0);

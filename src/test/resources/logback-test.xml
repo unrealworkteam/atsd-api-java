@@ -1,0 +1,92 @@
+<!--
+  ~ Copyright 2015 Axibase Corporation or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~ https://www.axibase.com/atsd/axibase-apache-2.0.pdf
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="COUNTER" class="com.axibase.collector.logback.CountAppender">
+        <filter class="com.axibase.collector.logback.Collector">
+            <writer class="com.axibase.collector.logback.SendCounter"/>
+            <level>WARN</level>
+            <sendThreshold>10</sendThreshold>
+            <sendEvery>7</sendEvery>
+        </filter>
+    </appender>
+
+    <appender name="TCP_SENDER" class="com.axibase.collector.logback.CountAppender">
+        <filter class="com.axibase.collector.logback.Collector">
+            <writer class="com.axibase.collector.writer.TcpAtsdWriter">
+                <host>localhost</host>
+                <!--CollectorTest.TEST_PORT = 35791;-->
+                <port>35791</port>
+            </writer>
+            <!-- default: TRACE -->
+            <level>WARN</level>
+            <!-- 0+ default:1 -->
+            <zeroRepeats>5</zeroRepeats>
+            <!-- default: $HOSTNAME -->
+            <entity>localhost</entity>
+            <!-- default: log_event_count -->
+            <metric>log_event_count</metric>
+            <!-- default: 60 -->
+            <periodSec>30</periodSec>
+            <!-- default: 0 -->
+            <sendThreshold>10</sendThreshold>
+            <!-- default: 0 -->
+            <sendEvery>7</sendEvery>
+            <tag>
+                <name>ttt1</name>
+                <value>vvv1</value>
+            </tag>
+            <tag>
+                <name>ttt2</name>
+                <value>k=1;k2=2;k3=3</value>
+            </tag>
+        </filter>
+    </appender>
+
+    <appender name="UDP_SENDER" class="com.axibase.collector.logback.CountAppender">
+        <filter class="com.axibase.collector.logback.Collector">
+            <writer class="com.axibase.collector.writer.UdpAtsdWriter">
+                <host>localhost</host>
+                <port>35793</port>
+            </writer>
+            <level>WARN</level>
+            <zeroRepeats>5</zeroRepeats>
+            <entity>localhost</entity>
+            <metric>log_event_count</metric>
+            <periodSec>30</periodSec>
+            <sendThreshold>10</sendThreshold>
+            <sendEvery>7</sendEvery>
+        </filter>
+    </appender>
+
+    <logger name="test.tcp.write" level="debug" additivity="false">
+        <appender-ref ref="TCP_SENDER" />
+    </logger>
+
+    <logger name="test.udp.write" level="debug" additivity="false">
+        <appender-ref ref="UDP_SENDER" />
+    </logger>
+
+    <root level="debug">
+        <appender-ref ref="COUNTER"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
