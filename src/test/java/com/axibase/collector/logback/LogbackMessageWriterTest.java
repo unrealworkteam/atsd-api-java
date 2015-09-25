@@ -18,7 +18,8 @@ package com.axibase.collector.logback;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import com.axibase.collector.Tag;
+import com.axibase.collector.config.SeriesSenderConfig;
+import com.axibase.collector.config.Tag;
 import com.axibase.collector.TestUtils;
 import com.axibase.collector.Utils;
 import junit.framework.TestCase;
@@ -41,15 +42,17 @@ public class LogbackMessageWriterTest extends TestCase {
             events.add(TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread"));
         }
         StringsCatcher catcher = new StringsCatcher();
-        messageBuilder.writeStatMessages(catcher, events);
+        messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
-        assertEquals("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric=100 t:level=ERROR t:logger=test-logger ",
+        System.out.println("result = " + result);
+        assertEquals(
+                "series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_rate=100.0 t:level=ERROR t:logger=test-logger ",
                 result.substring(0, result.indexOf("ms:1")));
     }
 
     public void testBuildMultipleStatMessage() throws Exception {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        messageBuilder.setZeroRepeats(2);
+        messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
         ArrayList<ILoggingEvent> events = new ArrayList<ILoggingEvent>();
         for (int i = 0; i < 100; i++) {
             events.add(TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread"));
@@ -59,39 +62,53 @@ public class LogbackMessageWriterTest extends TestCase {
         StringsCatcher catcher;
         {
             catcher = new StringsCatcher();
-            messageBuilder.writeStatMessages(catcher, events);
+            messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            assertTrue(result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric=100 t:level="));
+            System.out.println("result = " + result);
+            assertTrue(
+                    result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_rate=100.0 t:level="));
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric=100 "));
+            assertTrue(result.contains("m:test-metric_rate=100.0 "));
+            assertTrue(result.contains("m:test-metric_total_rate=100.0 "));
+            assertTrue(result.contains("m:test-metric_total_counter=100 "));
         }
 
         {
             catcher.clear();
             events.clear();
-            messageBuilder.writeStatMessages(catcher, events);
+            events.add(TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread"));
+            messageBuilder.writeStatMessages(catcher, events, 60000 );
             String result = catcher.sb.toString();
+            System.out.println("result = " + result);
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric=0 "));
+            assertTrue(result.contains("m:test-metric_rate=0.0"));
+            assertTrue(result.contains("m:test-metric_rate=1.0"));
+            assertTrue(result.contains("m:test-metric_total_rate=0.0"));
+            assertTrue(result.contains("m:test-metric_total_rate=1.0"));
+            assertTrue(result.contains("m:test-metric_total_counter=100"));
+            assertTrue(result.contains("m:test-metric_total_counter=101"));
         }
         {
             catcher.clear();
             events.clear();
-            messageBuilder.writeStatMessages(catcher, events);
+            messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             assertTrue(result.contains("ERROR"));
-            assertTrue(result.contains("WARN"));
-            assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric=0 "));
+            assertFalse(result.contains("WARN"));
+            assertFalse(result.contains("DEBUG"));
+            assertTrue(result.contains("m:test-metric_rate=0"));
+            assertTrue(result.contains("m:test-metric_total_rate=0"));
+            assertFalse(result.contains("m:test-metric_total_counter=100"));
+            assertTrue(result.contains("m:test-metric_total_counter=101"));
         }
         {
             catcher.clear();
             events.clear();
-            messageBuilder.writeStatMessages(catcher, events);
+            messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             assertEquals("", result);
         }
@@ -99,20 +116,34 @@ public class LogbackMessageWriterTest extends TestCase {
 
     public void testBuildSingleMessage() throws Exception {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-            LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
+        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
-        messageBuilder.writeSingleMessage(catcher, event);
-        String result= catcher.sb.toString();
-        assertEquals("message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-message t:level=ERROR t:logger=test-logger ",
+        messageBuilder.writeSingleMessage(catcher, event, 0);
+        String result = catcher.sb.toString();
+        assertEquals(
+                "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger ",
+                result.substring(0, result.indexOf("ms:1")));
+    }
+
+    public void testBuildSingleMessageWithLines() throws Exception {
+        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
+        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
+                new NullPointerException("test"));
+        StringsCatcher catcher = new StringsCatcher();
+        messageBuilder.writeSingleMessage(catcher, event, 10);
+        String result = catcher.sb.toString();
+        assertEquals("message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger ",
                 result.substring(0, result.indexOf("ms:1")));
     }
 
     private LogbackMessageWriter<ILoggingEvent> createMessageBuilder() {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = new LogbackMessageWriter<ILoggingEvent>();
         messageBuilder.setEntity("test-entity");
-        messageBuilder.setMetric("test-metric");
-        messageBuilder.addTag(new Tag("ttt1","vvv1"));
-        messageBuilder.addTag(new Tag("ttt2","vvv2"));
+        SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
+        seriesSenderConfig.setMetric("test-metric");
+        messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        messageBuilder.addTag(new Tag("ttt1", "vvv1"));
+        messageBuilder.addTag(new Tag("ttt2", "vvv2"));
         messageBuilder.start();
         return messageBuilder;
     }

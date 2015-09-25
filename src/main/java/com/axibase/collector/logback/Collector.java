@@ -21,7 +21,8 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.FilterReply;
 import com.axibase.collector.Aggregator;
-import com.axibase.collector.Tag;
+import com.axibase.collector.config.SeriesSenderConfig;
+import com.axibase.collector.config.Tag;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -60,11 +61,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         logbackMessageBuilder.stop();
     }
 
-    public void setZeroRepeats(int zeroRepeats) {
-        aggregator.setZeroRepeats(zeroRepeats);
-        logbackMessageBuilder.setZeroRepeats(zeroRepeats);
-    }
-
     public void setTag(Tag tag) {
         logbackMessageBuilder.addTag(tag);
     }
@@ -77,23 +73,18 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         aggregator.setWriter(writer);
     }
     
-    public void setSendEvery(int sendEvery) {
-        aggregator.setSendEvery(sendEvery);
-    }
-    
-    public void setSendThreshold(int sendThreshold) {
-        aggregator.setSendThreshold(sendThreshold);
-    }
-    
-    public void setPeriodSec(int periodSec) {
-        aggregator.setPeriodSec(periodSec);
-    }
-
     public void setEntity(String entity) {
         logbackMessageBuilder.setEntity(entity);
     }
 
-    public void setMetric(String metric) {
-        logbackMessageBuilder.setMetric(metric);
+    public void setSendMessage(LogbackEventTrigger messageTrigger) {
+        if (messageTrigger.getEvery() > 0) {
+            aggregator.addSendMessageTrigger(messageTrigger);
+        }
+    }
+
+    public void setSendSeries(SeriesSenderConfig seriesSenderConfig) {
+        aggregator.setSeriesSenderConfig(seriesSenderConfig);
+        logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
     }
 }

@@ -24,8 +24,13 @@
         <filter class="com.axibase.collector.logback.Collector">
             <writer class="com.axibase.collector.logback.SendCounter"/>
             <level>WARN</level>
-            <sendThreshold>10</sendThreshold>
-            <sendEvery>7</sendEvery>
+            <sendSeries>
+                <sendThreshold>10</sendThreshold>
+                <minPeriodSeconds>0</minPeriodSeconds>
+            </sendSeries>
+            <sendMessage>
+                <every>7</every>
+            </sendMessage>
         </filter>
     </appender>
 
@@ -38,18 +43,28 @@
             </writer>
             <!-- default: TRACE -->
             <level>WARN</level>
-            <!-- 0+ default:1 -->
-            <zeroRepeats>5</zeroRepeats>
             <!-- default: $HOSTNAME -->
             <entity>localhost</entity>
-            <!-- default: log_event_count -->
-            <metric>log_event_count</metric>
-            <!-- default: 60 -->
-            <periodSec>30</periodSec>
-            <!-- default: 0 -->
-            <sendThreshold>10</sendThreshold>
-            <!-- default: 0 -->
-            <sendEvery>7</sendEvery>
+            <sendSeries>
+                <!-- 0+ default:1 -->
+                <zeroRepeatCount>5</zeroRepeatCount>
+                <!-- default: log_event -->
+                <metric>log_event</metric>
+                <!-- default: _total -->
+                <totalMetricSuffix>_sum</totalMetricSuffix>
+                <!-- default: 60 -->
+                <periodSeconds>30</periodSeconds>
+                <!-- default: 0 -->
+                <sendThreshold>10</sendThreshold>
+                <!-- default: 5 -->
+                <minPeriodSeconds>0</minPeriodSeconds>
+            </sendSeries>
+            <!-- default: empty -->
+            <sendMessage>
+                <level>WARN</level>
+                <every>7</every>
+                <stackTraceLines>5</stackTraceLines>
+            </sendMessage>
             <tag>
                 <name>ttt1</name>
                 <value>vvv1</value>
@@ -68,12 +83,19 @@
                 <port>35793</port>
             </writer>
             <level>WARN</level>
-            <zeroRepeats>5</zeroRepeats>
             <entity>localhost</entity>
-            <metric>log_event_count</metric>
-            <periodSec>30</periodSec>
-            <sendThreshold>10</sendThreshold>
-            <sendEvery>7</sendEvery>
+            <sendSeries>
+                <zeroRepeatCount>5</zeroRepeatCount>
+                <metric>log_event</metric>
+                <periodSeconds>30</periodSeconds>
+                <sendThreshold>10</sendThreshold>
+                <minPeriodSeconds>0</minPeriodSeconds>
+            </sendSeries>
+            <sendMessage>
+                <level>WARN</level>
+                <every>7</every>
+                <stackTraceLines>5</stackTraceLines>
+            </sendMessage>
         </filter>
     </appender>
 

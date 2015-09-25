@@ -36,7 +36,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
         if (address.getAddress() == null) {
             throw new java.net.UnknownHostException(address.getHostName());
         }
-
+        System.out.println("Connect to: " + getAddress());
         client = SocketChannel.open(address);
     }
 

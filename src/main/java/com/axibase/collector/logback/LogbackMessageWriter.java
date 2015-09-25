@@ -18,7 +18,8 @@ package com.axibase.collector.logback;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.collector.MessageWriter;
-import com.axibase.collector.Tag;
+import com.axibase.collector.config.SeriesSenderConfig;
+import com.axibase.collector.config.Tag;
 import com.axibase.collector.Utils;
 
 import java.io.IOException;
@@ -30,19 +31,30 @@ import java.util.*;
  * @author Nikolay Malevanny.
  */
 public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWriter<E> {
-    public static final String DEFAULT_METRIC_NAME = "log_event_count";
-    public static final int DEFAULT_BB_SIZE = 16 * 1024;
     private Map<String, String> tags = new LinkedHashMap<String, String>();
-    private int zeroRepeats;
     private String entity = Utils.resolveHostname();
-    private String metric = DEFAULT_METRIC_NAME;
-    private Map<Key, Counter> story = new HashMap<Key, Counter>();
-    private ByteBuffer seriesPrefix;
+    private final Map<Key, Counter> story = new HashMap<Key, Counter>();
+    private ByteBuffer seriesRatePrefix;
+    private ByteBuffer seriesTotalRatePrefix;
+    private ByteBuffer seriesTotalSumPrefix;
     private ByteBuffer messagePrefix;
+    private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
+    private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer, Collection<E> events) throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(DEFAULT_BB_SIZE);
+    public void writeStatMessages(WritableByteChannel writer, Collection<E> events, long deltaTime) throws IOException {
+        if (deltaTime < 1) {
+            throw new IllegalArgumentException("Illegal delta tie value: " + deltaTime);
+        }
+        int zeroRepeatCount = seriesSenderConfig.getZeroRepeatCount();
+
+        // clean total counters
+        for (Iterator<Map.Entry<Level, CounterWithSum>> iterator = totals.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<Level, CounterWithSum> entry = iterator.next();
+            if (entry.getValue().zeroRepeats < 0) {
+                iterator.remove();
+            }
+        }
         // decrement all previous zero repeat counters
         for (Counter counter : story.values()) {
             counter.decrementZeroRepeats();
@@ -52,12 +64,11 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             Key key = new Key(event.getLevel(), event.getLoggerName());
             Counter counter = story.get(key);
             if (counter == null) {
-                story.put(key, new Counter(zeroRepeats));
+                story.put(key, new Counter(1, zeroRepeatCount));
             } else {
                 counter.increment();
-                counter.setZeroRepeats(zeroRepeats);
+                counter.setZeroRepeats(zeroRepeatCount);
             }
-
         }
         long time = System.currentTimeMillis();
         // compose & clean
@@ -67,14 +78,17 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             if (counter.zeroRepeats < 0) {
                 iterator.remove();
             } else {
+                Key key = entry.getKey();
+                int value = counter.value;
                 try {
-                    seriesPrefix.rewind();
-                    writer.write(seriesPrefix);
+                    seriesRatePrefix.rewind();
+                    writer.write(seriesRatePrefix);
                     StringBuilder sb = new StringBuilder();
-                    Key key = entry.getKey();
                     Level level = key.level;
                     String levelString = level.toString();
-                    sb.append(counter.value).append(" t:level=").append(levelString);
+                    double rate = value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
+                    sb.append(rate);
+                    sb.append(" t:level=").append(levelString);
                     sb.append(" t:logger=").append(Utils.sanitizeTagValue(key.logger));
                     sb.append(" ms:").append(time).append("\n");
                     writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
@@ -82,36 +96,111 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                     // ignore
                     e.printStackTrace();
                 } finally {
-                    counter.value = 0;
+                    if (value > 0) {
+                        CounterWithSum total = totals.get(key.level);
+                        if (total == null) {
+                            total = new CounterWithSum(value, zeroRepeatCount);
+                            totals.put(key.level, total);
+                        } else {
+                            total.add(value);
+                            total.setZeroRepeats(zeroRepeatCount);
+                        }
+                    }
+                    counter.clean();
                 }
+            }
+        }
+
+        // send totals
+        for (Map.Entry<Level, CounterWithSum> entry : totals.entrySet()) {
+            Level level = entry.getKey();
+            CounterWithSum counterWithSum = entry.getValue();
+            try {
+                // write total rate
+                seriesTotalRatePrefix.rewind();
+                writer.write(seriesTotalRatePrefix);
+                StringBuilder sb = new StringBuilder();
+                String levelString = level.toString();
+                double rate = counterWithSum.value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
+                sb.append(rate);
+                sb.append(" t:level=").append(levelString);
+                sb.append(" ms:").append(time).append("\n");
+                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+                counterWithSum.clean();
+                // write total sum
+                seriesTotalSumPrefix.rewind();
+                writer.write(seriesTotalSumPrefix);
+                sb = new StringBuilder();
+                sb.append(counterWithSum.sum);
+                sb.append(" t:level=").append(levelString);
+                sb.append(" ms:").append(time).append("\n");
+                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+            } catch (Throwable e) {
+                // ignore
+                e.printStackTrace();
+            } finally {
+                entry.getValue().decrementZeroRepeats();
             }
         }
     }
 
     @Override
-    public void writeSingleMessage(WritableByteChannel writer, E event) throws IOException {
+    public void writeSingleMessage(WritableByteChannel writer, E event, int lines) throws IOException {
         messagePrefix.rewind();
         writer.write(messagePrefix);
         StringBuilder sb = new StringBuilder();
-        sb.append(Utils.sanitizeMessage(event.getFormattedMessage())).append(" t:level=").append(event.getLevel());
-        sb.append(" t:logger=").append(Utils.sanitizeTagValue(event.getLoggerName()));
+        String message = event.getFormattedMessage();
+        if (lines > 0 && event.getCallerData() != null) {
+            StringBuilder msb = new StringBuilder(message);
+            for (int i = 0; i < event.getCallerData().length && i < lines; i++) {
+                StackTraceElement traceElement = event.getCallerData()[i];
+                msb.append("\n\t").append(traceElement.toString());
+            }
+            message = msb.toString();
+        }
+        sb.append(Utils.sanitizeMessage(message));
+        sb.append(" t:severity=").append(event.getLevel());
+        sb.append(" t:level=").append(event.getLevel());
+        sb.append(" t:source=").append(Utils.sanitizeTagValue(event.getLoggerName()));
         sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
         writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
     }
 
     @Override
     public void start() {
+        String sanitizedEntity = Utils.sanitizeEntity(entity);
         {
             StringBuilder sb = new StringBuilder();
-            sb.append("series e:").append(Utils.sanitizeEntity(entity));
+            sb.append("series e:").append(sanitizedEntity);
             appendTags(sb);
-            sb.append(" m:").append(Utils.sanitizeMetric(metric)).append("=");
-            seriesPrefix = ByteBuffer.wrap(sb.toString().getBytes(Utils.UTF_8));
+            sb.append(" m:").append(
+                    Utils.sanitizeMetric(seriesSenderConfig.getMetric() + seriesSenderConfig.getRateSuffix())).append(
+                    "=");
+            seriesRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(Utils.UTF_8));
         }
         {
             StringBuilder sb = new StringBuilder();
-            sb.append("message e:").append(Utils.sanitizeEntity(entity));
+            sb.append("series e:").append(sanitizedEntity);
             appendTags(sb);
+            sb.append(" m:").append(Utils.sanitizeMetric(
+                    seriesSenderConfig.getMetric() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
+                    "=");
+            seriesTotalRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(Utils.UTF_8));
+        }
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append("series e:").append(sanitizedEntity);
+            appendTags(sb);
+            sb.append(" m:").append(Utils.sanitizeMetric(
+                    seriesSenderConfig.getMetric() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getCounterSuffix())).append(
+                    "=");
+            seriesTotalSumPrefix = ByteBuffer.wrap(sb.toString().getBytes(Utils.UTF_8));
+        }
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append("message e:").append(sanitizedEntity);
+            appendTags(sb);
+            unsafeAppendTag(sb, "type", "logger");
             sb.append(" m:");
             messagePrefix = ByteBuffer.wrap(sb.toString().getBytes(Utils.UTF_8));
         }
@@ -121,9 +210,14 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
 
     private void appendTags(StringBuilder sb) {
         for (Map.Entry<String, String> entry : tags.entrySet()) {
-            sb.append(" t:").append(Utils.sanitizeTagKey(entry.getKey())).append("=").append(
-                    Utils.sanitizeTagValue(entry.getValue()));
+            String tagName = Utils.sanitizeTagKey(entry.getKey());
+            String tagValue = Utils.sanitizeTagValue(entry.getValue());
+            unsafeAppendTag(sb, tagName, tagValue);
         }
+    }
+
+    private void unsafeAppendTag(StringBuilder sb, String tagName, String tagValue) {
+        sb.append(" t:").append(tagName).append("=").append(tagValue);
     }
 
     @Override
@@ -135,16 +229,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
         tags.put(tag.getName(), tag.getValue());
     }
 
-    public void setZeroRepeats(int zeroRepeats) {
-        this.zeroRepeats = zeroRepeats;
-    }
-
     public void setEntity(String entity) {
         this.entity = entity;
     }
 
-    public void setMetric(String metric) {
-        this.metric = metric;
+    public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
+        this.seriesSenderConfig = seriesSenderConfig;
     }
 
     private static class Key {
@@ -180,15 +270,20 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     }
 
     private static class Counter {
-        private int zeroRepeats;
-        private int value = 1;
+        protected int value;
+        protected int zeroRepeats;
 
-        public Counter(int zeroRepeats) {
-            this.zeroRepeats = zeroRepeats;
+        public Counter(int value, int zeroRepeats) {
+            this.value = value;
+            setZeroRepeats(zeroRepeats);
         }
 
         void increment() {
             value++;
+        }
+
+        public void add(int value) {
+            this.value += value;
         }
 
         void decrementZeroRepeats() {
@@ -197,6 +292,24 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
 
         public void setZeroRepeats(int zeroRepeats) {
             this.zeroRepeats = zeroRepeats;
+        }
+
+        public void clean() {
+            value = 0;
+        }
+    }
+
+    private static class CounterWithSum extends Counter {
+        private long sum;
+
+        public CounterWithSum(int value, int zeroRepeats) {
+            super(value, zeroRepeats);
+        }
+
+        @Override
+        public void clean() {
+            sum += value;
+            super.clean();
         }
     }
 }

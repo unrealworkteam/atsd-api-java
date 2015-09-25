@@ -16,7 +16,9 @@
 package com.axibase.collector;
 
 import ch.qos.logback.classic.Level;
+import com.axibase.collector.config.SeriesSenderConfig;
 import com.axibase.collector.logback.CountAppender;
+import com.axibase.collector.logback.LogbackEventTrigger;
 import com.axibase.collector.logback.LogbackMessageWriter;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -47,21 +49,23 @@ public class AggregatorTest extends TestCase {
     public void testThresholds() throws Exception {
         int cnt = 15;
 
+        SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
+        seriesSenderConfig.setMinPeriodSeconds(0);
         LogbackMessageWriter messageWriter = new LogbackMessageWriter();
+        messageWriter.setSeriesSenderConfig(seriesSenderConfig);
         messageWriter.start();
         Aggregator aggregator = new Aggregator(messageWriter);
         aggregator.setWriter(mockWriter);
-        aggregator.setPeriodSec(1);
-        aggregator.setSendEvery(7);
-        aggregator.setSendThreshold(10);
+        aggregator.setSeriesSenderConfig(seriesSenderConfig);
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger(7));
         for (int i = 0; i < cnt; i++) {
-            assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.INFO, "logger", "test-msg", "test-thread")));
+            assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread")));
         }
         Thread.sleep(1001);
-        assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.INFO, "logger", "test-msg", "test-thread")));
+        assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread")));
 
-        // (2 (every) + 1 (cnt) + 1 (time)) * 2 (prefix + content) = 8
-        verify(mockWriter, times(8)).write(any(ByteBuffer.class));
+        // (2 (every) + 3 (cnt) + 3 (time)) * 2 (prefix + content) = 16
+        verify(mockWriter, times(16)).write(any(ByteBuffer.class));
     }
 
     @Test

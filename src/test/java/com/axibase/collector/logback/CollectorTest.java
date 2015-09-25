@@ -62,7 +62,8 @@ public class CollectorTest extends TestCase {
             log.info("test {}", i);
         }
         assertEquals(30, CountAppender.getCount());
-        assertEquals(3 * 2, SendCounter.getCount());
+        // (2 (every) + 3 (rate+total_rate+total_sum)) * 2 (prefix + content) = 10
+        assertEquals(5 * 2, SendCounter.getCount());
     }
 
     @Test
@@ -85,10 +86,16 @@ public class CollectorTest extends TestCase {
             String result = tcpReceiver.sb.toString();
             System.out.println("result = " + result);
             assertEquals(30, CountAppender.getCount());
+            // check message content
             assertTrue(result.contains("t:ttt2=\"k=1;k2=2;k3=3\""));
-            assertTrue(result.contains("m:\"test 6\" t:level=WARN"));
+            assertTrue(result.contains("m:\"test 6\n"));
+            assertTrue(result.contains("t:level=WARN"));
+            assertTrue(result.contains("com.axibase.collector.logback.CollectorTest.testTcpSend"));
             assertFalse(result.contains("t:level=DEBUG"));
-            assertTrue(result.contains("m:log_event_count=11 t:level=WARN"));
+            // check series content
+            assertTrue(result.contains("m:log_event_rate="));
+            assertTrue(result.contains("m:log_event_total_rate="));
+            assertTrue(result.contains("m:log_event_total_counter="));
         } finally {
             tcpReceiver.stop();
         }
@@ -114,9 +121,12 @@ public class CollectorTest extends TestCase {
             assertEquals(30, CountAppender.getCount());
             String result = udpReceiver.sb.toString();
             System.out.println("result = " + result);
-            assertTrue(result.contains("m:\"test 6\" t:level=WARN"));
+            assertTrue(result.contains("m:\"test 6\n"));
+            assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("t:level=DEBUG"));
-            assertTrue(result.contains("m:log_event_count=11 t:level=WARN"));
+            assertTrue(result.contains("m:log_event_rate"));
+            assertTrue(result.contains("m:log_event_total_rate"));
+            assertTrue(result.contains("m:log_event_total_counter"));
         } finally {
             udpReceiver.stop();
         }
@@ -127,7 +137,7 @@ public class CollectorTest extends TestCase {
     public void loadTcpSend() throws Exception {
         long st = System.currentTimeMillis();
             for (int i = 0; i < 1000000; i++) {
-                tcpSendLog.warn("test {}", i);
+                tcpSendLog.error("test " + i, new NullPointerException("test"));
             }
         System.out.println("time: " + (System.currentTimeMillis() - st) + " ms");
     }
