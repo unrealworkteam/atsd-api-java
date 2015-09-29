@@ -16,19 +16,26 @@
 package com.axibase.collector;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.collector.config.SeriesSenderConfig;
 import com.axibase.collector.logback.CountAppender;
 import com.axibase.collector.logback.LogbackEventTrigger;
 import com.axibase.collector.logback.LogbackMessageWriter;
+import com.axibase.collector.writer.TcpAtsdWriter;
+import com.axibase.collector.writer.UdpAtsdWriter;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -46,6 +53,7 @@ public class AggregatorTest extends TestCase {
         mockWriter = mock(WritableByteChannel.class);
     }
 
+    @Test
     public void testThresholds() throws Exception {
         int cnt = 15;
 
@@ -71,18 +79,51 @@ public class AggregatorTest extends TestCase {
         verify(mockWriter, times(16)).write(any(ByteBuffer.class));
     }
 
+    @Ignore
     @Test
-    public void testMultiThreaded() throws Exception {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        for (int i = 0; i < 5; i++) {
+    public void loadTest() throws Exception {
+        final int cnt = 1000000;
+        int threadCount = 20;
+
+        long st = System.currentTimeMillis();
+
+        SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
+        seriesSenderConfig.setMinPeriodSeconds(0);
+        seriesSenderConfig.setMessageSkipThreshold(1000);
+        LogbackMessageWriter messageWriter = new LogbackMessageWriter();
+        messageWriter.setSeriesSenderConfig(seriesSenderConfig);
+        messageWriter.start();
+        final Aggregator aggregator = new Aggregator(messageWriter);
+        UdpAtsdWriter writer = new UdpAtsdWriter();
+        writer.setHost("localhost");
+        writer.setPort(55555);
+        aggregator.setWriter(writer);
+        aggregator.setSeriesSenderConfig(seriesSenderConfig);
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger(1));
+        aggregator.start();
+
+        final LoggingEvent event = TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
+
+        final CountDownLatch latch = new CountDownLatch(threadCount);
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        for (int t = 0; t < threadCount; t++) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int i = 0; i < 15; i++) {
-//                        log.warn("test");
+                    for (int i = 0; i < cnt; i++) {
+                        try {
+                            aggregator.register(event);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
                     }
+                    latch.countDown();
                 }
             });
         }
+
+        assertTrue(latch.await(30000, TimeUnit.MILLISECONDS));
+
+        System.out.println("time: " + (System.currentTimeMillis() - st) + " ms");
     }
 }

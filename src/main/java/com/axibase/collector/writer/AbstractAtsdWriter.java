@@ -15,6 +15,8 @@
 
 package com.axibase.collector.writer;
 
+import com.axibase.tsd.util.AtsdUtil;
+
 import javax.net.SocketFactory;
 import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
@@ -24,9 +26,8 @@ import java.nio.charset.Charset;
  * @author Nikolay Malevanny.
  */
 public abstract class AbstractAtsdWriter implements WritableByteChannel {
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
     protected final SocketFactory socketFactory = SocketFactory.getDefault();
-    protected final Charset charset= UTF_8;
+    protected final Charset charset= AtsdUtil.UTF_8;
     private InetSocketAddress address;
     private String host;
     private int port;

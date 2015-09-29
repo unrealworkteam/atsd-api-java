@@ -18,6 +18,7 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.plain.MarkerCommand;
 import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -37,9 +38,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
@@ -48,7 +46,6 @@ import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
  */
 class PlainSender extends AbstractHttpEntity implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PlainSender.class);
-    private static final String PING_COMMAND = "ping\n";
     private static final int SMALL = 64;
 
     private String url;
@@ -164,9 +161,9 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
                 return;
             }
             if (lastMessageTime - System.currentTimeMillis() > pingTimeoutMillis) {
-                write(outputStream, PING_COMMAND);
+                write(outputStream, AtsdUtil.PING_COMMAND);
                 if (!clientConfiguration.isSkipStreamingControl()) {
-                    add(marker, PING_COMMAND);
+                    add(marker, AtsdUtil.PING_COMMAND);
                 }
                 lastMessageTime = System.currentTimeMillis();
             }

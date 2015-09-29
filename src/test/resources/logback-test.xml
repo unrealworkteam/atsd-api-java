@@ -99,12 +99,40 @@
         </filter>
     </appender>
 
+    <appender name="HTTP_SENDER" class="com.axibase.collector.logback.CountAppender">
+        <filter class="com.axibase.collector.logback.Collector">
+            <writer class="com.axibase.collector.writer.HttpStreamingAtsdWriter">
+                <url>http://localhost:8088/api/v1/command/</url>
+                <username>axibase</username>
+                <password>11111</password>
+            </writer>
+            <level>WARN</level>
+            <entity>localhost</entity>
+            <sendSeries>
+                <zeroRepeatCount>5</zeroRepeatCount>
+                <metric>log_event</metric>
+                <periodSeconds>30</periodSeconds>
+                <sendThreshold>1000</sendThreshold>
+                <minPeriodSeconds>0</minPeriodSeconds>
+            </sendSeries>
+            <sendMessage>
+                <level>WARN</level>
+                <every>10</every>
+                <stackTraceLines>5</stackTraceLines>
+            </sendMessage>
+        </filter>
+    </appender>
+
     <logger name="test.tcp.write" level="debug" additivity="false">
         <appender-ref ref="TCP_SENDER" />
     </logger>
 
     <logger name="test.udp.write" level="debug" additivity="false">
         <appender-ref ref="UDP_SENDER" />
+    </logger>
+
+    <logger name="test.http.write" level="debug" additivity="false">
+        <appender-ref ref="HTTP_SENDER" />
     </logger>
 
     <root level="debug">

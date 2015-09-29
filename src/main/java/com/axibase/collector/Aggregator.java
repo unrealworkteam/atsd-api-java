@@ -18,6 +18,7 @@ package com.axibase.collector;
 
 import com.axibase.collector.config.SeriesSenderConfig;
 import com.axibase.collector.logback.LogbackEventTrigger;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -101,6 +102,13 @@ public class Aggregator<E> {
         }
         if (senderExecutor != null && !senderExecutor.isShutdown()) {
             senderExecutor.shutdown();
+        }
+        if (writer != null && writer.isOpen()) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

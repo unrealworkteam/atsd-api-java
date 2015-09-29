@@ -32,6 +32,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author Nikolay Malevanny.
@@ -40,6 +41,7 @@ public class CollectorTest extends TestCase {
     private static final Logger log = LoggerFactory.getLogger(CollectorTest.class);
     private static final Logger tcpSendLog = LoggerFactory.getLogger("test.tcp.write");
     private static final Logger udpSendLog = LoggerFactory.getLogger("test.udp.write");
+    private static final Logger httpSendLog = LoggerFactory.getLogger("test.http.write");
     public static final int TEST_TCP_PORT = 35791;
     public static final int TEST_UDP_PORT = 35793;
     public static final int BUFFER_SIZE = 1024;
@@ -159,6 +161,21 @@ public class CollectorTest extends TestCase {
                 udpSendLog.warn("test {}", i);
             }
         System.out.println("time: " + (System.currentTimeMillis() - st) + " ms");
+    }
+
+    @Ignore
+    @Test
+    public void loadHttpSend() throws Exception {
+        long st = System.currentTimeMillis();
+            for (int i = 0; i < 1000000; i++) {
+                httpSendLog.warn("test {}", i);
+                if (i % 1000 == 0) {
+                    LockSupport.parkNanos(1);
+//                    Thread.sleep(1000);
+                }
+            }
+        System.out.println("time: " + (System.currentTimeMillis() - st) + " ms");
+        Thread.sleep(1100);
     }
 
     private static class TcpReceiver {

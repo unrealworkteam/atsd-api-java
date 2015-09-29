@@ -84,8 +84,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                 Level level = key.getLevel();
                 int value = counter.value;
                 try {
-                    seriesRatePrefix.rewind();
-                    writer.write(seriesRatePrefix);
+                    writer.write(seriesRatePrefix.duplicate());
                     StringBuilder sb = new StringBuilder();
                     String levelString = level.toString();
                     double rate = value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
@@ -119,8 +118,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             CounterWithSum counterWithSum = entry.getValue();
             try {
                 // write total rate
-                seriesTotalRatePrefix.rewind();
-                writer.write(seriesTotalRatePrefix);
+                writer.write(seriesTotalRatePrefix.duplicate());
                 StringBuilder sb = new StringBuilder();
                 String levelString = level.toString();
                 double rate = counterWithSum.value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
@@ -130,8 +128,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                 writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
                 counterWithSum.clean();
                 // write total sum
-                seriesTotalSumPrefix.rewind();
-                writer.write(seriesTotalSumPrefix);
+                writer.write(seriesTotalSumPrefix.duplicate());
                 sb = new StringBuilder();
                 sb.append(counterWithSum.sum);
                 sb.append(" t:level=").append(levelString);
@@ -151,8 +148,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
         EventWrapper<E> wrapper;
         while ((wrapper = singles.poll()) != null) {
             E event = wrapper.getEvent();
-            messagePrefix.rewind();
-            writer.write(messagePrefix);
+            writer.write(messagePrefix.duplicate());
             StringBuilder sb = new StringBuilder();
             String message = event.getFormattedMessage();
             int lines = wrapper.getLines();
