@@ -47,8 +47,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     }
 
     @Override
-    public int write(ByteBuffer message)
-            throws IOException {
+    public int write(ByteBuffer message) throws IOException {
         int cnt = 0;
         if (!isConnected()) {
             connect();
@@ -58,6 +57,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
                 client.write(message);
             }
         } catch (IOException e) {
+            e.printStackTrace();
             close();
             throw e;
         }

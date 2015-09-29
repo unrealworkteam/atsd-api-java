@@ -17,10 +17,9 @@ package com.axibase.collector.logback;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.axibase.collector.MessageWriter;
+import com.axibase.collector.*;
 import com.axibase.collector.config.SeriesSenderConfig;
 import com.axibase.collector.config.Tag;
-import com.axibase.collector.Utils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -55,10 +54,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                 iterator.remove();
             }
         }
+
         // decrement all previous zero repeat counters
         for (Counter counter : story.values()) {
             counter.decrementZeroRepeats();
         }
+
         // increment using new events
         for (E event : events) {
             Key key = new Key(event.getLevel(), event.getLoggerName());
@@ -71,6 +72,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             }
         }
         long time = System.currentTimeMillis();
+
         // compose & clean
         for (Iterator<Map.Entry<Key, Counter>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Key, Counter> entry = iterator.next();
@@ -79,17 +81,17 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                 iterator.remove();
             } else {
                 Key key = entry.getKey();
+                Level level = key.getLevel();
                 int value = counter.value;
                 try {
                     seriesRatePrefix.rewind();
                     writer.write(seriesRatePrefix);
                     StringBuilder sb = new StringBuilder();
-                    Level level = key.level;
                     String levelString = level.toString();
                     double rate = value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
                     sb.append(rate);
                     sb.append(" t:level=").append(levelString);
-                    sb.append(" t:logger=").append(Utils.sanitizeTagValue(key.logger));
+                    sb.append(" t:logger=").append(Utils.sanitizeTagValue(key.getLogger()));
                     sb.append(" ms:").append(time).append("\n");
                     writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
                 } catch (Throwable e) {
@@ -97,10 +99,10 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                     e.printStackTrace();
                 } finally {
                     if (value > 0) {
-                        CounterWithSum total = totals.get(key.level);
+                        CounterWithSum total = totals.get(level);
                         if (total == null) {
                             total = new CounterWithSum(value, zeroRepeatCount);
-                            totals.put(key.level, total);
+                            totals.put(level, total);
                         } else {
                             total.add(value);
                             total.setZeroRepeats(zeroRepeatCount);
@@ -145,25 +147,31 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     }
 
     @Override
-    public void writeSingleMessage(WritableByteChannel writer, E event, int lines) throws IOException {
-        messagePrefix.rewind();
-        writer.write(messagePrefix);
-        StringBuilder sb = new StringBuilder();
-        String message = event.getFormattedMessage();
-        if (lines > 0 && event.getCallerData() != null) {
-            StringBuilder msb = new StringBuilder(message);
-            for (int i = 0; i < event.getCallerData().length && i < lines; i++) {
-                StackTraceElement traceElement = event.getCallerData()[i];
-                msb.append("\n\t").append(traceElement.toString());
+    public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException {
+        EventWrapper<E> wrapper;
+        while ((wrapper = singles.poll()) != null) {
+            E event = wrapper.getEvent();
+            messagePrefix.rewind();
+            writer.write(messagePrefix);
+            StringBuilder sb = new StringBuilder();
+            String message = event.getFormattedMessage();
+            int lines = wrapper.getLines();
+            if (lines > 0 && event.getCallerData() != null) {
+                StringBuilder msb = new StringBuilder(message);
+                for (int i = 0; i < event.getCallerData().length && i < lines; i++) {
+                    StackTraceElement traceElement = event.getCallerData()[i];
+                    msb.append("\n\t").append(traceElement.toString());
+                }
+                message = msb.toString();
             }
-            message = msb.toString();
+            sb.append(Utils.sanitizeMessage(message));
+            sb.append(" t:severity=").append(event.getLevel());
+            sb.append(" t:level=").append(event.getLevel());
+            sb.append(" t:source=").append(Utils.sanitizeTagValue(event.getLoggerName()));
+            sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
+            writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
         }
-        sb.append(Utils.sanitizeMessage(message));
-        sb.append(" t:severity=").append(event.getLevel());
-        sb.append(" t:level=").append(event.getLevel());
-        sb.append(" t:source=").append(Utils.sanitizeTagValue(event.getLoggerName()));
-        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
-        writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+        singles.clearCount();
     }
 
     @Override
@@ -222,7 +230,6 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
 
     @Override
     public void stop() {
-
     }
 
     public void addTag(Tag tag) {
@@ -235,38 +242,6 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
-    }
-
-    private static class Key {
-        private final Level level;
-        private final String logger;
-
-        public Key(Level level, String logger) {
-            if (level == null) {
-                throw new IllegalArgumentException("Level is null");
-            }
-            this.level = level;
-            this.logger = logger;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Key key = (Key) o;
-
-            if (level != null ? !level.equals(key.level) : key.level != null) return false;
-            return !(logger != null ? !logger.equals(key.logger) : key.logger != null);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = level != null ? level.hashCode() : 0;
-            result = 31 * result + (logger != null ? logger.hashCode() : 0);
-            return result;
-        }
     }
 
     private static class Counter {

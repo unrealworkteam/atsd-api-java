@@ -22,11 +22,7 @@ import com.axibase.collector.logback.LogbackEventTrigger;
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,14 +30,20 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Nikolay Malevanny.
  */
 public class Aggregator<E> {
-    private Collection<E> cache = new ConcurrentLinkedQueue<E>();
+    public static final int DEFAULT_CHECK_PERIOD_MS = 333;
+    private final Worker worker = new Worker();
+    private volatile CountedQueue<E> cache = new CountedQueue<E>();
+    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<EventWrapper<E>>();
     private AtomicInteger stepCounter = new AtomicInteger(0);
     private AtomicLong last = new AtomicLong(System.currentTimeMillis());
     private WritableByteChannel writer;
     private final MessageWriter<E> messageWriter;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService senderExecutor;
+    private volatile CountDownLatch latch = new CountDownLatch(1);
     private SendMessageTrigger<E>[] triggers = null;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
+
+    private int skippedCount = 0;
 
     public Aggregator(MessageWriter<E> messageWriter) {
         this.messageWriter = messageWriter;
@@ -50,7 +52,19 @@ public class Aggregator<E> {
     public boolean register(E event) throws IOException {
         try {
             cache.add(event);
-            checkThresholds(true);
+            stepCounter.incrementAndGet();
+
+            int count = cache.getCount();
+            if (count > 0 && count % seriesSenderConfig.getCacheFlushThreshold() == 0) {
+                latch.countDown();
+            }
+            if (count > seriesSenderConfig.getCacheSkipThreshold()) {
+                if (++skippedCount % seriesSenderConfig.getCacheSkipThreshold() == 0) {
+                    System.err.println("skipped: " + skippedCount + " events");
+                }
+                cache.poll(); // kill oldest
+            }
+
             if (triggers != null) {
                 int lines = 0;
                 boolean fire = false;
@@ -77,43 +91,48 @@ public class Aggregator<E> {
     }
 
     public void start() {
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        long periodMs = seriesSenderConfig.getPeriodMs();
-        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    checkThresholds(false);
-                } catch (IOException e) {
-                    // ignore
-                    e.printStackTrace();
-                }
-            }
-        }, periodMs, periodMs, TimeUnit.MILLISECONDS);
+        senderExecutor = Executors.newSingleThreadExecutor();
+        senderExecutor.execute(worker);
     }
 
     public void stop() {
-        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
-            scheduledExecutorService.shutdown();
+        if (worker != null) {
+            worker.stop();
+        }
+        if (senderExecutor != null && !senderExecutor.isShutdown()) {
+            senderExecutor.shutdown();
         }
     }
 
-    private void checkThresholds(boolean increment) throws IOException {
-        int cnt = increment ? stepCounter.incrementAndGet() : stepCounter.get();
+    private void checkThresholds() throws IOException {
+        int cnt = stepCounter.get();
         long currentTime = System.currentTimeMillis();
         long lastTime = last.get();
         long dt = currentTime - lastTime;
-        if (dt > seriesSenderConfig.getPeriodMs()) {
+        long periodMs = seriesSenderConfig.getPeriodMs();
+        if (dt > periodMs) {
             if (last.compareAndSet(lastTime, currentTime)) {
                 flush(lastTime, currentTime);
                 cnt = 0;
             }
         }
+
         int sendThreshold = seriesSenderConfig.getSendThreshold();
-        if (sendThreshold > 0 && dt > seriesSenderConfig.getMinPeriodMs() && cnt > sendThreshold) {
-            if (stepCounter.compareAndSet(cnt, 0)) {
-                flush(lastTime, currentTime);
+        if ((sendThreshold > 0 && dt > seriesSenderConfig.getMinPeriodMs() && cnt > sendThreshold)
+                || cnt > seriesSenderConfig.getCacheFlushThreshold()) {
+            for (; ; ) {
+                int last = stepCounter.get();
+                if (last == 0) {
+                    break;
+                }
+                if (stepCounter.compareAndSet(last, 0)) {
+                    flush(lastTime, currentTime);
+                    break;
+                }
             }
+        }
+        if (!singles.isEmpty()) {
+            messageWriter.writeSingles(writer, singles);
         }
     }
 
@@ -121,18 +140,16 @@ public class Aggregator<E> {
         last.set(currentTime);
         stepCounter.set(0);
 
-        Collection<E> lastCache = cache;
-        cache = new ConcurrentLinkedQueue<E>();
+        CountedQueue<E> lastCache = cache;
+        cache = new CountedQueue<E>();
 
-        synchronized (this) {
-            messageWriter.writeStatMessages(writer, lastCache, (1 + currentTime - lastTime));
-        }
-        lastCache.clear();
+        messageWriter.writeStatMessages(writer, lastCache, (1 + currentTime - lastTime));
     }
 
-    private void sendSingle(E event, int lines) throws IOException {
-        synchronized (this) {
-            messageWriter.writeSingleMessage(writer, event, lines);
+    private void sendSingle(final E event, final int lines) throws IOException {
+        singles.add(new EventWrapper<E>(event, lines));
+        if (singles.getCount() > seriesSenderConfig.getMessageSkipThreshold()) {
+            singles.poll();
         }
     }
 
@@ -142,7 +159,7 @@ public class Aggregator<E> {
 
     public void addSendMessageTrigger(LogbackEventTrigger messageTrigger) {
         if (triggers == null) {
-            triggers = new SendMessageTrigger[] {messageTrigger};
+            triggers = new SendMessageTrigger[]{messageTrigger};
         } else {
             int l = triggers.length;
             triggers = Arrays.copyOf(triggers, l + 1);
@@ -152,5 +169,33 @@ public class Aggregator<E> {
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
+    }
+
+    private class Worker implements Runnable {
+        private volatile boolean stopped = false;
+
+        @Override
+        public void run() {
+            while (!stopped) {
+                if (latch.getCount() == 0) {
+                    latch = new CountDownLatch(1);
+                }
+                try {
+                    latch.await(DEFAULT_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
+
+                    checkThresholds();
+                } catch (IOException e) {
+                    // ignore
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // ignore
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        public void stop() {
+            stopped = true;
+        }
     }
 }

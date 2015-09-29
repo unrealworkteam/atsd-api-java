@@ -42,7 +42,7 @@
                 <port>35791</port>
             </writer>
             <!-- default: TRACE -->
-            <level>WARN</level>
+            <level>INFO</level>
             <!-- default: $HOSTNAME -->
             <entity>localhost</entity>
             <sendSeries>
@@ -51,9 +51,9 @@
                 <!-- default: log_event -->
                 <metric>log_event</metric>
                 <!-- default: _total -->
-                <totalMetricSuffix>_sum</totalMetricSuffix>
+                <totalSuffix>_sum</totalSuffix>
                 <!-- default: 60 -->
-                <periodSeconds>30</periodSeconds>
+                <periodSeconds>1</periodSeconds>
                 <!-- default: 0 -->
                 <sendThreshold>10</sendThreshold>
                 <!-- default: 5 -->

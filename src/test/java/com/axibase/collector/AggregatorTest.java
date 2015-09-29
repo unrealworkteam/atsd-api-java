@@ -58,12 +58,15 @@ public class AggregatorTest extends TestCase {
         aggregator.setWriter(mockWriter);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
         aggregator.addSendMessageTrigger(new LogbackEventTrigger(7));
+        aggregator.start();
         for (int i = 0; i < cnt; i++) {
             assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread")));
         }
-        Thread.sleep(1001);
+        Thread.sleep(750);
         assertTrue(aggregator.register(TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread")));
+        Thread.sleep(1000);
 
+        System.out.println("t = " + System.currentTimeMillis());
         // (2 (every) + 3 (cnt) + 3 (time)) * 2 (prefix + content) = 16
         verify(mockWriter, times(16)).write(any(ByteBuffer.class));
     }

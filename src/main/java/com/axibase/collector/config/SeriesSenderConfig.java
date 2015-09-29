@@ -26,20 +26,30 @@ public class SeriesSenderConfig {
     public static final int DEFAULT_ZERO_REPEAT_COUNT = 1;
     public static final long SECOND = 1000L;
     private static final long MINUTE = 60 * SECOND;
-    public static final long DEFAULT_PERIOD_SECONDS = MINUTE;
-    public static final long DEFAULT_MIN_PERIOD_SECONDS = 5 * SECOND;
+    public static final long DEFAULT_PERIOD_MS = MINUTE;
+    public static final long DEFAULT_MIN_PERIOD_MS = 5 * MINUTE;
+    public static final int MIN_MESSAGE_SKIP_THRESHOLD = 10;
+    public static final int DEFAULT_MESSAGE_SKIP_THRESHOLD = 100;
+    public static final int MAX_MESSAGE_SKIP_THRESHOLD = 1000;
+    public static final int DEFAULT_CACHE_FLUSH_THRESHOLD = 10000;
+    public static final int DEFAULT_CACHE_SKIP_THRESHOLD = 100000;
+
     public static final SeriesSenderConfig DEFAULT = new SeriesSenderConfig();
 
     private String metric = DEFAULT_METRIC_NAME;
     private int zeroRepeatCount = DEFAULT_ZERO_REPEAT_COUNT;
-    private long periodMs = DEFAULT_PERIOD_SECONDS * SECOND;
-    private long minPeriodMs = DEFAULT_MIN_PERIOD_SECONDS * SECOND;
+    private long periodMs = DEFAULT_PERIOD_MS;
+    private long minPeriodMs = DEFAULT_MIN_PERIOD_MS;
     private int sendThreshold;
     private long ratePeriodMs = MINUTE;
 
     private String rateSuffix = DEFAULT_RATE_SUFFIX;
     private String totalSuffix = DEFAULT_TOTAL_SUFFIX;
     private String counterSuffix = DEFAULT_COUNTER_SUFFIX;
+
+    private int messageSkipThreshold = DEFAULT_MESSAGE_SKIP_THRESHOLD;
+    private int cacheFlushThreshold = DEFAULT_CACHE_FLUSH_THRESHOLD;
+    private int cacheSkipThreshold = DEFAULT_CACHE_SKIP_THRESHOLD;
 
     public SeriesSenderConfig() {
     }
@@ -132,5 +142,35 @@ public class SeriesSenderConfig {
             throw new IllegalArgumentException("Period value must by more than 0, currently " + ratePeriodSeconds);
         }
         this.ratePeriodMs = ratePeriodSeconds * SECOND;
+    }
+
+    public void setMessageSkipThreshold(int messageSkipThreshold) {
+        if (messageSkipThreshold < MIN_MESSAGE_SKIP_THRESHOLD) {
+            this.messageSkipThreshold = MIN_MESSAGE_SKIP_THRESHOLD;
+        } else if (messageSkipThreshold>MAX_MESSAGE_SKIP_THRESHOLD) {
+            this.messageSkipThreshold = MAX_MESSAGE_SKIP_THRESHOLD;
+        } else {
+            this.messageSkipThreshold = messageSkipThreshold;
+        }
+    }
+
+    public void setCacheFlushThreshold(int cacheFlushThreshold) {
+        this.cacheFlushThreshold = cacheFlushThreshold;
+    }
+
+    public void setCacheSkipThreshold(int cacheSkipThreshold) {
+        this.cacheSkipThreshold = cacheSkipThreshold;
+    }
+
+    public int getMessageSkipThreshold() {
+        return messageSkipThreshold;
+    }
+
+    public int getCacheFlushThreshold() {
+        return cacheFlushThreshold;
+    }
+
+    public int getCacheSkipThreshold() {
+        return cacheSkipThreshold;
     }
 }

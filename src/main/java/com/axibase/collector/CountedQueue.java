@@ -15,21 +15,37 @@
 
 package com.axibase.collector;
 
-
-import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
-import java.util.Collection;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author Nikolay Malevanny.
  */
-public interface MessageWriter<E> {
-    void writeStatMessages(WritableByteChannel writer, Collection<E> events, long deltaTime) throws IOException;
+public class CountedQueue<E> extends ConcurrentLinkedQueue<E> {
+    private volatile int count;
 
-    void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException;
+    @Override
+    public boolean offer(E e) {
+        boolean offer = super.offer(e);
+        if (offer) {
+            count++;
+        }
+        return offer;
+    }
 
-    void start();
+    @Override
+    public E poll() {
+        E value = super.poll();
+        if (count > 0) {
+            count--;
+        }
+        return value;
+    }
 
-    void stop();
+    public void clearCount() {
+        count = 0;
+    }
+
+    public int getCount() {
+        return count;
+    }
 }

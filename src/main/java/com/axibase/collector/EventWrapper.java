@@ -15,21 +15,23 @@
 
 package com.axibase.collector;
 
-
-import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
-import java.util.Collection;
-import java.util.Queue;
-
 /**
  * @author Nikolay Malevanny.
  */
-public interface MessageWriter<E> {
-    void writeStatMessages(WritableByteChannel writer, Collection<E> events, long deltaTime) throws IOException;
+public class EventWrapper<E> {
+    private final E event;
+    private final int lines;
 
-    void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException;
+    public EventWrapper(E event, int lines) {
+        this.event = event;
+        this.lines = lines;
+    }
 
-    void start();
+    public E getEvent() {
+        return event;
+    }
 
-    void stop();
+    public int getLines() {
+        return lines;
+    }
 }

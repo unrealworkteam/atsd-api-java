@@ -18,10 +18,12 @@ package com.axibase.collector.logback;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import com.axibase.collector.config.SeriesSenderConfig;
-import com.axibase.collector.config.Tag;
+import com.axibase.collector.CountedQueue;
+import com.axibase.collector.EventWrapper;
 import com.axibase.collector.TestUtils;
 import com.axibase.collector.Utils;
+import com.axibase.collector.config.SeriesSenderConfig;
+import com.axibase.collector.config.Tag;
 import junit.framework.TestCase;
 
 import java.io.IOException;
@@ -118,11 +120,17 @@ public class LogbackMessageWriterTest extends TestCase {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
         LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
-        messageBuilder.writeSingleMessage(catcher, event, 0);
+        messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
         assertEquals(
                 "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger ",
                 result.substring(0, result.indexOf("ms:1")));
+    }
+
+    private CountedQueue<EventWrapper<ILoggingEvent>> createSingles(LoggingEvent event, int lines) {
+        CountedQueue<EventWrapper<ILoggingEvent>> singles = new CountedQueue<EventWrapper<ILoggingEvent>>();
+        singles.add(new EventWrapper<ILoggingEvent>(event, lines));
+        return singles;
     }
 
     public void testBuildSingleMessageWithLines() throws Exception {
@@ -130,7 +138,7 @@ public class LogbackMessageWriterTest extends TestCase {
         LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
         StringsCatcher catcher = new StringsCatcher();
-        messageBuilder.writeSingleMessage(catcher, event, 10);
+        messageBuilder.writeSingles(catcher, createSingles(event, 10));
         String result = catcher.sb.toString();
         assertEquals("message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger ",
                 result.substring(0, result.indexOf("ms:1")));

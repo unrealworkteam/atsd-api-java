@@ -13,23 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.collector;
-
+package com.axibase.collector.writer;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
-import java.util.Collection;
-import java.util.Queue;
+import java.nio.ByteBuffer;
 
 /**
  * @author Nikolay Malevanny.
  */
-public interface MessageWriter<E> {
-    void writeStatMessages(WritableByteChannel writer, Collection<E> events, long deltaTime) throws IOException;
+public class HttpStreamingAtsdWriter extends AbstractAtsdWriter {
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        return 0;
+    }
 
-    void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException;
+    @Override
+    public boolean isOpen() {
+        return false;
+    }
 
-    void start();
+    @Override
+    public void close() throws IOException {
 
-    void stop();
+    }
 }
