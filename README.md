@@ -8,7 +8,7 @@ By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get star
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>0.3.25</version>
+            <version>0.3.31</version>
         </dependency>
 ```
 
@@ -71,7 +71,7 @@ git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
 cd target
-java -cp "atsd-api-java-0.3.25.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
+java -cp "atsd-api-java-0.3.31.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
 ```
 
 ## Examples
@@ -271,9 +271,9 @@ Using the collected statistics you can monitor the stability of applications on 
 | level | no | TRACE | minimum level to process event |
 | entity | no | current hostname | entity name for series and messages |
 | tag | no | - | custom tag(s) to attach to series and messages, MULTIPLE |
-| writer | no | - | see writer config |
+| writer | yes | - | see writer config |
 | sendSeries | yes | - | see sendSeries config |
-| sendMessage | yes | - | see sendMessage config, MULTIPLE |
+| sendMessage | no | - | see sendMessage config, MULTIPLE |
 
 
 ## writer
@@ -381,7 +381,7 @@ Using the collected statistics you can monitor the stability of applications on 
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
 [atsd-api]:https://axibase.com/atsd/api/
-[atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/0.3.3/atsd-api-java-0.3.3-bin.zip
+[atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/0.3.31/atsd-api-java-0.3.31-bin.zip
 [atsd-issues]:https://www.axibase.com/support.htm
 [atsd-read-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientReadExample.java
 [atsd-write-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientWriteExample.java
