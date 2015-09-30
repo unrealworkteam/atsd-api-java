@@ -27,7 +27,7 @@ public class SeriesSenderConfig {
     public static final long SECOND = 1000L;
     private static final long MINUTE = 60 * SECOND;
     public static final long DEFAULT_PERIOD_MS = MINUTE;
-    public static final long DEFAULT_MIN_PERIOD_MS = 5 * MINUTE;
+    public static final long DEFAULT_MIN_PERIOD_MS = 5 * SECOND;
     public static final int MIN_MESSAGE_SKIP_THRESHOLD = 10;
     public static final int DEFAULT_MESSAGE_SKIP_THRESHOLD = 100;
     public static final int MAX_MESSAGE_SKIP_THRESHOLD = 1000;
