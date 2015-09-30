@@ -278,6 +278,8 @@ Using the collected statistics you can monitor the stability of applications on 
 
 ## writer
 
+Data transmission configuration that will be used to send statistics and messages to ATSD.
+
 ### TCP writer
 
 ```xml
@@ -325,6 +327,8 @@ Using the collected statistics you can monitor the stability of applications on 
 
 ## sendSeries
 
+Log aggregation configuration to generate statistics and send them to ATSD.
+
 ```xml
 <sendSeries>
     <!-- 0+ default:1 -->
@@ -359,6 +363,8 @@ Using the collected statistics you can monitor the stability of applications on 
 
 
 ## sendMessage
+
+Log example selection configuration to send them as messages to ATSD.
 
 ```xml
 <sendMessage>
