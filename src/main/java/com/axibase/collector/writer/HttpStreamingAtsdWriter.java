@@ -206,7 +206,11 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                         lastCommandTime = System.currentTimeMillis();
                     }
                 }
-                LockSupport.parkNanos(1);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
