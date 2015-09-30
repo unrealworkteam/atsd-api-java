@@ -17,6 +17,7 @@ package com.axibase.collector.writer;
 
 import com.axibase.collector.CountedQueue;
 import com.axibase.tsd.util.AtsdUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -27,6 +28,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -40,6 +42,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -47,6 +50,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class HttpStreamingAtsdWriter implements WritableByteChannel {
     public static final int DEFAULT_SKIP_DATA_THRESHOLD = 100000;
+    public static final int MIN_RECONNECTION_TIME = 30 * 1000;
     private int skipDataThreshold = DEFAULT_SKIP_DATA_THRESHOLD;
     private String url;
     private String username;
@@ -54,6 +58,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     private CountedQueue<ByteBuffer> data = new CountedQueue<ByteBuffer>();
     private StreamingWorker streamingWorker;
     private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+    private long lastConnectionTryTime = 0;
 
     public void setUrl(String url) {
         this.url = url;
@@ -77,18 +82,34 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
             connect();
         }
 
-        data.add(src);
-        if (data.getCount() > skipDataThreshold) {
-            data.poll(); // clean oldest data item
+        if (streamingWorker != null) {
+            data.add(src);
+            if (data.getCount() > skipDataThreshold) {
+                data.poll(); // clean oldest data item
+            }
+            return src.remaining();
         }
         return 0;
     }
 
     private void connect() {
+        if (System.currentTimeMillis() - lastConnectionTryTime < MIN_RECONNECTION_TIME) {
+            // ignore
+            return;
+        }
+        lastConnectionTryTime = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(1);
         streamingWorker = new StreamingWorker(data, latch, url);
         streamingWorker.setCredentials(username, password);
         singleThreadExecutor.execute(streamingWorker);
+        try {
+            if (!latch.await(StreamingWorker.TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                streamingWorker.stop();
+                streamingWorker = null;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -212,29 +233,49 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     .build();
 
             try {
-                HttpPost httpPost = new HttpPost(url);
-                RequestConfig requestConfig = RequestConfig.custom()
-                        .setSocketTimeout(TIMEOUT_MS)
-                        .setConnectTimeout(TIMEOUT_MS)
-                        .setConnectionRequestTimeout(TIMEOUT_MS)
-                        .build();
-                httpPost.setConfig(requestConfig);
-                httpPost.setEntity(new BufferedHttpEntity(this));
-                if (StringUtils.isNotEmpty(username)) {
-                    httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
-                            (username + ":" + password).getBytes()
-                    ));
-                }
-                CloseableHttpResponse response = httpClient.execute(httpPost);
-                StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
-                    System.err.println("HTTP: " + statusLine.getStatusCode() + ", " + statusLine.getReasonPhrase());
-                }
+                checkConfiguration();
+                    HttpPost httpPost = createRequest();
+                    httpPost.setEntity(new BufferedHttpEntity(this));
+                    CloseableHttpResponse response = httpClient.execute(httpPost);
+                    StatusLine statusLine = response.getStatusLine();
+                    if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+                        System.err.println("HTTP: " + statusLine.getStatusCode() + ", " + statusLine.getReasonPhrase());
+                    }
             } catch (Exception e){
                 e.printStackTrace();
             } finally {
                 stop();
             }
+        }
+
+        private void checkConfiguration() throws IOException {
+            HttpPost httpPost = createRequest();
+            httpPost.setEntity(new StringEntity(AtsdUtil.PING_COMMAND));
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+                System.err.println("HTTP: " + statusLine.getStatusCode() + ", " + statusLine.getReasonPhrase());
+                throw new IllegalStateException("Could not connect to URL: " + url + ", reason: " + statusLine.getReasonPhrase());
+            } else {
+                InputStream content = response.getEntity().getContent();
+                IOUtils.closeQuietly(content);
+            }
+        }
+
+        private HttpPost createRequest() {
+            HttpPost httpPost = new HttpPost(url);
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(TIMEOUT_MS)
+                    .setConnectTimeout(TIMEOUT_MS)
+                    .setConnectionRequestTimeout(TIMEOUT_MS)
+                    .build();
+            httpPost.setConfig(requestConfig);
+            if (StringUtils.isNotEmpty(username)) {
+                httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
+                        (username + ":" + password).getBytes()
+                ));
+            }
+            return httpPost;
         }
 
         public void stop() {
