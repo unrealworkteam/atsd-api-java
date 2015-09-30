@@ -271,9 +271,9 @@ Using the collected statistics you can monitor the stability of applications on 
 | level | no | TRACE | minimum level to process event |
 | entity | no | current hostname | entity name for series and messages |
 | tag | no | - | custom tag(s) to attach to series and messages, MULTIPLE |
-| writer | yes | - | see writer config |
-| sendSeries | yes | - | see sendSeries config |
-| sendMessage | no | - | see sendMessage config, MULTIPLE |
+| writer | yes | - | see `writer` config |
+| sendSeries | yes | - | see `sendSeries` config |
+| sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 
 
 ## writer
