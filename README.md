@@ -234,8 +234,6 @@ Log statistics collector is used to gather statistics on errors and warnings in 
 
 Using the collected statistics you can monitor the stability of applications on different servers in the long term. You can configure rules to be notified of application errors, which will reduce the time it takes to eliminate the errors.
 
-## Filter
-
 ```xml 
        <filter class="com.axibase.collector.logback.Collector">
             <writer class="com.axibase.collector.writer.HttpStreamingAtsdWriter">
