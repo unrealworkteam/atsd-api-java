@@ -19,6 +19,7 @@ package com.axibase.collector.config;
  * @author Nikolay Malevanny.
  */
 public class SeriesSenderConfig {
+    public static final int DEFAULT_CHECK_PERIOD_MS = 333;
     public static final String DEFAULT_METRIC_NAME = "log_event";
     public static final String DEFAULT_RATE_SUFFIX = "_rate";
     public static final String DEFAULT_TOTAL_SUFFIX = "_total";
@@ -31,8 +32,6 @@ public class SeriesSenderConfig {
     public static final int MIN_MESSAGE_SKIP_THRESHOLD = 10;
     public static final int DEFAULT_MESSAGE_SKIP_THRESHOLD = 100;
     public static final int MAX_MESSAGE_SKIP_THRESHOLD = 1000;
-    public static final int DEFAULT_CACHE_FLUSH_THRESHOLD = 10000;
-    public static final int DEFAULT_CACHE_SKIP_THRESHOLD = 100000;
 
     public static final SeriesSenderConfig DEFAULT = new SeriesSenderConfig();
 
@@ -48,8 +47,7 @@ public class SeriesSenderConfig {
     private String counterSuffix = DEFAULT_COUNTER_SUFFIX;
 
     private int messageSkipThreshold = DEFAULT_MESSAGE_SKIP_THRESHOLD;
-    private int cacheFlushThreshold = DEFAULT_CACHE_FLUSH_THRESHOLD;
-    private int cacheSkipThreshold = DEFAULT_CACHE_SKIP_THRESHOLD;
+    private int checkPeriodMs = DEFAULT_CHECK_PERIOD_MS;
 
     public SeriesSenderConfig() {
     }
@@ -154,23 +152,15 @@ public class SeriesSenderConfig {
         }
     }
 
-    public void setCacheFlushThreshold(int cacheFlushThreshold) {
-        this.cacheFlushThreshold = cacheFlushThreshold;
-    }
-
-    public void setCacheSkipThreshold(int cacheSkipThreshold) {
-        this.cacheSkipThreshold = cacheSkipThreshold;
-    }
-
     public int getMessageSkipThreshold() {
         return messageSkipThreshold;
     }
 
-    public int getCacheFlushThreshold() {
-        return cacheFlushThreshold;
+    public int getCheckPeriodMs() {
+        return checkPeriodMs;
     }
 
-    public int getCacheSkipThreshold() {
-        return cacheSkipThreshold;
+    public void setCheckPeriodMs(int checkPeriodMs) {
+        this.checkPeriodMs = checkPeriodMs;
     }
 }

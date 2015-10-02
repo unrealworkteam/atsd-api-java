@@ -14,6 +14,8 @@
   -->
 
 <configuration>
+    <param name="packagingDataEnabled" value="false"/>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -27,6 +29,7 @@
             <sendSeries>
                 <sendThreshold>10</sendThreshold>
                 <minPeriodSeconds>0</minPeriodSeconds>
+                <zeroRepeatCount>0</zeroRepeatCount>
             </sendSeries>
             <sendMessage>
                 <every>7</every>
@@ -94,7 +97,7 @@
             <sendMessage>
                 <level>WARN</level>
                 <every>7</every>
-                <stackTraceLines>5</stackTraceLines>
+                <stackTraceLines>55</stackTraceLines>
             </sendMessage>
         </filter>
     </appender>

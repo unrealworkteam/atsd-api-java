@@ -18,7 +18,9 @@ package com.axibase.collector;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
 
 /**
  * @author Nikolay Malevanny.
@@ -39,10 +41,14 @@ public class TestUtils {
                                                   String message,
                                                   String threadName,
                                                   Throwable e) {
-         final LoggerContext ctx = new LoggerContext();
+        final LoggerContext ctx = new LoggerContext();
         Logger logger = ctx.getLogger(loggerName);
         LoggingEvent loggingEvent = new LoggingEvent(null, logger, level, message, e, null);
         loggingEvent.setLoggerName(loggerName);
         return loggingEvent;
+    }
+
+    public static ILoggingEvent createLoggingEvent() {
+        return createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
     }
 }

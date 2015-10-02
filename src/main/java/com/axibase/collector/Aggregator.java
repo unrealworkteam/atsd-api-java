@@ -16,55 +16,55 @@
 package com.axibase.collector;
 
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.collector.config.SeriesSenderConfig;
-import com.axibase.collector.logback.LogbackEventTrigger;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class Aggregator<E> {
-    public static final int DEFAULT_CHECK_PERIOD_MS = 333;
+public class Aggregator<E, K, L> {
     private final Worker worker = new Worker();
-    private volatile CountedQueue<E> cache = new CountedQueue<E>();
+    private final ConcurrentMap<K, SyncEventCounter<E, L>> total =
+            new ConcurrentHashMap<K, SyncEventCounter<E, L>>();
     private CountedQueue<EventWrapper<E>> singles = new CountedQueue<EventWrapper<E>>();
-    private AtomicInteger stepCounter = new AtomicInteger(0);
-    private AtomicLong last = new AtomicLong(System.currentTimeMillis());
+    private AtomicLong totalCounter = new AtomicLong(0);
     private WritableByteChannel writer;
-    private final MessageWriter<E> messageWriter;
+    private final MessageWriter<E, K, L> messageWriter;
+    private final EventProcessor<E, K, L> eventProcessor;
     private ExecutorService senderExecutor;
-    private volatile CountDownLatch latch = new CountDownLatch(1);
     private SendMessageTrigger<E>[] triggers = null;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
 
     private int skippedCount = 0;
 
-    public Aggregator(MessageWriter<E> messageWriter) {
+    public Aggregator(MessageWriter<E, K, L> messageWriter, EventProcessor<E, K, L> eventProcessor) {
         this.messageWriter = messageWriter;
+        this.eventProcessor = eventProcessor;
     }
 
     public boolean register(E event) throws IOException {
         try {
-            cache.add(event);
-            stepCounter.incrementAndGet();
+            K key = eventProcessor.extractKey(event);
+            SyncEventCounter<E, L> counter = total.get(key);
+            if (counter == null) {
+                counter = eventProcessor.createSyncCounter();
+                SyncEventCounter<E, L> old = total.putIfAbsent(key, counter);
+                counter = old == null ? counter : old;
+            }
+            counter.increment(event);
 
-            int count = cache.getCount();
-            if (count > 0 && count % seriesSenderConfig.getCacheFlushThreshold() == 0) {
-                latch.countDown();
-            }
-            if (count > seriesSenderConfig.getCacheSkipThreshold()) {
-                if (++skippedCount % seriesSenderConfig.getCacheSkipThreshold() == 0) {
-                    System.err.println("skipped: " + skippedCount + " events");
-                }
-                cache.poll(); // kill oldest
-            }
+            totalCounter.incrementAndGet();
 
             if (triggers != null) {
                 int lines = 0;
@@ -91,6 +91,13 @@ public class Aggregator<E> {
         return true;
     }
 
+    private void sendSingle(final E event, final int lines) throws IOException {
+        singles.add(new EventWrapper<E>(event, lines));
+        if (singles.getCount() > seriesSenderConfig.getMessageSkipThreshold()) {
+            singles.poll();
+        }
+    }
+
     public void start() {
         senderExecutor = Executors.newSingleThreadExecutor();
         senderExecutor.execute(worker);
@@ -112,62 +119,13 @@ public class Aggregator<E> {
         }
     }
 
-    private void checkThresholds() throws IOException {
-        int cnt = stepCounter.get();
-        long currentTime = System.currentTimeMillis();
-        long lastTime = last.get();
-        long dt = currentTime - lastTime;
-        long periodMs = seriesSenderConfig.getPeriodMs();
-        if (dt > periodMs) {
-            if (last.compareAndSet(lastTime, currentTime)) {
-                flush(lastTime, currentTime);
-                cnt = 0;
-            }
-        }
-
-        int sendThreshold = seriesSenderConfig.getSendThreshold();
-        if ((sendThreshold > 0 && dt > seriesSenderConfig.getMinPeriodMs() && cnt > sendThreshold)
-                || cnt > seriesSenderConfig.getCacheFlushThreshold()) {
-            for (; ; ) {
-                int last = stepCounter.get();
-                if (last == 0) {
-                    break;
-                }
-                if (stepCounter.compareAndSet(last, 0)) {
-                    flush(lastTime, currentTime);
-                    break;
-                }
-            }
-        }
-        if (!singles.isEmpty()) {
-            messageWriter.writeSingles(writer, singles);
-        }
-    }
-
-    protected void flush(long lastTime, long currentTime) throws IOException {
-        last.set(currentTime);
-        stepCounter.set(0);
-
-        CountedQueue<E> lastCache = cache;
-        cache = new CountedQueue<E>();
-
-        messageWriter.writeStatMessages(writer, lastCache, (1 + currentTime - lastTime));
-    }
-
-    private void sendSingle(final E event, final int lines) throws IOException {
-        singles.add(new EventWrapper<E>(event, lines));
-        if (singles.getCount() > seriesSenderConfig.getMessageSkipThreshold()) {
-            singles.poll();
-        }
-    }
-
     public void setWriter(WritableByteChannel writer) {
         this.writer = writer;
     }
 
-    public void addSendMessageTrigger(LogbackEventTrigger messageTrigger) {
+    public void addSendMessageTrigger(SendMessageTrigger<E> messageTrigger) {
         if (triggers == null) {
-            triggers = new SendMessageTrigger[]{messageTrigger};
+            triggers = new SendMessageTrigger[] {messageTrigger};
         } else {
             int l = triggers.length;
             triggers = Arrays.copyOf(triggers, l + 1);
@@ -180,17 +138,17 @@ public class Aggregator<E> {
     }
 
     private class Worker implements Runnable {
+        private final Map<K, EventCounter<L>> lastTotal = new HashMap<K, EventCounter<L>>();
+        private long lastTotalCounter = 0;
+        private long last = System.currentTimeMillis();
+
         private volatile boolean stopped = false;
 
         @Override
         public void run() {
             while (!stopped) {
-                if (latch.getCount() == 0) {
-                    latch = new CountDownLatch(1);
-                }
                 try {
-                    latch.await(DEFAULT_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
-
+                    Thread.sleep(seriesSenderConfig.getCheckPeriodMs());
                     checkThresholds();
                 } catch (IOException e) {
                     // ignore
@@ -200,6 +158,48 @@ public class Aggregator<E> {
                     Thread.currentThread().interrupt();
                 }
             }
+        }
+
+        private void checkThresholds() throws IOException {
+            long cnt = totalCounter.get() - lastTotalCounter;
+            long currentTime = System.currentTimeMillis();
+            long dt = currentTime - last;
+            long periodMs = seriesSenderConfig.getPeriodMs();
+            if (dt > periodMs) {
+                flush(last, currentTime);
+                cnt = 0;
+            }
+
+            int sendThreshold = seriesSenderConfig.getSendThreshold();
+            if (sendThreshold > 0 && dt > seriesSenderConfig.getMinPeriodMs() && cnt > sendThreshold) {
+                flush(last, currentTime);
+            }
+
+            if (!singles.isEmpty()) {
+                messageWriter.writeSingles(writer, singles);
+            }
+        }
+
+        protected void flush(long lastTime, long currentTime) throws IOException {
+            last = currentTime;
+
+            Map<K, EventCounter<L>> diff = new HashMap<K, EventCounter<L>>();
+
+            for (Map.Entry<K, SyncEventCounter<E, L>> kcEntry : total.entrySet()) {
+                K key = kcEntry.getKey();
+                SyncEventCounter<E, L> currentCount = kcEntry.getValue();
+                EventCounter<L> lastCount = lastTotal.get(key);
+                if (lastCount == null) {
+                    lastCount = eventProcessor.createCounter();
+                    lastTotal.put(key, lastCount);
+                }
+                EventCounter<L> diffCount = currentCount.updateAndCreateDiff(lastCount);
+                if (diffCount != null) {
+                    diff.put(key, diffCount);
+                }
+            }
+
+            messageWriter.writeStatMessages(writer, diff, (1 + currentTime - lastTime));
         }
 
         public void stop() {

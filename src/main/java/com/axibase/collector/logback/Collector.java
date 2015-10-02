@@ -26,14 +26,21 @@ import com.axibase.collector.config.Tag;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Nikolay Malevanny.
  */
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
-    private final LogbackMessageWriter<E> logbackMessageBuilder = new LogbackMessageWriter<E>();
-    private final Aggregator<E> aggregator = new Aggregator<E>(logbackMessageBuilder);
+    private LogbackMessageWriter<E> logbackMessageBuilder;
+    private Aggregator<E, String ,Level> aggregator;
     private Level level = Level.TRACE;
+    private SeriesSenderConfig seriesSenderConfig;
+    private String entity;
+    private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
+    private final List<Tag> tags = new ArrayList<Tag>();
+    private WritableByteChannel writer;
 
     @Override
     public FilterReply decide(E event) {
@@ -50,6 +57,25 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     @Override
     public void start() {
         super.start();
+        logbackMessageBuilder = new LogbackMessageWriter<E>();
+        if (entity != null) {
+            logbackMessageBuilder.setEntity(entity);
+        }
+        if (seriesSenderConfig != null) {
+            logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        }
+        logbackMessageBuilder.setContext(getContext());
+        for (Tag tag : tags) {
+            logbackMessageBuilder.addTag(tag);
+        }
+        aggregator = new Aggregator<E, String ,Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
+        aggregator.setWriter(writer);
+        if (seriesSenderConfig != null) {
+            aggregator.setSeriesSenderConfig(seriesSenderConfig);
+        }
+        for (LogbackEventTrigger<E> trigger : triggers) {
+            aggregator.addSendMessageTrigger(trigger);
+        }
         aggregator.start();
         logbackMessageBuilder.start();
     }
@@ -62,7 +88,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     public void setTag(Tag tag) {
-        logbackMessageBuilder.addTag(tag);
+        tags.add(tag);
     }
 
     public void setLevel(Level level) {
@@ -70,21 +96,20 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     public void setWriter(WritableByteChannel writer) {
-        aggregator.setWriter(writer);
+        this.writer = writer;
     }
     
     public void setEntity(String entity) {
-        logbackMessageBuilder.setEntity(entity);
+        this.entity = entity;
     }
 
-    public void setSendMessage(LogbackEventTrigger messageTrigger) {
+    public void setSendMessage(LogbackEventTrigger<E> messageTrigger) {
         if (messageTrigger.getEvery() > 0) {
-            aggregator.addSendMessageTrigger(messageTrigger);
+            triggers.add(messageTrigger);
         }
     }
 
     public void setSendSeries(SeriesSenderConfig seriesSenderConfig) {
-        aggregator.setSeriesSenderConfig(seriesSenderConfig);
-        logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        this.seriesSenderConfig = seriesSenderConfig;
     }
 }

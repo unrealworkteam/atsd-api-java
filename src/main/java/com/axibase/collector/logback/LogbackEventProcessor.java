@@ -15,38 +15,30 @@
 
 package com.axibase.collector.logback;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.axibase.collector.EventCounter;
+import com.axibase.collector.EventProcessor;
+import com.axibase.collector.SimpleCounter;
+import com.axibase.collector.SyncEventCounter;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class SendCounter implements WritableByteChannel {
-    private volatile static long count;
-
-    public static long getCount() {
-        return count;
-    }
-
-    public static void clear() {
-        System.out.println("SendCounter.clear");
-        count = 0;
+public class LogbackEventProcessor<E extends ILoggingEvent>
+        implements EventProcessor <E, String, Level> {
+    @Override
+    public SyncEventCounter<E, Level> createSyncCounter() {
+        return new LogbackSyncCounter<E>();
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
-        count++;
-        return 1;
+    public EventCounter<Level> createCounter() {
+        return new SimpleCounter<Level>();
     }
 
     @Override
-    public boolean isOpen() {
-        return false;
-    }
-
-    @Override
-    public void close() throws IOException {
-
+    public String extractKey(E event) {
+        return event.getLoggerName();
     }
 }

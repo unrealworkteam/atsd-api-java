@@ -17,6 +17,9 @@ package com.axibase.collector.logback;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
+import ch.qos.logback.core.spi.ContextAwareBase;
 import com.axibase.collector.*;
 import com.axibase.collector.config.SeriesSenderConfig;
 import com.axibase.collector.config.Tag;
@@ -29,7 +32,9 @@ import java.util.*;
 /**
  * @author Nikolay Malevanny.
  */
-public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWriter<E> {
+public class LogbackMessageWriter<E extends ILoggingEvent>
+        extends ContextAwareBase
+        implements MessageWriter<E, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = Utils.resolveHostname();
     private final Map<Key, Counter> story = new HashMap<Key, Counter>();
@@ -41,7 +46,9 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer, Collection<E> events, long deltaTime) throws IOException {
+    public void writeStatMessages(WritableByteChannel writer,
+                                  Map<String, EventCounter<Level>> diff,
+                                  long deltaTime) throws IOException {
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta tie value: " + deltaTime);
         }
@@ -61,16 +68,21 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
         }
 
         // increment using new events
-        for (E event : events) {
-            Key key = new Key(event.getLevel(), event.getLoggerName());
-            Counter counter = story.get(key);
-            if (counter == null) {
-                story.put(key, new Counter(1, zeroRepeatCount));
-            } else {
-                counter.increment();
-                counter.setZeroRepeats(zeroRepeatCount);
+        for (Map.Entry<String, EventCounter<Level>> loggerAndCounter : diff.entrySet()) {
+            EventCounter<Level> extCounter = loggerAndCounter.getValue();
+            for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
+                Key key = new Key(levelAndCnt.getKey(), loggerAndCounter.getKey());
+                long v = levelAndCnt.getValue();
+                Counter counter = story.get(key);
+                if (counter == null) {
+                    story.put(key, new Counter(v, zeroRepeatCount));
+                } else {
+                    counter.add(v);
+                    counter.setZeroRepeats(zeroRepeatCount);
+                }
             }
         }
+
         long time = System.currentTimeMillis();
 
         // compose & clean
@@ -82,7 +94,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             } else {
                 Key key = entry.getKey();
                 Level level = key.getLevel();
-                int value = counter.value;
+                long value = counter.value;
                 try {
                     writer.write(seriesRatePrefix.duplicate());
                     StringBuilder sb = new StringBuilder();
@@ -94,8 +106,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                     sb.append(" ms:").append(time).append("\n");
                     writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
                 } catch (Throwable e) {
-                    // ignore
-                    e.printStackTrace();
+                    addError("Could not write series", e);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -135,8 +146,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
                 sb.append(" ms:").append(time).append("\n");
                 writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
             } catch (Throwable e) {
-                // ignore
-                e.printStackTrace();
+                addError("Could not write series", e);
             } finally {
                 entry.getValue().decrementZeroRepeats();
             }
@@ -147,25 +157,37 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException {
         EventWrapper<E> wrapper;
         while ((wrapper = singles.poll()) != null) {
-            E event = wrapper.getEvent();
-            writer.write(messagePrefix.duplicate());
-            StringBuilder sb = new StringBuilder();
-            String message = event.getFormattedMessage();
-            int lines = wrapper.getLines();
-            if (lines > 0 && event.getCallerData() != null) {
-                StringBuilder msb = new StringBuilder(message);
-                for (int i = 0; i < event.getCallerData().length && i < lines; i++) {
-                    StackTraceElement traceElement = event.getCallerData()[i];
-                    msb.append("\n\t").append(traceElement.toString());
+            try {
+                E event = wrapper.getEvent();
+                writer.write(messagePrefix.duplicate());
+                StringBuilder sb = new StringBuilder();
+                String message = event.getFormattedMessage();
+                int lines = wrapper.getLines();
+                if (lines > 0 && event.getCallerData() != null) {
+                    StringBuilder msb = new StringBuilder(message);
+                    IThrowableProxy throwableProxy = event.getThrowableProxy();
+                    int s = 0;
+                    while (throwableProxy!= null && s++ < lines) {
+                        msb.append("\n").append(throwableProxy.getClassName())
+                                .append(": ").append(throwableProxy.getMessage());
+                        StackTraceElementProxy[] traceElementProxyArray = throwableProxy.getStackTraceElementProxyArray();
+                        for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
+                            StackTraceElementProxy traceElement = traceElementProxyArray[i];
+                            msb.append("\n\t").append(traceElement.toString());
+                        }
+                        throwableProxy = throwableProxy.getCause();
+                    }
+                    message = msb.toString();
                 }
-                message = msb.toString();
+                sb.append(Utils.sanitizeMessage(message));
+                sb.append(" t:severity=").append(event.getLevel());
+                sb.append(" t:level=").append(event.getLevel());
+                sb.append(" t:source=").append(Utils.sanitizeTagValue(event.getLoggerName()));
+                sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
+                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+            } catch (IOException e) {
+                addError("Could not write message", e);
             }
-            sb.append(Utils.sanitizeMessage(message));
-            sb.append(" t:severity=").append(event.getLevel());
-            sb.append(" t:level=").append(event.getLevel());
-            sb.append(" t:source=").append(Utils.sanitizeTagValue(event.getLoggerName()));
-            sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
-            writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
         }
         singles.clearCount();
     }
@@ -241,10 +263,10 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     }
 
     private static class Counter {
-        protected int value;
+        protected long value;
         protected int zeroRepeats;
 
-        public Counter(int value, int zeroRepeats) {
+        public Counter(long value, int zeroRepeats) {
             this.value = value;
             setZeroRepeats(zeroRepeats);
         }
@@ -253,7 +275,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
             value++;
         }
 
-        public void add(int value) {
+        public void add(long value) {
             this.value += value;
         }
 
@@ -273,7 +295,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent> implements MessageWri
     private static class CounterWithSum extends Counter {
         private long sum;
 
-        public CounterWithSum(int value, int zeroRepeats) {
+        public CounterWithSum(long value, int zeroRepeats) {
             super(value, zeroRepeats);
         }
 

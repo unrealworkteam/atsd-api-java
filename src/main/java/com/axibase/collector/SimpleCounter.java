@@ -13,40 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.collector.logback;
+package com.axibase.collector;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class SendCounter implements WritableByteChannel {
-    private volatile static long count;
+public class SimpleCounter<L> implements EventCounter<L> {
+    private Map<L, Long> map = new HashMap<L, Long>();
 
-    public static long getCount() {
-        return count;
-    }
-
-    public static void clear() {
-        System.out.println("SendCounter.clear");
-        count = 0;
+    @Override
+    public long updateAndGetDiff(L key, long cnt) {
+        Long old = map.put(key, cnt);
+        return old == null ? cnt : (cnt - old);
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
-        count++;
-        return 1;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return false;
-    }
-
-    @Override
-    public void close() throws IOException {
-
+    public Set<Map.Entry<L, Long>> values() {
+        return map.entrySet();
     }
 }
