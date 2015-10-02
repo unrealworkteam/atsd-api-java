@@ -31,9 +31,7 @@ public class AtsdUtil {
     public static final String ADD_COMMAND = "add";
     public static final String DELETE_COMMAND = "delete";
     public static final String MARKER_KEYWORD = "marker ";
-    public static final Charset UTF_8 = Charset.forName("UTF-8");
     public static final String PING_COMMAND = "ping\n";
-    public static final String SAFE_PING_COMMAND = "\nping\n";
 
     public static Map<String, String> toMap(String... tagNamesAndValues) {
         if (tagNamesAndValues == null || tagNamesAndValues.length == 0) {
