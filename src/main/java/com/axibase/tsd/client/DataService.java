@@ -14,10 +14,7 @@
 */
 package com.axibase.tsd.client;
 
-import com.axibase.tsd.model.data.Alert;
-import com.axibase.tsd.model.data.AlertHistory;
-import com.axibase.tsd.model.data.Property;
-import com.axibase.tsd.model.data.TimeFormat;
+import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
 import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
 import com.axibase.tsd.model.data.series.GetSeriesResult;
@@ -194,6 +191,16 @@ public class DataService {
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(properties)));
+    }
+
+    /**
+     * @param messages list of {@code Message} to add.
+     * @return true if success
+     */
+    public boolean insertMessages(Message... messages) {
+        QueryPart<Message> query = new Query<Message>("messages")
+                .path("insert");
+        return httpClientManager.updateData(query, post(Arrays.asList(messages)));
     }
 
     /**

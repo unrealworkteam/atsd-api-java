@@ -326,6 +326,19 @@ public class DataServiceTest {
         }
     }
 
+    @Ignore //todo use retrieveMessages to complete test
+    @Test
+    public void testInsertMessages() throws Exception {
+        final Message m1 = new Message(NNN_ENTITY, "message 1");
+        m1.setSeverity(Severity.UNKNOWN);
+        final Message m2 = new Message(NNN_ENTITY, "message 2");
+        m2.setSeverity(Severity.MINOR);
+        final Message m3 = new Message(NNN_ENTITY, "message 3");
+        m3.setSeverity(Severity.CRITICAL);
+        dataService.insertMessages(m1, m2, m3);
+    }
+
+
     @Test
     public void testRetrieveAlerts() throws Exception {
         PlainCommand plainCommand = createFireAlertSeriesCommand();
