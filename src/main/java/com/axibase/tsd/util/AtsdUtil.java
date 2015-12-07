@@ -71,6 +71,10 @@ public class AtsdUtil {
         }
     }
 
+    public static void checkType(String type) {
+        check(type, "Type is empty");
+    }
+
     public static void checkEntityName(String entityName) {
         check(entityName, "Entity name is empty");
     }

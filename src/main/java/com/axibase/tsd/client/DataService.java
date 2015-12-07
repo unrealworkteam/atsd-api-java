@@ -29,8 +29,7 @@ import java.util.*;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
-import static com.axibase.tsd.util.AtsdUtil.check;
-import static com.axibase.tsd.util.AtsdUtil.checkEntityName;
+import static com.axibase.tsd.util.AtsdUtil.*;
 
 /**
  * Provides high-level API to retrieve and update ATSD Data Objects (time-series, alerts, properties).
@@ -78,6 +77,10 @@ public class DataService {
      * @return true if success
      */
     public boolean addSeries(AddSeriesCommand... addSeriesCommands) {
+        for (AddSeriesCommand addSeriesCommand : addSeriesCommands) {
+            checkEntityName(addSeriesCommand.getEntityName());
+            checkMetricName(addSeriesCommand.getMetricName());
+        }
         QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
                 .path("insert");
         return httpClientManager.updateData(query,
@@ -188,6 +191,10 @@ public class DataService {
      * @return true if success
      */
     public boolean insertProperties(Property... properties) {
+        for (Property property : properties) {
+            checkEntityName(property.getEntityName());
+            checkType(property.getType());
+        }
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(properties)));
@@ -198,6 +205,9 @@ public class DataService {
      * @return true if success
      */
     public boolean insertMessages(Message... messages) {
+        for (Message message : messages) {
+            checkEntityName(message.getEntityName());
+        }
         QueryPart<Message> query = new Query<Message>("messages")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(messages)));
