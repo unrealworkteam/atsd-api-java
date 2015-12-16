@@ -83,7 +83,7 @@ public abstract class AbstractAtsdClientExample {
     }
 
     // Client Configuration -- way 3
-    public static void main(String[] args) {
+//    public static void main(String[] args) {
 //        Add to your pom.xml:
 //        <dependency>
 //        <groupId>org.springframework</groupId>
@@ -96,7 +96,7 @@ public abstract class AbstractAtsdClientExample {
 //        AtsdClientWriteExample example =(AtsdClientWriteExample)context.getBean("example");
 //        example.writeData();
 //        example.printData();
-    }
+//    }
 
     protected String toISODate(long time) {
         return ISO_DATE_FORMAT.format(new Date(time));
