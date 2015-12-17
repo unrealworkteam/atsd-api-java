@@ -75,6 +75,10 @@ public class HttpClientManager {
         this.streamingManager = streamingManager;
     }
 
+    public void setCheckPeriodMillis(long checkPeriodMillis) {
+        streamingManager.setCheckPeriodMillis(checkPeriodMillis);
+    }
+
     public <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
         HttpClient httpClient = borrowClient();
         try {

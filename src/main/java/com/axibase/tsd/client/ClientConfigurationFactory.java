@@ -71,8 +71,8 @@ public class ClientConfigurationFactory {
     public static ClientConfigurationFactory createInstance(String clientPropertiesFileName) {
         log.debug("Load client properties from file: {}", clientPropertiesFileName);
         Properties clientProperties = new Properties();
+        InputStream stream = null;
         try {
-            InputStream stream = null;
             if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
                 String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
                 log.info("Load properties from classpath: {}", resourcePath);
@@ -83,9 +83,10 @@ public class ClientConfigurationFactory {
                 stream = new FileInputStream(file);
             }
             clientProperties.load(stream);
-            IOUtils.closeQuietly(stream);
         } catch (Throwable e) {
             log.warn("Could not load client properties", e);
+        } finally {
+            IOUtils.closeQuietly(stream);
         }
         ClientConfigurationFactory configurationFactory = new ClientConfigurationFactory();
         configurationFactory.serverName = load(AXIBASE_TSD_API_DOMAIN + ".server.name", clientProperties, null);

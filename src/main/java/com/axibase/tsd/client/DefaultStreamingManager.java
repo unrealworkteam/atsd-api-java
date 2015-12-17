@@ -62,6 +62,11 @@ public class DefaultStreamingManager implements StreamingManager {
     }
 
     @Override
+    public void setCheckPeriodMillis(long checkPeriodMillis) {
+        this.checkPeriodMillis = checkPeriodMillis;
+    }
+
+    @Override
     public void close() {
         log.info("Close streaming manager");
         PlainSender sender = plainSender;
@@ -94,24 +99,29 @@ public class DefaultStreamingManager implements StreamingManager {
 
     @Override
     public boolean canSend() {
-        long last = lastPingTime.get();
-        long current = System.currentTimeMillis();
-        if (current - last > checkPeriodMillis) {
-            if (lastPingTime.compareAndSet(last, current)) {
-                checkExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            boolean beforeLastResult = lastPingResult;
-                            prepareAndCheckSender();
-                            if (beforeLastResult && lastPingResult) {
-                                saved.clear();
+        for(;;) {
+            long last = lastPingTime.get();
+            long current = System.currentTimeMillis();
+            if (current - last > checkPeriodMillis) {
+                if (lastPingTime.compareAndSet(last, current)) {
+                    checkExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                boolean beforeLastResult = lastPingResult;
+                                prepareAndCheckSender();
+                                if (beforeLastResult && lastPingResult) {
+                                    saved.clear();
+                                }
+                            } catch (Throwable e) {
+                                log.error("Could not prepare sender: ", e);
                             }
-                        } catch (Throwable e) {
-                            log.error("Could not prepare sender: ", e);
                         }
-                    }
-                });
+                    });
+                    break;
+                }
+            } else {
+                break;
             }
         }
         Lock readLock = senderLock.readLock();
@@ -253,6 +263,8 @@ public class DefaultStreamingManager implements StreamingManager {
     }
 
     private void compareAndSendNewMarker(String current) {
+        log.debug("Send merker: {}", current);
+
         if (httpClientManager.getClientConfiguration().isSkipStreamingControl()) {
             return;
         }

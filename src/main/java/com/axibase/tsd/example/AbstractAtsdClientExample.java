@@ -26,6 +26,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 //import org.springframework.context.ApplicationContext;
 //import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -33,9 +34,12 @@ import java.util.List;
  * @author Nikolay Malevanny.
  */
 public abstract class AbstractAtsdClientExample {
-    public static final ISO8601DateFormat ISO_DATE_FORMAT = new ISO8601DateFormat();
     protected DataService dataService;
     protected MetaDataService metaDataService;
+
+    public DateFormat getDateFormat() {
+        return new ISO8601DateFormat();
+    }
 
     public void setDataService(DataService dataService) {
         this.dataService = dataService;
@@ -99,7 +103,7 @@ public abstract class AbstractAtsdClientExample {
 //    }
 
     protected String toISODate(long time) {
-        return ISO_DATE_FORMAT.format(new Date(time));
+        return getDateFormat().format(new Date(time));
     }
 
     protected void print(GetSeriesResult getSeriesResult) {

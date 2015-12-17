@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Nikolay Malevanny.
  */
 public class TagAppender {
-    public static TagAppender ALL = new TagAppender("*");
+    public static final TagAppender ALL = new TagAppender("*");
 
     public static TagAppender createTagAppender(String... tagNames) {
         if (tagNames == null || tagNames.length == 0) {

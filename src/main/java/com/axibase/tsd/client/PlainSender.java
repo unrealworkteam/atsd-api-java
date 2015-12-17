@@ -52,7 +52,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
-    private Map<String, List<String>> markerToMessages = Collections.synchronizedMap(new LinkedHashMap());
+    private ConcurrentMap<String, List<String>> markerToMessages = new ConcurrentHashMap<String, List<String>>();
     private volatile SenderState state = SenderState.NEW;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
@@ -92,7 +92,7 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
             text = text + "\n";
         }
         messages.add(text);
-        log.debug("Message is added to queue, queue size = {}", (messages == null) ? 0 : messages.size());
+        log.debug("Message is added to queue, queue size = {}", messages.size());
     }
 
     @Override
@@ -185,7 +185,8 @@ class PlainSender extends AbstractHttpEntity implements Runnable {
         List<String> stored = markerToMessages.get(marker);
         if (stored == null) {
             stored = new ArrayList<String>();
-            markerToMessages.put(marker, stored);
+            final List<String> prev = markerToMessages.putIfAbsent(marker, stored);
+            stored = prev == null ? stored : prev;
         }
         stored.add(message);
     }

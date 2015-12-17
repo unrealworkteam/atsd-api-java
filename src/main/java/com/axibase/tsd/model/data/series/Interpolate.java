@@ -14,11 +14,46 @@
 */
 package com.axibase.tsd.model.data.series;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * @author Nikolay Malevanny.
  */
-public enum Interpolate {
-    NONE,
-    LINEAR,
-    STEP
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Interpolate {
+    public static final Interpolate NONE = new Interpolate(InterpolateType.NONE);
+    private InterpolateType type = InterpolateType.NONE;
+    private double value;
+    private boolean extend;
+
+    public Interpolate() {
+    }
+
+    public Interpolate(InterpolateType type) {
+        this.type = type;
+    }
+
+    public InterpolateType getType() {
+        return type;
+    }
+
+    public void setType(InterpolateType type) {
+        this.type = type;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public boolean isExtend() {
+        return extend;
+    }
+
+    public void setExtend(boolean extend) {
+        this.extend = extend;
+    }
 }

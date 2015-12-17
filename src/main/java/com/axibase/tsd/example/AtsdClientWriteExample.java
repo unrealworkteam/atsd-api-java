@@ -91,8 +91,8 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
             }
             memoryEater.add(sb.toString());
 
-            double totalMemoryMb = runtime.totalMemory() / MB;
-            double freeMemoryMb = runtime.freeMemory() / MB;
+            long totalMemoryMb = runtime.totalMemory() / MB;
+            long freeMemoryMb = runtime.freeMemory() / MB;
             sendToAtsd(totalMemoryMb, freeMemoryMb);
 
             try {

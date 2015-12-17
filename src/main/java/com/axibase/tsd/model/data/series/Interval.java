@@ -15,18 +15,22 @@
 package com.axibase.tsd.model.data.series;
 
 import com.axibase.tsd.query.ParamValue;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Nikolay Malevanny.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Interval implements ParamValue {
-    private final int count;
-    private final IntervalUnit unit;
+    private int count;
+    private IntervalUnit unit;
+    private IntervalAlignment align;
 
-    @JsonCreator
-    public Interval(@JsonProperty("count") int count, @JsonProperty("unit") IntervalUnit unit) {
+    public Interval() {
+    }
+
+    public Interval(int count, IntervalUnit unit) {
         this.count = count;
         this.unit = unit;
     }
@@ -43,6 +47,23 @@ public class Interval implements ParamValue {
      */
     public IntervalUnit getUnit() {
         return unit;
+    }
+
+    @JsonIgnore
+    public IntervalAlignment getAlign() {
+        return align;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public void setUnit(IntervalUnit unit) {
+        this.unit = unit;
+    }
+
+    public void setAlign(IntervalAlignment align) {
+        this.align = align;
     }
 
     @Override

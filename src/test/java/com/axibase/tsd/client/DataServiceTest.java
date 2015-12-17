@@ -51,6 +51,8 @@ public class DataServiceTest {
     @Before
     public void setUp() throws Exception {
         httpClientManager = TestUtil.buildHttpClientManager();
+        httpClientManager.setCheckPeriodMillis(1000);
+//        httpClientManager.setCheckPeriodMillis(30); // to extreme tests
         dataService = new DataService();
         dataService.setHttpClientManager(httpClientManager);
 
@@ -435,10 +437,13 @@ public class DataServiceTest {
 
     @Test
     public void testMultiThreadStreamingCommands() throws Exception {
-        final int size = 5;
-        final int cnt = 30;
+//        final int cnt = 50;
+        final int cnt = 5;
+        final int msgCnt = 100;
+//        final int msgCnt = 1000;
+        final int msgPause = 10;
         int pauseMs = 10;
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size, 0,
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(cnt, cnt, 1000,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(cnt));
         long start = System.currentTimeMillis();
@@ -446,10 +451,13 @@ public class DataServiceTest {
         String tagValue = "multi-thread";
         for (int i = 0; i < cnt; i++) {
             Thread.sleep(pauseMs);
-            threadPoolExecutor.execute(new SimpleSeriesSender(start, dataService, latch, tagValue));
+            final SimpleSeriesSender command = new SimpleSeriesSender(start, dataService, latch, tagValue);
+            command.cnt = msgCnt;
+            command.sleep = msgPause;
+            threadPoolExecutor.execute(command);
         }
         try {
-            latch.await(10, TimeUnit.SECONDS);
+            latch.await(10 + cnt * msgCnt * msgPause/1000, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
             fail();
@@ -582,6 +590,8 @@ public class DataServiceTest {
         private CountDownLatch latch;
 
         private final String tagValue;
+        private int cnt = 1;
+        private long sleep = 0;
 
         public SimpleSeriesSender(long startMs, DataService dataService, CountDownLatch latch, String tagValue) {
             this.startMs = startMs;
@@ -596,7 +606,18 @@ public class DataServiceTest {
             AbstractInsertCommand plainCommand = new InsertCommand(SSS_ENTITY, SSS_METRIC, series,
                     SSS_TAG, tagValue);
 //            System.out.println(plainCommand.compose());
-            dataService.sendPlainCommand(plainCommand);
+            for (int i = 0; i < cnt; i++) {
+                if (dataService.canSendPlainCommand()) {
+                    dataService.sendPlainCommand(plainCommand);
+                    if (sleep > 0) {
+                        try {
+                            Thread.sleep(sleep);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }
+            }
             latch.countDown();
         }
 
@@ -639,7 +660,7 @@ public class DataServiceTest {
         GetSeriesQuery command = new GetSeriesQuery(TTT_ENTITY, TTT_METRIC);
         command.setTags(tags);
         command.setAggregateMatcher(new SimpleAggregateMatcher(new Interval(20, IntervalUnit.SECOND),
-                Interpolate.LINEAR,
+                Interpolate.NONE,
                 AggregateType.DETAIL));
         command.setStartTime(System.currentTimeMillis() - 100000000L);
         command.setEndTime(System.currentTimeMillis() + 100000000L);

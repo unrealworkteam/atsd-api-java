@@ -12,24 +12,16 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+package com.axibase.tsd.model.data.series;
 
-package com.axibase.tsd.client;
-
-import com.axibase.tsd.plain.PlainCommand;
-
-import java.util.List;
+import java.util.Calendar;
 
 /**
  * @author Nikolay Malevanny.
  */
-public interface StreamingManager {
-    void setCheckPeriodMillis(long checkPeriodMillis);
-
-    void close();
-
-    void send(PlainCommand plainCommand);
-
-    boolean canSend();
-
-    List<String> removeSavedPlainCommands();
+public enum IntervalAlignment {
+    START_TIME,
+    END_TIME,
+    FIRST_VALUE_TIME,
+    CALENDAR
 }
