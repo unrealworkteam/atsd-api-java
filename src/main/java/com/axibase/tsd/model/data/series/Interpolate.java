@@ -15,11 +15,13 @@
 package com.axibase.tsd.model.data.series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Interpolate {
     public static final Interpolate NONE = new Interpolate(InterpolateType.NONE);
     private InterpolateType type = InterpolateType.NONE;

@@ -19,6 +19,7 @@ import com.axibase.tsd.model.data.series.aggregate.Calendar;
 import com.axibase.tsd.model.data.series.aggregate.Threshold;
 import com.axibase.tsd.model.data.series.aggregate.WorkingMinutes;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Contains data to compute statistics for the specified time intervals.
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Aggregate {
     private AggregateType type;
+    @JsonProperty("period")
     private Interval interval;
     private Interpolate interpolate;
     private WorkingMinutes workingMinutes;
