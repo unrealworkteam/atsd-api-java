@@ -41,7 +41,7 @@ public class DefaultStreamingManager implements StreamingManager {
     public static final String CHECK = "check";
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
     private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
-    private PlainSender plainSender = null;
+    private PlainStreamingSender plainSender = null;
     private final AtomicLong lastPingTime = new AtomicLong(0);
     private final AtomicReference<String> marker = new AtomicReference<String>();
     private boolean lastPingResult = false;
@@ -69,7 +69,7 @@ public class DefaultStreamingManager implements StreamingManager {
     @Override
     public void close() {
         log.info("Close streaming manager");
-        PlainSender sender = plainSender;
+        PlainStreamingSender sender = plainSender;
         if (sender != null) {
             sender.close();
         }
@@ -85,7 +85,7 @@ public class DefaultStreamingManager implements StreamingManager {
         Lock readLock = senderLock.readLock();
         readLock.lock();
         try {
-            PlainSender sender = plainSender;
+            PlainStreamingSender sender = plainSender;
             if (sender == null) {
                 throw new IllegalStateException("Sender is null");
             } else if (!sender.isWorking()) {
@@ -141,7 +141,7 @@ public class DefaultStreamingManager implements StreamingManager {
             try {
                 if (plainSender == null || plainSender.isClosed()) {
 
-                    PlainSender newSender = new PlainSender(httpClientManager.getClientConfiguration(), plainSender);
+                    PlainStreamingSender newSender = new PlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
                     if (plainSender != null) {
                         log.info("Prepare new sender, close old");
                         plainSender.close();

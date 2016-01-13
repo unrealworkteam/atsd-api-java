@@ -280,6 +280,28 @@ public class DataService {
         httpClientManager.send(plainCommand);
     }
 
+    public boolean sendBatch(Collection<PlainCommand> commands, boolean streaming) {
+
+        if (commands == null) {
+            throw new IllegalArgumentException("Commands is null");
+        }
+
+        if (streaming) {
+            for (PlainCommand command : commands) {
+                sendPlainCommand(command);
+            }
+            return true;
+        } else {
+            QueryPart<AlertHistory> query = new Query<AlertHistory>("commands")
+                    .path("batch");
+            StringBuilder data = new StringBuilder();
+            for (PlainCommand command : commands) {
+                data.append(command.compose());
+            }
+            return httpClientManager.updateData(query, data.toString());
+        }
+    }
+
     public boolean canSendPlainCommand() {
         return httpClientManager.canSendPlainCommand();
     }

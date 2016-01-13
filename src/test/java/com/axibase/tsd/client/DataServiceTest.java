@@ -506,6 +506,27 @@ public class DataServiceTest {
         assertEquals(cnt, resCnt);
     }
 
+    @Test
+    public void testSendBatch() throws Exception {
+        final String entityName = "bbb-entity";
+        final String metricName = "bbb-metric";
+        long st = System.currentTimeMillis();
+        final ArrayList<PlainCommand> commands = new ArrayList<PlainCommand>();
+        commands.add(new InsertCommand(entityName, metricName, new Series(st, 1.0)));
+        commands.add(new InsertCommand(entityName, metricName, new Series(st+1, 2.0)));
+        commands.add(new InsertCommand(entityName, metricName, new Series(st+2, 3.0)));
+        final boolean result = dataService.sendBatch(commands, false);
+        assertTrue(result);
+
+        Thread.sleep(WAIT_TIME);
+
+        final GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName);
+        getSeriesQuery.setStartTime(st);
+        getSeriesQuery.setEndTime(st + 2 + 1);
+        final List<GetSeriesResult> seriesResults = dataService.retrieveSeries(getSeriesQuery);
+        assertEquals(3, seriesResults.get(0).getData().size());
+    }
+
     @Ignore
     @Test
     public void testStreamingCommandsUnstableNetwork() throws Exception {

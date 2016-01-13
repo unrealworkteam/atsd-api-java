@@ -187,6 +187,8 @@ public class HttpClientManager {
         streamingManager.send(plainCommand);
     }
 
+
+
     public boolean canSendPlainCommand() {
         return streamingManager.canSend();
     }
