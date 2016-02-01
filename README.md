@@ -1,8 +1,9 @@
-# Axibase Time-Series Database Client for Java
+# Axibase Time Series Database Client for Java
 
-The **ATSD Client for Java** enables Java developers to easily read and write statistics and metadata from the
-[Axibase Time-Series Database][atsd]. With minimal effort, you can build reporting, analytic, and alerting solutions.
-By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get started with this Java API.
+The **ATSD Client for Java** enables Java developers to build reporting, analytical, and alerting applications that read and write data and metadata from the
+[Axibase Time Series Database][atsd].
+
+Get started by downloading the zip file from [GitHub][atsd-zip] or by importing this API client with **Maven**.
 
 ```xml
         <dependency>
@@ -18,7 +19,7 @@ By using **Maven** or downloading the zip file from [GitHub][atsd-zip], get star
 ## Implemented Methods
 
 The **ATSD Client for Java** provides an easy-to-use client for interfacing with **ATSD** metadata and data REST API services.
-It has the ability to read and write time-series values, statistics, properties, alerts, and messages.
+It has the ability to read and write time series values, statistics, properties, alerts, and messages.
 
 - Data API
     - Series
@@ -61,7 +62,7 @@ It has the ability to read and write time-series values, statistics, properties,
 Before you begin installing the **ATSD Client for Java**, you need to install a copy of the [Axibase Time-Series Database][atsd].
 Download the latest version of ATSD that is available for your Linux distribution.
 
-Minimum requirements for running the ATSD Client: Java 1.6+.
+Minimum requirements for running the ATSD Client: Java 1.7+.
 
 We recommend installing the ATSD Client for Java by using Maven. Build the ATSD Client with
 Maven after checking out the code from GitHub.
