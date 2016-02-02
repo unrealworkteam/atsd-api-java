@@ -16,6 +16,7 @@
 package com.axibase.tsd.model.data.command;
 
 import com.axibase.tsd.model.data.TimeFormat;
+import com.axibase.tsd.model.data.series.Interval;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -37,6 +38,12 @@ public class GetAlertQuery {
     @JsonProperty(value = "minSeverity")
     private Integer minSeverityId;
     private TimeFormat timeFormat;
+    private Long startTime;
+    private Long endTime;
+    private String startDate;
+    private String endDate;
+    private Interval interval;
+
 
     public GetAlertQuery() {
     }
@@ -102,6 +109,46 @@ public class GetAlertQuery {
         this.timeFormat = timeFormat;
     }
 
+    public Long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Long startTime) {
+        this.startTime = startTime;
+    }
+
+    public Long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Long endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public Interval getInterval() {
+        return interval;
+    }
+
+    public void setInterval(Interval interval) {
+        this.interval = interval;
+    }
+
     @Override
     public String toString() {
         return "GetAlertQuery{" +
@@ -111,6 +158,11 @@ public class GetAlertQuery {
                 ", severityIds=" + severityIds +
                 ", minSeverityId=" + minSeverityId +
                 ", timeFormat=" + timeFormat +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", interval=" + interval +
                 '}';
     }
 }

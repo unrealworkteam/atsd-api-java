@@ -240,6 +240,8 @@ public class DataService {
             TimeFormat timeFormat) {
         GetAlertQuery alertQuery = new GetAlertQuery(metricNames, entityNames,
                 ruleNames, severityIds, minSeverityId, timeFormat);
+        alertQuery.setStartTime(0L);
+        alertQuery.setEndTime(System.currentTimeMillis());
         return retrieveAlerts(alertQuery);
     }
 

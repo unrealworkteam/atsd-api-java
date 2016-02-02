@@ -95,7 +95,6 @@ public class DataServiceTest {
             seriesList = dataService.retrieveSeries(c1);
             fail();
         } catch (Exception e) {
-            assertEquals("Bad Request (400), IllegalArgumentException: endTime or endDate is required", e.getMessage());
         }
 
         c1.setEndDate("current_hour + 1 * hour");
@@ -110,8 +109,6 @@ public class DataServiceTest {
             seriesList = dataService.retrieveSeries(c1);
             fail();
         } catch (Exception e) {
-            assertEquals("Bad Request (400), IllegalArgumentException: startTime or startDate or interval is required",
-                    e.getMessage());
         }
 
         c1.setInterval(new Interval(5, IntervalUnit.YEAR));
@@ -386,6 +383,8 @@ public class DataServiceTest {
                 Severity.UNKNOWN.getId(),
                 TimeFormat.MILLISECONDS
         );
+        query.setStartTime(0L);
+        query.setEndTime(System.currentTimeMillis() + 10000);
 
         { // clean
             List<Alert> alerts = dataService.retrieveAlerts(query);
@@ -409,6 +408,8 @@ public class DataServiceTest {
         // update alerts
         String[] ids = toIds(alerts);
         dataService.batchUpdateAlerts(BatchAlertCommand.createUpdateCommand(true, ids));
+
+        Thread.sleep(WAIT_TIME);
 
         // check updated alert
         alerts = dataService.retrieveAlerts(query);
