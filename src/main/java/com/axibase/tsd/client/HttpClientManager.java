@@ -15,7 +15,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.QueryPart;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -26,17 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Manages http client. Provides low-level API to request and update Data and Metadata ATSD objects.
- *
- * @author Nikolay Malevanny.
- */
 public class HttpClientManager {
-    private static final Logger log = LoggerFactory.getLogger(HttpClientManager.class);
-
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
     private static final int DEFAULT_MAX_TOTAL = 100;
     private static final int DEFAULT_MAX_IDLE = 100;
@@ -186,7 +179,6 @@ public class HttpClientManager {
     public void send(PlainCommand plainCommand) {
         streamingManager.send(plainCommand);
     }
-
 
 
     public boolean canSendPlainCommand() {

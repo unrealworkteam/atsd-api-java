@@ -19,22 +19,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GetSeriesBatchResult {
     @JsonProperty("series")
-    private List<GetSeriesResult> seriesResults;
+    private List<Series> seriesResults;
 
-    public GetSeriesBatchResult() {
-    }
-
-    public List<GetSeriesResult> getSeriesResults() {
+    public List<Series> getSeriesResults() {
         return seriesResults;
     }
 
-    public void setSeriesResults(List<GetSeriesResult> seriesResults) {
+    public void setSeriesResults(List<Series> seriesResults) {
         this.seriesResults = seriesResults;
     }
 }

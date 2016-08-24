@@ -16,13 +16,15 @@ package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.data.*;
 import com.axibase.tsd.model.data.command.*;
-import com.axibase.tsd.model.data.series.GetSeriesBatchResult;
-import com.axibase.tsd.model.data.series.GetSeriesResult;
+import com.axibase.tsd.model.data.filters.DeletePropertyFilter;
+import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.model.system.Format;
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.*;
@@ -37,7 +39,8 @@ import static com.axibase.tsd.util.AtsdUtil.*;
  * @author Nikolay Malevanny.
  */
 public class DataService {
-    public static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();
+    private static final Logger logger = LoggerFactory.getLogger(DataService.class);
+    private static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();
 
     private HttpClientManager httpClientManager;
 
@@ -54,16 +57,15 @@ public class DataService {
 
     /**
      * @param seriesQueries queries with details, each query property overrides common one in the request parameters
-     * @return list of {@code GetSeriesResult}
+     * @return list of {@code Series}
      */
-    public List<GetSeriesResult> retrieveSeries(GetSeriesQuery... seriesQueries) {
-        QueryPart<GetSeriesBatchResult> query = new Query<GetSeriesBatchResult>("series");
-        GetSeriesBatchResult seriesBatchResult = httpClientManager.requestData(GetSeriesBatchResult.class, query,
-                post(new BatchQuery<GetSeriesQuery>(Arrays.asList(seriesQueries))));
-        return seriesBatchResult == null ? Collections.<GetSeriesResult>emptyList() : seriesBatchResult.getSeriesResults();
+    public List<Series> retrieveSeries(GetSeriesQuery... seriesQueries) {
+        QueryPart<Series> query = new Query<>("series/query");
+        return httpClientManager.requestDataList(Series.class, query,
+                post(Arrays.asList(seriesQueries)));
     }
 
-    public List<GetSeriesResult> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesQuery... seriesQueries) {
+    public List<Series> retrieveSeries(SeriesCommandPreparer preparer, GetSeriesQuery... seriesQueries) {
         if (preparer != null) {
             for (GetSeriesQuery seriesQuery : seriesQueries) {
                 preparer.prepare(seriesQuery);
@@ -78,10 +80,10 @@ public class DataService {
      */
     public boolean addSeries(AddSeriesCommand... addSeriesCommands) {
         for (AddSeriesCommand addSeriesCommand : addSeriesCommands) {
-            checkEntityName(addSeriesCommand.getEntityName());
-            checkMetricName(addSeriesCommand.getMetricName());
+            checkEntityIsEmpty(addSeriesCommand.getEntityName());
+            checkMetricIsEmpty(addSeriesCommand.getMetricName());
         }
-        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
+        QueryPart<Series> query = new Query<Series>("series")
                 .path("insert");
         return httpClientManager.updateData(query,
                 post(Arrays.asList(addSeriesCommands)));
@@ -94,9 +96,9 @@ public class DataService {
      * @return true if success
      */
     public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
-        checkEntityName(entityName);
+        checkEntityIsEmpty(entityName);
         check(data, "Data is empty");
-        QueryPart<GetSeriesResult> query = new Query<GetSeriesResult>("series")
+        QueryPart<Series> query = new Query<Series>("series")
                 .path("csv")
                 .path(entityName);
         if (tagNamesAndValues != null) {
@@ -112,39 +114,39 @@ public class DataService {
 
     /**
      * @param seriesQueries queries with details
-     * @return list of {@code GetSeriesResult}
+     * @return list of {@code Series}
      */
-    public List<GetSeriesResult> retrieveLastSeries(GetSeriesQuery... seriesQueries) {
+    public List<Series> retrieveLastSeries(GetSeriesQuery... seriesQueries) {
         return retrieveSeries(LAST_PREPARER, seriesQueries);
     }
 
     /**
-     * @param format CSV or JSON.
-     * @param entityName Filter entities by entity name. Support wildcards and expressions.
-     * @param metricName Metric name.
-     * @param tags entity tags
-     * @param startTime start of the selection interval. Specified in UNIX milliseconds.
-     * @param endTime end of the selection interval. Specified in UNIX milliseconds.
-     * @param period Duration of regular time period for grouping raw values. Specified as count timeunit,
-     *               for example, 1 hour.
+     * @param format        CSV or JSON.
+     * @param entityName    Filter entities by entity name. Support wildcards and expressions.
+     * @param metricName    Metric name.
+     * @param tags          entity tags
+     * @param startTime     start of the selection interval. Specified in UNIX milliseconds.
+     * @param endTime       end of the selection interval. Specified in UNIX milliseconds.
+     * @param period        Duration of regular time period for grouping raw values. Specified as count timeunit,
+     *                      for example, 1 hour.
      * @param aggregateType Statistical function to compute aggregated values for values in each period
-     * @param limit maximum number of data samples returned. Default value: 0
-     * @param last Performs GET instead of scan. Retrieves only 1 most recent value. Boolean. Default value: false
-     * @param columns Specify which columns must be included. Possible values: time, date (time in ISO), entity, metric,
-     *                t:{name}, value. Default: time, entity, metric, requested tag names, value
-     * @return Series in specified format as InputStream.
+     * @param limit         maximum number of data samples returned. Default value: 0 (unlimited)
+     * @param last          Performs GET instead of scan. Retrieves only 1 most recent value. Boolean. Default value: false
+     * @param columns       Specify which columns must be included. Possible values: time, date (time in ISO), entity, metric,
+     *                      t:{name}, value. Default: time, entity, metric, requested tag names, value
+     * @return Sample in specified format as InputStream.
      */
     public InputStream querySeriesPack(Format format,
-                                  String entityName,
-                                  String metricName,
-                                  Map<String, String> tags,
-                                  long startTime,
-                                  long endTime,
-                                  String period,
-                                  AggregateType aggregateType,
-                                  Integer limit,
-                                  Boolean last,
-                                  String columns) {
+                                       String entityName,
+                                       String metricName,
+                                       Map<String, String> tags,
+                                       long startTime,
+                                       long endTime,
+                                       String period,
+                                       AggregateType aggregateType,
+                                       Integer limit,
+                                       Boolean last,
+                                       String columns) {
         QueryPart seriesQuery = new Query("series")
                 .path(format.name().toLowerCase())
                 .path(entityName)
@@ -152,25 +154,27 @@ public class DataService {
                 .param("startTime", startTime)
                 .param("endTime", endTime)
                 .param("period", period)
-                .param("aggregate", aggregateType==null?null:aggregateType.name().toLowerCase())
+                .param("aggregate", aggregateType == null ? null : aggregateType.name().toLowerCase())
                 .param("limit", limit)
                 .param("last", last)
                 .param("columns", columns);
         for (Map.Entry<String, String> tagAndValue : tags.entrySet()) {
-            seriesQuery = seriesQuery.param("t:"+tagAndValue.getKey(), tagAndValue.getValue());
+            seriesQuery = seriesQuery.param("t:" + tagAndValue.getKey(), tagAndValue.getValue());
         }
 
         return httpClientManager.requestInputStream(seriesQuery, null);
     }
 
     /**
-     * @param getPropertiesQuery command with property filter parameters
+     * @param getPropertiesQueries args of queries
      * @return list of {@code Property}
      */
-    public List<Property> retrieveProperties(GetPropertiesQuery getPropertiesQuery, GetPropertiesQuery... getPropertiesQueries) {
-        QueryPart<Property> query = new Query<Property>("properties");
+    public List<Property> retrieveProperties(GetPropertiesQuery... getPropertiesQueries) {
+        List<GetPropertiesQuery> queriesList = new ArrayList<>();
+        Collections.addAll(queriesList, getPropertiesQueries);
+        QueryPart<Property> query = new Query<>("properties/query");
         return httpClientManager.requestDataList(Property.class, query,
-                post(new BatchQuery<GetPropertiesQuery>(getPropertiesQuery, getPropertiesQueries)));
+                post(queriesList));
     }
 
     /**
@@ -179,9 +183,9 @@ public class DataService {
      * @return properties for entity and type
      */
     public List<Property> retrieveProperties(String entityName, String typeName) {
-        checkEntityName(entityName);
-        check(typeName, "Property type name is empty");
-        QueryPart<Property> query = new Query<Property>("properties");
+        checkEntityIsEmpty(entityName);
+        checkPropertyTypeIsEmpty(typeName);
+        QueryPart<Property> query = new Query<>("properties");
         query = query.path(entityName).path("types").path(typeName);
         return httpClientManager.requestDataList(Property.class, query, null);
     }
@@ -192,13 +196,20 @@ public class DataService {
      */
     public boolean insertProperties(Property... properties) {
         for (Property property : properties) {
-            checkEntityName(property.getEntityName());
-            checkType(property.getType());
+            checkEntityIsEmpty(property.getEntityName());
+            checkPropertyTypeIsEmpty(property.getType());
         }
         QueryPart<Property> query = new Query<Property>("properties")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(properties)));
     }
+
+    public List<Message> retrieveMessages(GetMessagesQuery... getMessagesQueries) {
+        QueryPart<Message> query = new Query<>("messages/query");
+        return httpClientManager.requestDataList(Message.class, query,
+                post(Arrays.asList(getMessagesQueries)));
+    }
+
 
     /**
      * @param messages list of {@code Message} to add.
@@ -206,20 +217,21 @@ public class DataService {
      */
     public boolean insertMessages(Message... messages) {
         for (Message message : messages) {
-            checkEntityName(message.getEntityName());
+            checkEntityIsEmpty(message.getEntityName());
         }
         QueryPart<Message> query = new Query<Message>("messages")
                 .path("insert");
         return httpClientManager.updateData(query, post(Arrays.asList(messages)));
     }
 
-    /**
-     * @param batchPropertyCommands list of batch commands to mass update properties
-     * @return true if success
-     */
-    public boolean batchUpdateProperties(BatchPropertyCommand... batchPropertyCommands) {
-        QueryPart query = new Query("properties");
-        return httpClientManager.updateData(query, patch(batchPropertyCommands));
+
+    public boolean deleteProperties(List<DeletePropertyFilter> deletePropertyFilters) {
+        QueryPart<Property> query = new Query<>("properties/delete");
+        return httpClientManager.updateData(query, post(deletePropertyFilters));
+    }
+
+    public boolean deleteProperties(DeletePropertyFilter... deletePropertyFilters) {
+        return deleteProperties(Arrays.asList(deletePropertyFilters));
     }
 
     /**
@@ -228,7 +240,7 @@ public class DataService {
      * @param ruleNames     rule filter, multiple values allowed
      * @param severityIds   severity filter, multiple values allowed
      * @param minSeverityId minimal severity filter
-     * @param timeFormat
+     * @param timeFormat    time format
      * @return list of {@code Alert}
      */
     public List<Alert> retrieveAlerts(
@@ -245,14 +257,14 @@ public class DataService {
         return retrieveAlerts(alertQuery);
     }
 
-    public List<Alert> retrieveAlerts(GetAlertQuery alertQuery, GetAlertQuery... alertQueries) {
-        QueryPart<Alert> query = new Query<Alert>("/alerts");
-        BatchQuery<GetAlertQuery> batchQuery = new BatchQuery<GetAlertQuery>(alertQuery, alertQueries);
-        return httpClientManager.requestDataList(Alert.class, query, post(batchQuery));
+    public List<Alert> retrieveAlerts(GetAlertQuery... alertQueries) {
+        QueryPart<Alert> query = new Query<>("/alerts/query");
+        return httpClientManager.requestDataList(Alert.class, query, post(Arrays.asList(alertQueries)));
     }
 
     /**
-     * @param getAlertHistoryQuery command with alert history selection details
+     * @param getAlertHistoryQuery   command with alert history selection details
+     * @param getAlertHistoryQueries alerts history queries
      * @return list of  {@code AlertHistory}
      */
     public List<AlertHistory> retrieveAlertHistory(GetAlertHistoryQuery getAlertHistoryQuery,
@@ -268,40 +280,23 @@ public class DataService {
         return httpClientManager.updateData(query, patch(commands));
     }
 
-    private static QueryPart<Alert> fillParams(QueryPart<Alert> query, String paramName, List<String> paramValueList) {
-        if (paramValueList != null) {
-            for (String paramValue : paramValueList) {
-                query = query.param(paramName, paramValue);
-            }
-        }
-        return query;
-    }
-
     public void sendPlainCommand(PlainCommand plainCommand)
             throws AtsdClientException, AtsdServerException {
         httpClientManager.send(plainCommand);
     }
 
-    public boolean sendBatch(Collection<PlainCommand> commands, boolean streaming) {
+    public SendCommandResult sendBatch(Collection<PlainCommand> commands) {
 
-        if (commands == null) {
-            throw new IllegalArgumentException("Commands is null");
+        QueryPart<SendCommandResult> query = new Query<SendCommandResult>("command");
+
+        StringBuilder data = new StringBuilder();
+        for (PlainCommand command : commands) {
+            data.append(command.compose());
         }
 
-        if (streaming) {
-            for (PlainCommand command : commands) {
-                sendPlainCommand(command);
-            }
-            return true;
-        } else {
-            QueryPart<AlertHistory> query = new Query<AlertHistory>("commands")
-                    .path("batch");
-            StringBuilder data = new StringBuilder();
-            for (PlainCommand command : commands) {
-                data.append(command.compose());
-            }
-            return httpClientManager.updateData(query, data.toString());
-        }
+        SendCommandResult result = httpClientManager.requestData(SendCommandResult.class, query, post(data));
+
+        return result;
     }
 
     public boolean canSendPlainCommand() {

@@ -14,19 +14,16 @@
  */
 package com.axibase.tsd.model.data;
 
-import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Property {
+public class Property  {
     private String type;
     @JsonProperty("entity")
     private String entityName;
@@ -35,7 +32,13 @@ public class Property {
     private Long timestamp;
     private String date;
 
+
     public Property() {
+
+    }
+
+    public Property(String type, String entityName, Map<String, String> key) {
+        this(type, entityName, key, null, null);
     }
 
     public Property(String type, String entityName, Map<String, String> key, Map<String, String> tags) {

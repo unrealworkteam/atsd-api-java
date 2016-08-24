@@ -21,9 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroup {
     @JsonProperty
@@ -47,8 +45,10 @@ public class EntityGroup {
         return name;
     }
 
-    public void setName(String name) {
+    public EntityGroup setName(String name) {
         this.name = name;
+        return this;
+
     }
 
     /**
@@ -58,8 +58,10 @@ public class EntityGroup {
         return expression;
     }
 
-    public void setExpression(String expression) {
+    public EntityGroup setExpression(String expression) {
         this.expression = expression;
+        return this;
+
     }
 
     /**
@@ -69,13 +71,16 @@ public class EntityGroup {
         return tags;
     }
 
-    public void setTags(Map<String, String> tags) {
+    public EntityGroup setTags(Map<String, String> tags) {
         this.tags = tags;
+        return this;
+
     }
 
     @JsonIgnore
-    public void setTags(String... tagNamesAndValues) {
+    public EntityGroup setTags(String... tagNamesAndValues) {
         setTags(AtsdUtil.toMap(tagNamesAndValues));
+        return this;
     }
 
     @Override

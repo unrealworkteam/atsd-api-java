@@ -16,8 +16,8 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.MarkerState;
-import com.axibase.tsd.plain.MarkerCommand;
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.network.MarkerCommand;
+import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 import org.slf4j.Logger;
@@ -33,9 +33,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public class DefaultStreamingManager implements StreamingManager {
     private static final Logger log = LoggerFactory.getLogger(DefaultStreamingManager.class);
     public static final String CHECK = "check";
@@ -99,7 +97,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
     @Override
     public boolean canSend() {
-        for(;;) {
+        for (; ; ) {
             long last = lastPingTime.get();
             long current = System.currentTimeMillis();
             if (current - last > checkPeriodMillis) {
@@ -252,7 +250,7 @@ public class DefaultStreamingManager implements StreamingManager {
         MarkerState markerState = null;
         try {
             QueryPart<MarkerState> markersPath = new Query<MarkerState>("command").path("marker");
-            QueryPart<MarkerState> query = markersPath.param("v",marker);
+            QueryPart<MarkerState> query = markersPath.param("v", marker);
             markerState = httpClientManager.requestData(MarkerState.class, query, null);
             log.debug("From server {} received the following state of marker ({}): {}",
                     httpClientManager.getClientConfiguration().getDataUrl(), marker, markerState);

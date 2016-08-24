@@ -14,18 +14,16 @@
  */
 package com.axibase.tsd.util;
 
-import com.axibase.tsd.model.data.series.Series;
+import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.MediaType;
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public class AtsdUtil {
     public static final String JSON = MediaType.APPLICATION_JSON;
     public static final String ADD_COMMAND = "add";
@@ -71,19 +69,50 @@ public class AtsdUtil {
         }
     }
 
-    public static void checkType(String type) {
+    public static void checkPropertyTypeIsEmpty(String type) {
         check(type, "Type is empty");
     }
 
-    public static void checkEntityName(String entityName) {
+    public static void checkEntityIsEmpty(String entityName) {
         check(entityName, "Entity name is empty");
     }
 
-    public static void checkEntityGroupName(String entityGroupName) {
+    public static void checkEntityGroupIsEmpty(String entityGroupName) {
         check(entityGroupName, "Entity group name is empty");
     }
 
-    public static void checkMetricName(String metricName) {
+    public static void checkMetricIsEmpty(String metricName) {
         check(metricName, "Metric name is empty");
     }
+
+    public static class DateTime {
+        public static final String MIN_QUERIED_DATE_TIME = "1000-01-01T00:00:00.000Z";
+        public static final String MAX_QUERIED_DATE_TIME = "9999-12-31T23:59:59.999Z";
+
+        public static Date parseDate(String date) {
+            Date d = null;
+            try {
+                d = ISO8601Utils.parse(date, new ParsePosition(0));
+            } catch (ParseException e) {
+                throw new IllegalStateException(e);
+            }
+            return d;
+        }
+
+        public static String isoFormat(Date date) {
+            return isoFormat(date, "GMT");
+        }
+
+        public static String isoFormat(Date date, String timeZoneName) {
+            return isoFormat(date, true, timeZoneName);
+        }
+
+        public static String isoFormat(Date date, boolean withMillis, String timeZoneName) {
+            String pattern = (withMillis) ? "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" : "yyyy-MM-dd'T'HH:mm:ssXXX";
+            SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+            dateFormat.setTimeZone(TimeZone.getTimeZone(timeZoneName));
+            return dateFormat.format(date);
+        }
+    }
+
 }

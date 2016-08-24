@@ -12,25 +12,27 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package com.axibase.tsd.model.meta;
 
-/**
- * @author Nikolay Malevanny.
- */
-public class TagValueFilter {
-    private final String name;
-    private final String value;
+package com.axibase.tsd.network;
 
-    private TagValueFilter(String name, String value) {
-        this.name = name;
-        this.value = value;
+import com.axibase.tsd.util.AtsdUtil;
+
+import java.util.UUID;
+
+
+public class MarkerCommand implements PlainCommand {
+    private final String marker;
+
+    public MarkerCommand() {
+        this.marker = UUID.randomUUID().toString();
     }
 
-    public String getName() {
-        return name;
+    public String getMarker() {
+        return marker;
     }
 
-    public String getValue() {
-        return value;
+    @Override
+    public String compose() {
+        return AtsdUtil.MARKER_KEYWORD + marker;
     }
 }

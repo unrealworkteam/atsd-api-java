@@ -16,23 +16,20 @@ package com.axibase.tsd.model.meta;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public class TagAppender {
     public static final TagAppender ALL = new TagAppender("*");
+    private final String tags;
+
+    private TagAppender(String tags) {
+        this.tags = tags;
+    }
 
     public static TagAppender createTagAppender(String... tagNames) {
         if (tagNames == null || tagNames.length == 0) {
             throw new IllegalArgumentException("Tag names list could not be null or empty");
         }
         return new TagAppender(StringUtils.join(tagNames, ','));
-    }
-
-    private final String tags;
-
-    private TagAppender(String tags) {
-        this.tags = tags;
     }
 
     public String getTags() {

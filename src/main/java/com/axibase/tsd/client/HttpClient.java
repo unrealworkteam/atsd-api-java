@@ -37,14 +37,12 @@ import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.client.spi.ConnectorProvider;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -58,17 +56,15 @@ import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 
 import static com.axibase.tsd.util.AtsdUtil.JSON;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 class HttpClient {
     private static final Logger log = LoggerFactory.getLogger(HttpClient.class);
     private final static java.util.logging.Logger legacyLogger = java.util.logging.Logger.getLogger(HttpClient.class.getName());
@@ -80,8 +76,7 @@ class HttpClient {
     private final Client client;
 
     HttpClient(ClientConfiguration clientConfiguration) {
-        Client builtClient = buildClient(clientConfiguration);
-        client = builtClient;
+        client = buildClient(clientConfiguration);
 
 
         this.clientConfiguration = clientConfiguration;
@@ -103,8 +98,7 @@ class HttpClient {
 
         configureHttps(clientConfiguration, clientConfig);
 
-        ConnectorProvider connectorProvider = new ApacheConnectorProvider();
-        clientConfig.connectorProvider(connectorProvider);
+        clientConfig.connectorProvider(new ApacheConnectorProvider());
 
         Client builtClient = ClientBuilder.newBuilder().withConfig(clientConfig).build();
         builtClient.property(ClientProperties.CONNECT_TIMEOUT, clientConfiguration.getConnectTimeoutMillis());
@@ -119,7 +113,7 @@ class HttpClient {
         clientConfig.property(ApacheClientProperties.SSL_CONFIG, sslConfig);
     }
 
-    static PoolingHttpClientConnectionManager createConnectionManager(ClientConfiguration clientConfiguration, SslConfigurator sslConfig) {
+    public static PoolingHttpClientConnectionManager createConnectionManager(ClientConfiguration clientConfiguration, SslConfigurator sslConfig) {
         SSLContext sslContext = sslConfig.createSSLContext();
         X509HostnameVerifier hostnameVerifier;
         if (clientConfiguration.isIgnoreSSLErrors()) {
@@ -143,27 +137,14 @@ class HttpClient {
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
         try {
             sslContext.init(null, new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                        }
-
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return new X509Certificate[0];
-                        }
-                    }
+                    new AtsdTrustManager()
             }, new SecureRandom());
-        } catch (KeyManagementException e) {
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             log.warn("SSL context initialization error: ", e);
         }
     }
 
-    <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
+    public <T> List<T> requestMetaDataList(Class<T> clazz, QueryPart<T> query) {
         return requestList(clientConfiguration.getMetadataUrl(), clazz, query, null);
     }
 
@@ -310,7 +291,7 @@ class HttpClient {
         };
     }
 
-    void close() {
+    public void close() {
         if (client != null) {
             client.close();
         }

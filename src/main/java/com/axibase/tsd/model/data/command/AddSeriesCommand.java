@@ -14,7 +14,7 @@
  */
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.series.Series;
+import com.axibase.tsd.model.data.series.Sample;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,9 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AddSeriesCommand {
     @JsonProperty("entity")
@@ -34,7 +32,7 @@ public class AddSeriesCommand {
     @JsonProperty("metric")
     private String metricName;
     private Map<String, String> tags;
-    private List<Series> data;
+    private List<Sample> data;
 
     public AddSeriesCommand() {
     }
@@ -47,7 +45,7 @@ public class AddSeriesCommand {
 
     public static AddSeriesCommand createSingle(String entityName, String metricName, long time, double value, String... tagNamesAndValues) {
         AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, tagNamesAndValues);
-        addSeriesCommand.addSeries(new Series(time, value));
+        addSeriesCommand.addSeries(new Sample(time, value));
         return addSeriesCommand;
     }
 
@@ -63,21 +61,38 @@ public class AddSeriesCommand {
         return tags;
     }
 
-    public List<Series> getData() {
+    public List<Sample> getData() {
         return data;
     }
 
-    public void addSeries(Series series) {
+    public AddSeriesCommand addSeries(Sample sample) {
         if (data == null) {
-            data = new ArrayList<Series>();
+            data = new ArrayList<Sample>();
         }
-        data.add(series);
+        data.add(sample);
+        return this;
     }
 
-    public void addSeries(Series... series) {
+    public AddSeriesCommand addSeries(Sample... series) {
         if (data == null) {
-            data = new ArrayList<Series>();
+            data = new ArrayList<Sample>();
         }
         data.addAll(Arrays.asList(series));
+        return this;
+    }
+
+    public AddSeriesCommand setTags(Map<String, String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
+    public AddSeriesCommand setEntityName(String entityName) {
+        this.entityName = entityName;
+        return this;
+    }
+
+    public AddSeriesCommand setMetricName(String metricName) {
+        this.metricName = metricName;
+        return this;
     }
 }

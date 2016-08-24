@@ -14,11 +14,11 @@
  */
 package com.axibase.tsd.model.data.command;
 
-import com.axibase.tsd.model.data.SeriesType;
 import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.series.Interval;
 import com.axibase.tsd.model.data.series.Join;
 import com.axibase.tsd.model.data.series.Rate;
+import com.axibase.tsd.model.data.series.SeriesType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,13 +26,11 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetSeriesQuery {
-    private Long startTime;
-    private Long endTime;
+    private Long startTime = null;
+    private Long endTime = null;
     private String startDate;
     private String endDate;
     private Interval interval;
@@ -42,7 +40,7 @@ public class GetSeriesQuery {
     private final String entityName;
     @JsonProperty("metric")
     private final String metricName;
-    private MultivaluedMap<String, String> tags = new MultivaluedHashMap<String, String>();
+    private MultivaluedMap<String, String> tags = new MultivaluedHashMap<>();
     private SeriesType type;
     private Join join;
     private Rate rate;
@@ -158,87 +156,111 @@ public class GetSeriesQuery {
 
     /**
      * @param startTime start of the selection interval. Unix milliseconds.
+     * @return instance of method
      */
-    public void setStartTime(Long startTime) {
+    public GetSeriesQuery setStartTime(Long startTime) {
         this.startTime = startTime;
+        return this;
     }
 
     /**
      * @param endTime end of the selection interval. Unix milliseconds.
+     * @return instance of method
      */
-    public void setEndTime(Long endTime) {
+    public GetSeriesQuery setEndTime(Long endTime) {
         this.endTime = endTime;
+        return this;
     }
 
     /**
      * @param startDate start of the selection interval. Specified in ISO format or using endtime syntax.
+     * @return instance of method
      */
-    public void setStartDate(String startDate) {
+    public GetSeriesQuery setStartDate(String startDate) {
         this.startDate = startDate;
+        return this;
     }
 
     /**
      * @param endDate end of the selection interval. Specified in ISO format or using endtime syntax.
+     * @return instance of method
      */
-    public void setEndDate(String endDate) {
+    public GetSeriesQuery setEndDate(String endDate) {
         this.endDate = endDate;
+        return this;
     }
 
     /**
-     * @param interval Duration of the selection interval, specified as <code>count-timeunit</code>, for example, 1-hour
+     * @param interval Duration of the selection interval, specified as {@code count-timeunit}, for example, 1-hour
+     * @return instance of method
      */
-    public void setInterval(Interval interval) {
+    public GetSeriesQuery setInterval(Interval interval) {
         this.interval = interval;
+        return this;
     }
 
     /**
      * @param limit maximum number of data samples returned.
+     * @return instance of method
      */
-    public void setLimit(Integer limit) {
+    public GetSeriesQuery setLimit(Integer limit) {
         this.limit = limit;
+        return this;
     }
 
     /**
      * @param last if true: Performs GET instead of scan. Retrieves only 1 most recent value.
+     * @return instance of method
      */
-    public void setLast(Boolean last) {
+    public GetSeriesQuery setLast(Boolean last) {
         this.last = last;
+        return this;
     }
 
     /**
      * @param tags Object key is a tag name and a value is an array of possible tag values.
      *             User defined values ( keys: case insensitive, values: case sensitive )
+     * @return instance of method
      */
-    public void setTags(MultivaluedMap<String, String> tags) {
+    public GetSeriesQuery setTags(MultivaluedMap<String, String> tags) {
         this.tags = tags;
+        return this;
     }
 
     /**
      * @param type specifies source for underlying data
+     * @return instance of method
      */
-    public void setType(SeriesType type) {
+    public GetSeriesQuery setType(SeriesType type) {
         this.type = type;
+        return this;
     }
 
     /**
      * @param join Merges multiple time series into one serie.
+     * @return instance of method
      */
-    public void setJoin(Join join) {
+    public GetSeriesQuery setJoin(Join join) {
         this.join = join;
+        return this;
     }
 
     /**
      * @param rate Computes difference between consecutive samples per unit of time (rate interval).
+     * @return instance of method
      */
-    public void setRate(Rate rate) {
+    public GetSeriesQuery setRate(Rate rate) {
         this.rate = rate;
+        return this;
     }
 
     /**
      * @param aggregateMatcher Computes statistics for the specified time intervals.
+     * @return instance of method
      */
-    public void setAggregateMatcher(SimpleAggregateMatcher aggregateMatcher) {
+    public GetSeriesQuery setAggregateMatcher(SimpleAggregateMatcher aggregateMatcher) {
         this.aggregateMatcher = aggregateMatcher;
+        return this;
     }
 
     /**
@@ -249,13 +271,16 @@ public class GetSeriesQuery {
      *
      * @param requestId Optional identifier used to associate 'series' object in request with 'series'
      *                  objects in response. Any string (case sensitive).
+     * @return instance of method
      */
-    public void setRequestId(String requestId) {
+    public GetSeriesQuery setRequestId(String requestId) {
         this.requestId = requestId;
+        return this;
     }
 
-    public void setTimeFormat(TimeFormat timeFormat) {
+    public GetSeriesQuery setTimeFormat(TimeFormat timeFormat) {
         this.timeFormat = timeFormat;
+        return this;
     }
 
     @Override

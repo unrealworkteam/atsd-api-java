@@ -13,28 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.plain;
+package com.axibase.tsd.network;
 
-import com.axibase.tsd.util.AtsdUtil;
 
-import java.util.UUID;
+public class SimpleCommand implements PlainCommand {
+    private final String command;
 
-/**
-* @author Nikolay Malevanny.
-*/
-public class MarkerCommand implements PlainCommand {
-    private final String marker;
-
-    public MarkerCommand() {
-        this.marker = UUID.randomUUID().toString();
-    }
-
-    public String getMarker() {
-        return marker;
+    public SimpleCommand(String command) {
+        this.command = command;
     }
 
     @Override
     public String compose() {
-        return AtsdUtil.MARKER_KEYWORD + marker;
+        return command;
     }
 }

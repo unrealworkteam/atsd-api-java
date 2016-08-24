@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7c49fc8b6104d608b93bb2a765c13bc)](https://www.codacy.com/app/unrealwork/atsd-api-java?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=axibase/atsd-api-java&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/a7c49fc8b6104d608b93bb2a765c13bc)](https://www.codacy.com/app/unrealwork/atsd-api-java?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=axibase/atsd-api-java&amp;utm_campaign=Badge_Coverage) [![CircleCI](https://circleci.com/gh/axibase/atsd-api-java.svg?style=svg)](https://circleci.com/gh/axibase/atsd-api-java) [![](https://maven-badges.herokuapp.com/maven-central/com.axibase/atsd-api-java/badge.svg)](https://mvnrepository.com/artifact/com.axibase/atsd-api-java/)
 # Axibase Time Series Database Client for Java
 
 The **ATSD Client for Java** enables Java developers to build reporting, analytical, and alerting applications that read and write data and metadata from the
@@ -9,7 +10,7 @@ Get started by downloading the zip file from [GitHub][atsd-zip] or by importing 
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>0.4.3</version>
+            <version>0.5.8</version>
         </dependency>
 ```
 
@@ -72,7 +73,7 @@ git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
 cd target
-java -cp "atsd-api-java-0.4.3.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
+java -cp "atsd-api-java-0.5.8.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
 ```
 
 ## Examples
@@ -228,8 +229,8 @@ Usage
 ```
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
-[atsd-api]:https://axibase.com/atsd/api/
-[atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/v.0.4.3/atsd-api-java-0.4.3-bin.zip
-[atsd-issues]:https://www.axibase.com/support.htm
+[atsd-api]:https://github.com/axibase/atsd-docs/blob/master/api/README.md
+[atsd-zip]:https://github.com/axibase/atsd-api-java/releases/download/v.0.5.8/atsd-api-java-0.5.8-bin.zip
+[atsd-issues]:https://axibase.com/customer-support/
 [atsd-read-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientReadExample.java
 [atsd-write-example]:https://github.com/axibase/atsd-api-java/blob/master/src/main/java/com/axibase/tsd/example/AtsdClientWriteExample.java

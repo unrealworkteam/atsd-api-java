@@ -22,9 +22,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
+import static com.axibase.tsd.util.AtsdUtil.DateTime.MAX_QUERIED_DATE_TIME;
+import static com.axibase.tsd.util.AtsdUtil.DateTime.MIN_QUERIED_DATE_TIME;
+
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetAlertQuery {
     @JsonProperty(value = "metrics")
@@ -38,14 +39,18 @@ public class GetAlertQuery {
     @JsonProperty(value = "minSeverity")
     private Integer minSeverityId;
     private TimeFormat timeFormat;
-    private Long startTime;
-    private Long endTime;
+    private Long startTime = null;
+    private Long endTime = null;
     private String startDate;
     private String endDate;
     private Interval interval;
+    private String entity;
 
 
-    public GetAlertQuery() {
+    public GetAlertQuery(String entity) {
+        setEntity(entity);
+        setStartDate(MIN_QUERIED_DATE_TIME);
+        setEndDate(MAX_QUERIED_DATE_TIME);
     }
 
 
@@ -85,8 +90,9 @@ public class GetAlertQuery {
         return timeFormat;
     }
 
-    public void setMetricNames(List<String> metricNames) {
+    public GetAlertQuery setMetricNames(List<String> metricNames) {
         this.metricNames = metricNames;
+        return this;
     }
 
     public void setEntityNames(List<String> entityNames) {
@@ -164,5 +170,13 @@ public class GetAlertQuery {
                 ", endDate='" + endDate + '\'' +
                 ", interval=" + interval +
                 '}';
+    }
+
+    public String getEntity() {
+        return entity;
+    }
+
+    public void setEntity(String entity) {
+        this.entity = entity;
     }
 }

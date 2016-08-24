@@ -17,7 +17,7 @@ package com.axibase.tsd.example;
 import com.axibase.tsd.client.SeriesCommandPreparer;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
 import com.axibase.tsd.model.data.command.GetSeriesQuery;
-import com.axibase.tsd.model.data.series.GetSeriesResult;
+import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.util.AtsdUtil;
 
 import java.net.InetAddress;
@@ -27,15 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public class AtsdClientWriteExample extends AbstractAtsdClientExample {
     public static final long SECOND = 1000L;
     public static final int MB = 1024 * 1024;
     public static final int CNT = 10;
     private static final double MAX_VALUE = 1517191;
-    private Set<String> memoryEater;
     private String hostName;
 
     public static void main(String[] args) {
@@ -61,7 +58,7 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
 
     protected void printData() {
         Map<String, String> tags = AtsdUtil.toMap("app_name", "atsd_writer_example");
-        List<GetSeriesResult> getSeriesResults = dataService.retrieveSeries(
+        List<Series> series = dataService.retrieveSeries(
                 new SeriesCommandPreparer() {
                     @Override
                     public void prepare(GetSeriesQuery command) {
@@ -73,16 +70,16 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
                 new GetSeriesQuery(hostName, "total_memory_mb", tags),
                 new GetSeriesQuery(hostName, "free_memory_mb", tags)
         );
-        System.out.println("===Series===");
-        for (GetSeriesResult getSeriesResult : getSeriesResults) {
-            print(getSeriesResult);
+        logger.info("===Sample===");
+        for (Series s : series) {
+            print(s);
         }
     }
 
     protected void writeData() {
-        System.out.println("Writing memory usage metrics to ATSD ...");
+        logger.info("Writing memory usage metrics to ATSD ...");
         Runtime runtime = Runtime.getRuntime();
-        memoryEater = new HashSet<String>();
+        Set<String> memoryEater = new HashSet<String>();
         for (int i = 0; i < CNT; i++) {
             long st = System.currentTimeMillis();
             StringBuilder sb = new StringBuilder();
@@ -107,6 +104,6 @@ public class AtsdClientWriteExample extends AbstractAtsdClientExample {
 
             System.out.print(i + " ");
         }
-        System.out.println();
+        logger.info("\n");
     }
 }

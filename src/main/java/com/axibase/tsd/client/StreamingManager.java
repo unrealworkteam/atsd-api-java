@@ -15,13 +15,11 @@
 
 package com.axibase.tsd.client;
 
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.network.PlainCommand;
 
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public interface StreamingManager {
     void setCheckPeriodMillis(long checkPeriodMillis);
 

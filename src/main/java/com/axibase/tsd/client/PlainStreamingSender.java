@@ -16,8 +16,8 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ClientConfiguration;
-import com.axibase.tsd.plain.MarkerCommand;
-import com.axibase.tsd.plain.PlainCommand;
+import com.axibase.tsd.network.MarkerCommand;
+import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -36,14 +36,14 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PlainStreamingSender.class);
     private static final int SMALL = 64;
@@ -52,7 +52,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
     private CountDownLatch latch = new CountDownLatch(1);
     private CloseableHttpClient httpClient;
     private BlockingQueue<String> messages;
-    private ConcurrentMap<String, List<String>> markerToMessages = new ConcurrentHashMap<String, List<String>>();
+    private ConcurrentMap<String, List<String>> markerToMessages = new ConcurrentHashMap<>();
     private volatile SenderState state = SenderState.NEW;
     private final long pingTimeoutMillis;
     private long lastMessageTime;
@@ -67,7 +67,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
         if (old != null) {
             messages = old.messages;
             markerToMessages = old.markerToMessages;
-            log.info("Reborn plain commands sender using previous messages, size: {}", messages.size());
+            log.info("Reborn network commands sender using previous messages, size: {}", messages.size());
         }
     }
 
@@ -130,12 +130,12 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
 
             try {
                 if (message != null) {
-                    if (!clientConfiguration.isSkipStreamingControl()) {
-                        if (marker == null && !message.startsWith(MARKER_KEYWORD)) {
-                            MarkerCommand markerCommand = new MarkerCommand();
-                            marker = markerCommand.getMarker();
-                            write(outputStream, markerCommand.compose());
-                        }
+                    if (!clientConfiguration.isSkipStreamingControl() &&
+                            marker == null && !message.startsWith(MARKER_KEYWORD)
+                            ) {
+                        MarkerCommand markerCommand = new MarkerCommand();
+                        marker = markerCommand.getMarker();
+                        write(outputStream, markerCommand.compose());
                     }
 
                     log.debug("Write message: {}", message);
@@ -154,7 +154,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
 
                     lastMessageTime = System.currentTimeMillis();
                 }
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 log.error("Sender is broken, close it. Could not send message: {}", message, e);
                 messages.add(message);
                 close();
@@ -214,7 +214,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
                     (clientConfiguration.getUsername() + ":" + clientConfiguration.getPassword()).getBytes()
             ));
             httpPost.setEntity(new BufferedHttpEntity(this));
-        } catch (Throwable e) {
+        } catch (IOException e) {
             log.error("Could not create http client: ", e);
             latch.countDown();
             close();
@@ -225,9 +225,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
             state = SenderState.WORKING;
             latch.countDown();
             response = httpClient.execute(httpPost);
-        } catch (IllegalStateException e) {
-            log.info("HTTP POST has been interrupted: {}", e.getMessage());
-        } catch (Throwable e) {
+        } catch (IOException e) {
             log.error("Could not execute HTTP POST: {}", httpPost, e);
         } finally {
             log.info("Http post execution is finished, close sender");
@@ -261,7 +259,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
     }
 
     private String fullUrl() {
-        return url + "/commands/stream";
+        return url + "/command";
     }
 
     public boolean isWorking() {
@@ -276,7 +274,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
         return markerToMessages;
     }
 
-    private static enum SenderState {
+    private enum SenderState {
         NEW,
         WORKING,
         CLOSED

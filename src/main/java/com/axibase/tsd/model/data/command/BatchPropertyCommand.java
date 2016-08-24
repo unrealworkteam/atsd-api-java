@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchPropertyCommand {
     private final String action;
@@ -41,6 +39,7 @@ public class BatchPropertyCommand {
         return properties;
     }
 
+
     public List<PropertyMatcher> getMatchers() {
         return matchers;
     }
@@ -51,13 +50,8 @@ public class BatchPropertyCommand {
         return insertCommand;
     }
 
-    public static BatchPropertyCommand createDeleteCommand(Property... properties) {
-        BatchPropertyCommand deleteCommand = new BatchPropertyCommand("delete");
-        deleteCommand.properties = Arrays.asList(properties);
-        return deleteCommand;
-    }
 
-    public static BatchPropertyCommand createDeleteMatchCommand(PropertyMatcher... propertyMatchers) {
+    public static BatchPropertyCommand createDeleteCommand(PropertyMatcher... propertyMatchers) {
         BatchPropertyCommand insertCommand = new BatchPropertyCommand("delete-match");
         insertCommand.matchers = Arrays.asList(propertyMatchers);
         return insertCommand;

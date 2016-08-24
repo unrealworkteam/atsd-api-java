@@ -36,23 +36,14 @@ public class Aggregate {
     private Threshold threshold;
     private Calendar calendar;
 
-    public Aggregate() {
-    }
-
     public AggregateType getType() {
         return type;
     }
 
-    /**
-     * interval for computing statistics.
-     */
     public Interval getInterval() {
         return interval;
     }
 
-    /**
-     * Generates missing aggregation intervals using interpolation if enabled: NONE, LINEAR, STEP
-     */
     public Interpolate getInterpolate() {
         return interpolate;
     }

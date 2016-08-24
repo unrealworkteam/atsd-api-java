@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityAndTags {
     @JsonProperty("entity")
@@ -30,32 +28,35 @@ public class EntityAndTags {
     private Long lastInsertTime;
     @JsonProperty
     private Map<String, String> tags;
-
-    public EntityAndTags() {
-    }
+    
 
     public String getEntityName() {
         return entityName;
     }
 
-    public void setEntityName(String entityName) {
+    public EntityAndTags setEntityName(String entityName) {
         this.entityName = entityName;
+        return this;
+
     }
 
     public Long getLastInsertTime() {
         return lastInsertTime;
     }
 
-    public void setLastInsertTime(Long lastInsertTime) {
+    public EntityAndTags setLastInsertTime(Long lastInsertTime) {
         this.lastInsertTime = lastInsertTime;
+        return this;
+
     }
 
     public Map<String, String> getTags() {
         return tags;
     }
 
-    public void setTags(Map<String, String> tags) {
+    public EntityAndTags setTags(Map<String, String> tags) {
         this.tags = tags;
+        return this;
     }
 
     @Override

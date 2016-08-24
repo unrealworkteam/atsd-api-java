@@ -14,11 +14,7 @@
  */
 package com.axibase.tsd.model.data.series;
 
-import java.util.Calendar;
 
-/**
- * @author Nikolay Malevanny.
- */
 public enum IntervalAlignment {
     START_TIME,
     END_TIME,

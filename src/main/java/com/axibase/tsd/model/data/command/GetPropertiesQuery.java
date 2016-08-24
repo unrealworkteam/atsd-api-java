@@ -18,27 +18,36 @@ import com.axibase.tsd.model.data.TimeFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+import static com.axibase.tsd.util.AtsdUtil.DateTime.*;
+
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetPropertiesQuery {
     @JsonProperty(value = "entity")
     private final String entityName;
     private final String type;
-    private long startTime;
-    private long endTime;
+    private Long startTime = null;
+    private Long endTime = null;
     private String limit;
     private boolean last;
     private Map<String, String> key;
     private String keyExpression;
     private TimeFormat timeFormat;
 
-    public GetPropertiesQuery(String type, String entityName) {
+
+    public GetPropertiesQuery(String type, String entityName, Date startDateTime, Date endDateTime) {
         this.entityName = entityName;
         this.type = type;
+        setStartTime(startDateTime.getTime());
+        setEndTime(endDateTime.getTime());
+    }
+
+
+    public GetPropertiesQuery(String type, String entityName) {
+        this(type, entityName, parseDate(MIN_QUERIED_DATE_TIME), parseDate(MAX_QUERIED_DATE_TIME));
     }
 
     public String getEntityName() {
@@ -49,11 +58,11 @@ public class GetPropertiesQuery {
         return type;
     }
 
-    public long getStartTime() {
+    public Long getStartTime() {
         return startTime;
     }
 
-    public long getEndTime() {
+    public Long getEndTime() {
         return endTime;
     }
 
@@ -77,32 +86,39 @@ public class GetPropertiesQuery {
         return timeFormat;
     }
 
-    public void setStartTime(long startTime) {
+    public GetPropertiesQuery setStartTime(long startTime) {
         this.startTime = startTime;
+        return this;
     }
 
-    public void setEndTime(long endTime) {
+    public GetPropertiesQuery setEndTime(long endTime) {
         this.endTime = endTime;
+        return this;
     }
 
-    public void setLimit(String limit) {
+    public GetPropertiesQuery setLimit(String limit) {
         this.limit = limit;
+        return this;
     }
 
-    public void setLast(boolean last) {
+    public GetPropertiesQuery setLast(boolean last) {
         this.last = last;
+        return this;
     }
 
-    public void setKey(Map<String, String> key) {
+    public GetPropertiesQuery setKey(Map<String, String> key) {
         this.key = key;
+        return this;
     }
 
-    public void setKeyExpression(String keyExpression) {
+    public GetPropertiesQuery setKeyExpression(String keyExpression) {
         this.keyExpression = keyExpression;
+        return this;
     }
 
-    public void setTimeFormat(TimeFormat timeFormat) {
+    public GetPropertiesQuery setTimeFormat(TimeFormat timeFormat) {
         this.timeFormat = timeFormat;
+        return this;
     }
 
     @Override

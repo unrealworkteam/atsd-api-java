@@ -13,13 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.plain;
+package com.axibase.tsd.network;
 
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
+
 public class MultipleInsertCommand extends AbstractInsertCommand {
     private final Map<String, Double> metricsAndValues;
 
@@ -32,7 +30,7 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
     @Override
     protected void appendValues(StringBuilder sb) {
         for (Map.Entry<String, Double> metricNameAndValue : metricsAndValues.entrySet()) {
-            sb.append(" m:").append(clean(metricNameAndValue.getKey()))
+            sb.append(" m:").append(metricNameAndValue.getKey())
                     .append('=').append(metricNameAndValue.getValue());
         }
     }
