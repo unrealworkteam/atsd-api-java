@@ -137,7 +137,7 @@ class HttpClient {
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
         try {
             sslContext.init(null, new TrustManager[]{
-                    new AtsdTrustManager()
+                    new IgnoringTrustManager()
             }, new SecureRandom());
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             log.warn("SSL context initialization error: ", e);
