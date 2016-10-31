@@ -5,7 +5,7 @@
 The **ATSD Client for Java** enables Java developers to build reporting, analytical, and alerting applications that read and write data and metadata from the
 [Axibase Time Series Database][atsd].
 
-Get started by downloading the zip file from [GitHub][atsd-zip] or by importing this API client with **Maven**.
+Get started by downloading the zip file from [GitHub][atsd-zip] or by importing this API client with **Maven**:
 
 ```xml
         <dependency>
@@ -61,7 +61,7 @@ It has the ability to read and write time series values, statistics, properties,
 
 
 ## Getting Started
-Before you begin installing the **ATSD Client for Java**, you need to install a copy of the [Axibase Time-Series Database][atsd].
+Before you begin installing the **ATSD Client for Java**, you need to install a copy of the [Axibase Time Series Database][atsd].
 Download the latest version of ATSD that is available for your Linux distribution.
 
 Minimum requirements for running the ATSD Client: Java 1.7+.
@@ -86,7 +86,7 @@ See:
 ### Client Configuration
 
 #### Option 1
-Use `-Daxibase.tsd.api.client.properties=./client.properties`
+Use `-Daxibase.tsd.api.client.properties=./client.properties`:
 
 ```java
         ClientConfiguration clientConfiguration = ClientConfigurationFactory
@@ -108,7 +108,7 @@ Use `-Daxibase.tsd.api.client.properties=./client.properties`
         axibase.tsd.api.password=pwd
 ```
 
-Usage
+Usage:
 ```java
         AtsdClientWriteExample atsdClientWriteExample = new AtsdClientWriteExample();
         atsdClientWriteExample.configure();
@@ -117,7 +117,7 @@ Usage
 ```
 
 #### Option 2
-Use pure Java.
+Use pure Java:
 ```java
         ClientConfigurationFactory configurationFactory = new ClientConfigurationFactory(
                 "http", "atsd_server", 8080, // serverPort
@@ -145,7 +145,7 @@ Use pure Java.
         MetaDataService metaDataService = new MetaDataService(httpClientManager);
 ```
 
-Usage
+Usage:
 ```java
         AtsdClientWriteExample atsdClientWriteExample = new AtsdClientWriteExample();
         atsdClientWriteExample.pureJavaConfigure();
@@ -156,7 +156,7 @@ Usage
 
 #### Option 3
 Use Spring.
-See **example-beans.xml**
+See **example-beans.xml**:
 ```xml
         <bean id="example" class="com.axibase.tsd.example.AtsdClientWriteExample"/>
         <bean id="dataService" class="com.axibase.tsd.client.DataService"/>
@@ -174,7 +174,7 @@ See **example-beans.xml**
         </bean>
 ```
 
-Usage
+Usage:
 ```java
             ApplicationContext context =
                 new ClassPathXmlApplicationContext("example-beans.xml");
