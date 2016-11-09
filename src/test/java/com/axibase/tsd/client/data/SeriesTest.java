@@ -297,7 +297,7 @@ public class SeriesTest {
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 1, 2.0)));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 2, 3.0)));
         final BatchResponse batchResponse = dataService.sendBatch(commands);
-        assertTrue(batchResponse.getSendCommandResult().getFail() == 0);
+        assertTrue(batchResponse.getResult().getFail() == 0);
 
         Thread.sleep(WAIT_TIME);
 

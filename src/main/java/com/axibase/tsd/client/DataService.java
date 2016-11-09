@@ -324,7 +324,7 @@ public class DataService {
             BatchResponse batchResponse = new BatchResponse(response.getStatusInfo());
             if (response.getStatus() == HttpClient.HTTP_STATUS_OK) {
                 SendCommandResult sendCommandResult = response.readEntity(SendCommandResult.class);
-                batchResponse.setSendCommandResult(sendCommandResult);
+                batchResponse.setResult(sendCommandResult);
             } else {
                 ServerError serverError = HttpClient.buildAndLogServerError(response);
                 batchResponse.setServerError(serverError);

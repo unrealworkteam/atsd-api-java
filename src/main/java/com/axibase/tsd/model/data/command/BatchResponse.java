@@ -8,7 +8,7 @@ public class BatchResponse {
 
     private final StatusType statusType;
     private ServerError serverError;
-    private SendCommandResult sendCommandResult;
+    private SendCommandResult result;
 
     public BatchResponse(StatusType statusType) {
         this.statusType = statusType;
@@ -26,12 +26,17 @@ public class BatchResponse {
         this.serverError = serverError;
     }
 
-    public SendCommandResult getSendCommandResult() {
-        return sendCommandResult;
+    public SendCommandResult getResult() {
+        return result;
     }
 
-    public void setSendCommandResult(SendCommandResult sendCommandResult) {
-        this.sendCommandResult = sendCommandResult;
+    public void setResult(SendCommandResult result) {
+        this.result = result;
+    }
+
+    @Override
+    public String toString() {
+        return "BatchResponse {statusType=" + statusType + ", serverError=" + serverError + ", result=" + result + "}";
     }
 
 }
