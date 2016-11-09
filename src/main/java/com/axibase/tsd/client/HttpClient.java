@@ -163,6 +163,11 @@ class HttpClient {
     public boolean updateData(QueryPart query, String data) {
         return update(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN);
     }
+    
+    public <T, E> Response request(QueryPart<T> query, RequestProcessor<E> requestProcessor) {
+        String url = clientConfiguration.getDataUrl();
+        return doRequest(url, query, requestProcessor);
+    }
 
     public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         String url = clientConfiguration.getDataUrl();
@@ -239,7 +244,7 @@ class HttpClient {
         );
     }
 
-    private ServerError buildAndLogServerError(Response response) {
+    public static ServerError buildAndLogServerError(Response response) {
         ServerError serverError = null;
         try {
             serverError = response.readEntity(ServerError.class);

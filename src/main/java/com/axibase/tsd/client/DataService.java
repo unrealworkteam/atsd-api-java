@@ -20,6 +20,7 @@ import com.axibase.tsd.model.data.filters.DeletePropertyFilter;
 import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.model.system.Format;
+import com.axibase.tsd.model.system.ServerError;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
@@ -28,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.*;
+
+import javax.ws.rs.core.Response;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
@@ -285,16 +288,16 @@ public class DataService {
         httpClientManager.send(plainCommand);
     }
 
-    public SendCommandResult sendBatch(Collection<PlainCommand> commands) {
+    public BatchResponse sendBatch(Collection<PlainCommand> commands) {
 
-        QueryPart<SendCommandResult> query = new Query<SendCommandResult>("command");
+        QueryPart<BatchResponse> query = new Query<BatchResponse>("command");
 
         StringBuilder data = new StringBuilder();
         for (PlainCommand command : commands) {
             data.append(command.compose());
         }
 
-        SendCommandResult result = httpClientManager.requestData(SendCommandResult.class, query, post(data));
+        BatchResponse result = httpClientManager.requestData(query, post(data), new BatchResponseExtractor());
 
         return result;
     }
@@ -313,4 +316,22 @@ public class DataService {
             command.setLast(true);
         }
     }
+
+    private static class BatchResponseExtractor implements ResponseDataExtractor<BatchResponse> {
+
+        @Override
+        public BatchResponse extract(Response response) {
+            BatchResponse batchResponse = new BatchResponse(response.getStatusInfo());
+            if (response.getStatus() == HttpClient.HTTP_STATUS_OK) {
+                SendCommandResult sendCommandResult = response.readEntity(SendCommandResult.class);
+                batchResponse.setResult(sendCommandResult);
+            } else {
+                ServerError serverError = HttpClient.buildAndLogServerError(response);
+                batchResponse.setServerError(serverError);
+            }
+            return batchResponse;
+        }
+
+    }
+
 }

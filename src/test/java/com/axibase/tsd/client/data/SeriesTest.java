@@ -21,6 +21,7 @@ import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.client.SeriesCommandPreparer;
 import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
+import com.axibase.tsd.model.data.command.BatchResponse;
 import com.axibase.tsd.model.data.command.SendCommandResult;
 import com.axibase.tsd.model.data.command.GetSeriesQuery;
 import com.axibase.tsd.model.data.command.SimpleAggregateMatcher;
@@ -295,8 +296,8 @@ public class SeriesTest {
         commands.add(new InsertCommand(entityName, metricName, new Sample(st, 1.0)));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 1, 2.0)));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 2, 3.0)));
-        final SendCommandResult result = dataService.sendBatch(commands);
-        assertTrue(result.getFail() == 0);
+        final BatchResponse batchResponse = dataService.sendBatch(commands);
+        assertTrue(batchResponse.getResult().getFail() == 0);
 
         Thread.sleep(WAIT_TIME);
 

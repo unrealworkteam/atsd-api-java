@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.ws.rs.core.Response;
+
 public class HttpClientManager {
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
     private static final int DEFAULT_MAX_TOTAL = 100;
@@ -121,6 +123,16 @@ public class HttpClientManager {
         HttpClient httpClient = borrowClient();
         try {
             return httpClient.requestDataList(clazz, query, requestProcessor);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
+
+    public <T, E> T requestData(QueryPart<T> query, RequestProcessor<E> requestProcessor, ResponseDataExtractor<T> responseDataExtractor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            Response response = httpClient.request(query, requestProcessor);
+            return responseDataExtractor.extract(response);
         } finally {
             returnClient(httpClient);
         }
