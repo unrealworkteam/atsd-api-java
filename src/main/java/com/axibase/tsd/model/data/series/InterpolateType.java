@@ -18,5 +18,5 @@ package com.axibase.tsd.model.data.series;
 public enum InterpolateType {
     NONE,
     LINEAR,
-    STEP
+    PREVIOUS
 }
