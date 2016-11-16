@@ -20,5 +20,6 @@ public enum DataType {
     INTEGER,
     FLOAT,
     LONG,
-    DOUBLE
+    DOUBLE,
+    DECIMAL
 }
