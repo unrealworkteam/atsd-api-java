@@ -18,6 +18,7 @@
 package com.axibase.tsd.client.metadata;
 
 import com.axibase.tsd.RerunRule;
+import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.client.MetaDataService;
@@ -31,6 +32,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,10 @@ public class MetricTest {
         }
 
         List metrics = metaDataService.retrieveMetrics(true, metricQuery, TagAppender.ALL, 1);
+        assertTrue(metrics.get(0) instanceof Metric);
+        assertEquals(1, metrics.size());
+
+        metrics = metaDataService.retrieveMetrics(metricQuery, (String) null, null, TagAppender.ALL, 1);
         assertTrue(metrics.get(0) instanceof Metric);
         assertEquals(1, metrics.size());
     }
@@ -186,12 +192,17 @@ public class MetricTest {
         final String metricName = buildVariablePrefix() + "metric";
         final String entityName = buildVariablePrefix() + "entity";
         final Long timestamp = MOCK_TIMESTAMP;
-        if (metaDataService.retrieveMetrics(entityName, null, "name like '*'", null, 1).isEmpty()) {
+        if (metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1).isEmpty()) {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
             addSeriesCommand.addSeries(new Sample(timestamp, 1));
             assertTrue(dataService.addSeries(addSeriesCommand));
         }
-        List metrics = metaDataService.retrieveMetrics(entityName, null, "name like '*'", null, 1);
+        List metrics = metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1);
+        assertEquals(1, metrics.size());
+        assertTrue(metrics.get(0) instanceof Metric);
+        assertEquals(((Metric) metrics.get(0)).getName(), metricName);
+
+        metrics = metaDataService.retrieveMetrics(entityName, "name like '*'", (String) null, null, null, null, 1);
         assertEquals(1, metrics.size());
         assertTrue(metrics.get(0) instanceof Metric);
         assertEquals(((Metric) metrics.get(0)).getName(), metricName);
