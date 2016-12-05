@@ -119,8 +119,8 @@ public class MetaDataService {
      * @deprecated use {@link #retrieveMetrics(String, String, String, String, Boolean, TagAppender, Integer)} instead.
      */
     @Deprecated
-    public List<Metric> retrieveMetrics(boolean active,
-                                        String entityName,
+    public List<Metric> retrieveMetrics(String entityName,
+                                        Boolean active,
                                         String expression,
                                         TagAppender tagAppender,
                                         Integer limit) {
@@ -429,7 +429,7 @@ public class MetaDataService {
      * @param active          Filter entities by {@code lastInsertTime}. If active = {@code true}, only entities with
      *                        positive {@code lastInsertTime} are included in the response.
      * @param expression      Specify EL expression.
-     * @param tagAppender     Specify entity tags to be included in the response. Specify * to include all entity tags.
+     * @param tagAppender     Specify entity tags to be included in the response.
      * @param limit           limit
      * @return List of entities for an entity group.
      * @deprecated use {@link #retrieveGroupEntities(String, String, String, String, TagAppender, Integer)} instead.
