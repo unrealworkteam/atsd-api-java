@@ -18,6 +18,7 @@
 package com.axibase.tsd.client.metadata;
 
 import com.axibase.tsd.RerunRule;
+import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.client.AtsdServerException;
 import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
@@ -29,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,20 +68,27 @@ public class EntityTest {
     public void testRetrieveEntity() throws Exception {
         final String entityName = buildVariablePrefix();
         if (metaDataService.retrieveEntity(entityName) == null) {
-            assertTrue(metaDataService.createOrReplaceEntity(new Entity(entityName)));
+            assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
         }
-        assertEquals(entityName, metaDataService.retrieveEntity(entityName).getName());
+
+        Entity entity = metaDataService.retrieveEntity(entityName);
+        assertEquals(entityName, entity.getName());
+        assertEquals("label-" + entityName, entity.getLabel());
     }
 
     @Test
     public void testRetrieveEntities() throws Exception {
         final String entityName = buildVariablePrefix();
         if (metaDataService.retrieveEntity(entityName) == null) {
-            assertTrue(metaDataService.createOrReplaceEntity(new Entity(entityName)));
+            assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
         }
 
         {
             List<Entity> entities = metaDataService.retrieveEntities(null, "name like '*'", TagAppender.ALL, 1);
+            assertEquals(1, entities.size());
+            assertTrue(entities.get(0) instanceof Entity);
+
+            entities = metaDataService.retrieveEntities("name like '*'", (String) null, null, TagAppender.ALL, 1);
             assertEquals(1, entities.size());
             assertTrue(entities.get(0) instanceof Entity);
         }
@@ -87,9 +96,19 @@ public class EntityTest {
         {
             List entities = metaDataService.retrieveEntities(null, "name = '" + entityName + "'", TagAppender.ALL, 1);
             assertEquals(1, entities.size());
-
             assertTrue(entities.get(0) instanceof Entity);
-            assertEquals(((Entity) entities.get(0)).getName(), entityName);
+
+            Entity entity = (Entity) entities.get(0);
+            assertEquals(entityName, entity.getName());
+            assertEquals("label-" + entityName, entity.getLabel());
+
+            entities = metaDataService.retrieveEntities("name = '" + entityName + "'", (String) null, null, TagAppender.ALL, 1);
+            assertEquals(1, entities.size());
+            assertTrue(entities.get(0) instanceof Entity);
+
+            entity = (Entity) entities.get(0);
+            assertEquals(entityName, entity.getName());
+            assertEquals("label-" + entityName, entity.getLabel());
         }
     }
 
@@ -97,13 +116,14 @@ public class EntityTest {
     public void testCreateOrReplaceEntityWithoutTags() throws Exception {
         final String entityName = buildVariablePrefix();
         if (metaDataService.retrieveEntity(entityName) != null) {
-            metaDataService.deleteEntity(new Entity(entityName));
+            metaDataService.deleteEntity(createEntity(entityName));
         }
         assertNull(metaDataService.retrieveEntity(entityName));
 
-        assertTrue(metaDataService.createOrReplaceEntity(new Entity(entityName)));
+        assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
         Entity newEntity = metaDataService.retrieveEntity(entityName);
         assertEquals(entityName, newEntity.getName());
+        assertEquals("label-" + entityName, newEntity.getLabel());
         assertEquals(new HashMap<>(), newEntity.getTags());
     }
 
@@ -111,11 +131,11 @@ public class EntityTest {
     public void testCreateOrReplaceEntityWithTags() throws Exception {
         final String entityName = buildVariablePrefix();
         if (metaDataService.retrieveEntity(entityName) != null) {
-            metaDataService.deleteEntity(new Entity(entityName));
+            metaDataService.deleteEntity(createEntity(entityName));
         }
         assertNull(metaDataService.retrieveEntity(entityName));
 
-        Entity entity = new Entity(entityName);
+        Entity entity = createEntity(entityName);
 
         {
             Map<String, String> tags = new HashMap<>();
@@ -124,8 +144,9 @@ public class EntityTest {
             entity.setTags(tags);
             assertTrue(metaDataService.createOrReplaceEntity(entity));
             entity = metaDataService.retrieveEntity(entityName);
-            assertEquals(entity.getName(), entityName);
-            assertEquals(entity.getTags(), tags);
+            assertEquals(entityName, entity.getName());
+            assertEquals("label-" + entityName, entity.getLabel());
+            assertEquals(tags, entity.getTags());
         }
 
         {
@@ -135,8 +156,9 @@ public class EntityTest {
             entity.setTags(tags);
             assertTrue(metaDataService.createOrReplaceEntity(entity));
             entity = metaDataService.retrieveEntity(entityName);
-            assertEquals(entity.getName(), entityName);
-            assertEquals(entity.getTags(), tags);
+            assertEquals(entityName, entity.getName());
+            assertEquals("label-" + entityName, entity.getLabel());
+            assertEquals(tags, entity.getTags());
         }
     }
 
@@ -145,11 +167,11 @@ public class EntityTest {
         final String entityName = "te_____st-cre ate-invalid-^%entityƒџќѕ∆-w\"ith''ou't-tags";
 
         if (metaDataService.retrieveEntity(entityName) != null) {
-            metaDataService.deleteEntity(new Entity(entityName));
+            metaDataService.deleteEntity(createEntity(entityName));
         }
         assertNull(metaDataService.retrieveEntity(entityName));
 
-        Entity entity = new Entity(entityName);
+        Entity entity = createEntity(entityName);
         assertFalse(metaDataService.createOrReplaceEntity(entity));
         assertNull(metaDataService.retrieveEntity(entityName));
     }
@@ -159,10 +181,10 @@ public class EntityTest {
         final String entityName = buildVariablePrefix();
 
         if (metaDataService.retrieveEntity(entityName) != null) {
-            metaDataService.deleteEntity(new Entity(entityName));
+            metaDataService.deleteEntity(createEntity(entityName));
         }
         assertNull(metaDataService.retrieveEntity(entityName));
-        Entity entity = new Entity(entityName);
+        Entity entity = createEntity(entityName);
         entity.buildTags("test- t__\\\'\" onclick=alert(1) 'g1", "test-__-  tag1-val", "test-tag2", "test-tag2-val");
         assertFalse(metaDataService.createOrReplaceEntity(entity));
         assertNull(metaDataService.retrieveEntity(entityName));
@@ -172,21 +194,28 @@ public class EntityTest {
     public void testCreateAndDeleteEntity() throws Exception {
         final String entityName = buildVariablePrefix();
         if (metaDataService.retrieveEntity(entityName) != null) {
-            metaDataService.deleteEntity(new Entity(entityName));
+            metaDataService.deleteEntity(createEntity(entityName));
         }
         assertNull(metaDataService.retrieveEntity(entityName));
 
-        Entity entity = new Entity(entityName);
+        Entity entity = createEntity(entityName);
         entity.buildTags("nnn-test-tag-1", "nnn-test-tag-value-1");
         assertTrue(metaDataService.createOrReplaceEntity(entity));
 
         Entity newEntity = metaDataService.retrieveEntity(entityName);
         assertNotNull(newEntity);
-        assertEquals(newEntity.getName(), entityName);
-        assertEquals(newEntity.getTags(), entity.getTags());
+        assertEquals(entityName, newEntity.getName());
+        assertEquals(entity.getLabel(), newEntity.getLabel());
+        assertEquals(entity.getTags(), newEntity.getTags());
 
         assertTrue(metaDataService.deleteEntity(entity));
         assertNull(metaDataService.retrieveEntity(entityName));
+    }
+
+    private static Entity createEntity(String entityName) {
+        Entity entity = new Entity(entityName);
+        entity.setLabel("label-" + entityName);
+        return entity;
     }
 
 }
