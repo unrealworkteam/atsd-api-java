@@ -63,7 +63,9 @@ public class MetaDataService {
      * @return List of metrics.
      * @throws AtsdClientException raised  raised
      * @throws AtsdServerException raised  raised
+     * @deprecated use {@link #retrieveMetrics(String, String, String, TagAppender, Integer)} instead.
      */
+    @Deprecated
     public List<Metric> retrieveMetrics(Boolean active,
                                         String expression,
                                         TagAppender tagAppender,
@@ -79,6 +81,34 @@ public class MetaDataService {
     }
 
     /**
+     * @param expression  Specify EL expression.
+     * @param minInsertDate Include metrics with lastInsertDate equal or greater than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param maxInsertDate Include metrics with lastInsertDate less than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param tagAppender Specify metric tags to be included in the response. Specify * to include all metric tags.
+     * @param limit       Limit response to first N metrics, ordered by name.
+     * @return List of metrics.
+     * @throws AtsdClientException raised  raised
+     * @throws AtsdServerException raised  raised
+     */
+    public List<Metric> retrieveMetrics(String expression,
+                                        String minInsertDate,
+                                        String maxInsertDate,
+                                        TagAppender tagAppender,
+                                        Integer limit) {
+        QueryPart<Metric> query = new Query<Metric>("metrics")
+                .param("expression", expression)
+                .param("minInsertDate", minInsertDate)
+                .param("maxInsertDate", maxInsertDate)
+                .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
+        return httpClientManager.requestMetaDataList(Metric.class, query);
+    }
+
+    /**
      * @param entityName  Entity name.
      * @param active      Filter metrics by {@code lastInsertTime}. If active = {@code true}, only metrics with
      *                    positive {@code lastInsertTime} are included in the response.
@@ -86,9 +116,11 @@ public class MetaDataService {
      * @param tagAppender Specify metric tags to be included in the response.
      * @param limit       Limit response to first N metrics, ordered by name.
      * @return List of metrics.
+     * @deprecated use {@link #retrieveMetrics(String, String, String, String, Boolean, TagAppender, Integer)} instead.
      */
-    public List<Metric> retrieveMetrics(String entityName,
-                                        Boolean active,
+    @Deprecated
+    public List<Metric> retrieveMetrics(boolean active,
+                                        String entityName,
                                         String expression,
                                         TagAppender tagAppender,
                                         Integer limit) {
@@ -97,6 +129,40 @@ public class MetaDataService {
                 .path("metrics")
                 .param("active", active)
                 .param("expression", expression)
+                .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
+        return httpClientManager.requestMetaDataList(Metric.class, query);
+    }
+
+    /**
+     * @param entityName  Entity name.
+     * @param expression  Specify EL expression.
+     * @param minInsertDate Include metrics with lastInsertDate equal or greater than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param maxInsertDate Include metrics with lastInsertDate less than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param useEntityInsertTime If true, lastInsertDate is calculated for the specified entity and metric.
+     *                            Otherwise, lastInsertDate represents the last time for all entities. Default: false.
+     * @param tagAppender Specify metric tags to be included in the response. Specify * to include all metric tags.
+     * @param limit       Limit response to first N metrics, ordered by name.
+     * @return List of metrics.
+     */
+    public List<Metric> retrieveMetrics(String entityName,
+                                        String expression,
+                                        String minInsertDate,
+                                        String maxInsertDate,
+                                        Boolean useEntityInsertTime,
+                                        TagAppender tagAppender,
+                                        Integer limit) {
+        QueryPart<Metric> query = new Query<Metric>("entities")
+                .path(entityName)
+                .path("metrics")
+                .param("expression", expression)
+                .param("minInsertDate", minInsertDate)
+                .param("maxInsertDate", maxInsertDate)
+                .param("useEntityInsertTime", useEntityInsertTime)
                 .param("limit", limit);
         if (tagAppender != null) {
             query = query.param("tags", tagAppender.getTags());
@@ -165,7 +231,9 @@ public class MetaDataService {
      * @param tagAppender Specify entity tags to be included in the response.
      * @param limit       Limit response to first N entities, ordered by name.
      * @return List of entities.
+     * @deprecated use {@link #retrieveEntities(String, String, String, TagAppender, Integer)} instead.
      */
+    @Deprecated
     public List<Entity> retrieveEntities(Boolean active,
                                          String expression,
                                          TagAppender tagAppender,
@@ -173,6 +241,32 @@ public class MetaDataService {
         QueryPart<Entity> query = new Query<Entity>("entities")
                 .param("active", active)
                 .param("expression", expression)
+                .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
+        return httpClientManager.requestMetaDataList(Entity.class, query);
+    }
+
+    /**
+     * @param expression  Specify EL expression.
+     * @param minInsertDate Include entities with lastInsertDate equal or greater than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param maxInsertDate Include entities with lastInsertDate less than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param tagAppender Specify entity tags to be included in the response. Specify * to include all entity tags.
+     * @param limit       Limit response to first N entities, ordered by name.
+     * @return List of entities.
+     */
+    public List<Entity> retrieveEntities(String expression,
+                                         String minInsertDate,
+                                         String maxInsertDate,
+                                         TagAppender tagAppender,
+                                         Integer limit) {
+        QueryPart<Entity> query = new Query<Entity>("entities")
+                .param("expression", expression)
+                .param("minInsertDate", minInsertDate)
+                .param("maxInsertDate", maxInsertDate)
                 .param("limit", limit);
         if (tagAppender != null) {
             query = query.param("tags", tagAppender.getTags());
@@ -335,10 +429,12 @@ public class MetaDataService {
      * @param active          Filter entities by {@code lastInsertTime}. If active = {@code true}, only entities with
      *                        positive {@code lastInsertTime} are included in the response.
      * @param expression      Specify EL expression.
-     * @param tagAppender     Specify entity tags to be included in the response.
+     * @param tagAppender     Specify entity tags to be included in the response. Specify * to include all entity tags.
      * @param limit           limit
      * @return List of entities for an entity group.
+     * @deprecated use {@link #retrieveGroupEntities(String, String, String, String, TagAppender, Integer)} instead.
      */
+    @Deprecated
     public List<Entity> retrieveGroupEntities(String entityGroupName,
                                               Boolean active,
                                               String expression,
@@ -350,6 +446,37 @@ public class MetaDataService {
                 .path("entities")
                 .param("active", active)
                 .param("expression", expression)
+                .param("limit", limit);
+        if (tagAppender != null) {
+            query = query.param("tags", tagAppender.getTags());
+        }
+        return httpClientManager.requestMetaDataList(Entity.class, query);
+    }
+
+    /**
+     * @param entityGroupName Entity group name.
+     * @param expression      Specify EL expression.
+     * @param minInsertDate Include entities with lastInsertDate equal or greater than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param maxInsertDate Include entities with lastInsertDate less than specified time.
+     *                      Time can be specified in ISO format or using <a href="https://github.com/axibase/atsd-docs/blob/master/end-time-syntax.md">endtime</a> syntax.
+     * @param tagAppender     Specify entity tags to be included in the response. Specify * to include all entity tags.
+     * @param limit           limit
+     * @return List of entities for an entity group.
+     */
+    public List<Entity> retrieveGroupEntities(String entityGroupName,
+                                              String expression,
+                                              String minInsertDate,
+                                              String maxInsertDate,
+                                              TagAppender tagAppender,
+                                              Integer limit) {
+        checkEntityGroupIsEmpty(entityGroupName);
+        QueryPart<Entity> query = new Query<Entity>("entity-groups")
+                .path(entityGroupName)
+                .path("entities")
+                .param("expression", expression)
+                .param("minInsertDate", minInsertDate)
+                .param("maxInsertDate", maxInsertDate)
                 .param("limit", limit);
         if (tagAppender != null) {
             query = query.param("tags", tagAppender.getTags());

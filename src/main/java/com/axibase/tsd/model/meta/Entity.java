@@ -29,6 +29,8 @@ public class Entity {
     @JsonProperty
     private String name;
     @JsonProperty
+    private String label;
+    @JsonProperty
     private Boolean enabled;
     @JsonProperty
     private Long lastInsertTime;
@@ -49,6 +51,14 @@ public class Entity {
     public Entity setName(String name) {
         this.name = name;
         return this;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public Boolean isEnabled() {
@@ -90,6 +100,7 @@ public class Entity {
     public String toString() {
         return "Entity{" +
                 "name='" + name + '\'' +
+                ", label='" + label + '\'' +
                 ", enabled=" + enabled +
                 ", lastInsertTime=" + lastInsertTime +
                 ", tags=" + tags +
