@@ -186,12 +186,12 @@ public class MetricTest {
         final String metricName = buildVariablePrefix() + "metric";
         final String entityName = buildVariablePrefix() + "entity";
         final Long timestamp = MOCK_TIMESTAMP;
-        if (metaDataService.retrieveMetrics(entityName, null, "name like '*'", null, 1).isEmpty()) {
+        if (metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1).isEmpty()) {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
             addSeriesCommand.addSeries(new Sample(timestamp, 1));
             assertTrue(dataService.addSeries(addSeriesCommand));
         }
-        List metrics = metaDataService.retrieveMetrics(entityName, null, "name like '*'", null, 1);
+        List metrics = metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1);
         assertEquals(1, metrics.size());
         assertTrue(metrics.get(0) instanceof Metric);
         assertEquals(((Metric) metrics.get(0)).getName(), metricName);
