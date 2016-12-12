@@ -14,7 +14,11 @@
  */
 package com.axibase.tsd.query;
 
+import com.axibase.tsd.client.AtsdClientException;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 
 public abstract class AbstractQueryPart<T> implements QueryPart<T> {
@@ -27,9 +31,22 @@ public abstract class AbstractQueryPart<T> implements QueryPart<T> {
     }
 
     public QueryPart<T> path(String path) {
+        return path(path, false);
+    }
+
+    public QueryPart<T> path(String path, boolean encode) {
         if (StringUtils.isBlank(path)) {
             throw new IllegalArgumentException("Path element is empty: " + path);
         }
-        return new Query<T>(path, this);
+        return new Query<T>(encode ? encode(path) : path, this);
     }
+
+    protected static String encode(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new AtsdClientException("Encode error", e);
+        }
+    }
+
 }
