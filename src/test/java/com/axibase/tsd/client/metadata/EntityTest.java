@@ -67,9 +67,7 @@ public class EntityTest {
     @Test
     public void testRetrieveEntity() throws Exception {
         final String entityName = buildVariablePrefix();
-        if (metaDataService.retrieveEntity(entityName) == null) {
-            assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
-        }
+        assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
 
         Entity entity = metaDataService.retrieveEntity(entityName);
         assertEquals(entityName, entity.getName());
@@ -79,9 +77,7 @@ public class EntityTest {
     @Test
     public void testRetrieveEntities() throws Exception {
         final String entityName = buildVariablePrefix();
-        if (metaDataService.retrieveEntity(entityName) == null) {
-            assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
-        }
+        assertTrue(metaDataService.createOrReplaceEntity(createEntity(entityName)));
 
         {
             List<Entity> entities = metaDataService.retrieveEntities(null, "name like '*'", TagAppender.ALL, 1);

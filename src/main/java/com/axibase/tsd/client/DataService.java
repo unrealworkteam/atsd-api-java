@@ -103,7 +103,7 @@ public class DataService {
         check(data, "Data is empty");
         QueryPart<Series> query = new Query<Series>("series")
                 .path("csv")
-                .path(entityName);
+                .path(entityName, true);
         if (tagNamesAndValues != null) {
             if (tagNamesAndValues.length % 2 == 1) {
                 throw new IllegalArgumentException("Tag without value");
@@ -152,8 +152,8 @@ public class DataService {
                                        String columns) {
         QueryPart seriesQuery = new Query("series")
                 .path(format.name().toLowerCase())
-                .path(entityName)
-                .path(metricName)
+                .path(entityName, true)
+                .path(metricName, true)
                 .param("startTime", startTime)
                 .param("endTime", endTime)
                 .param("period", period)
@@ -189,7 +189,7 @@ public class DataService {
         checkEntityIsEmpty(entityName);
         checkPropertyTypeIsEmpty(typeName);
         QueryPart<Property> query = new Query<>("properties");
-        query = query.path(entityName).path("types").path(typeName);
+        query = query.path(entityName, true).path("types").path(typeName, true);
         return httpClientManager.requestDataList(Property.class, query, null);
     }
 

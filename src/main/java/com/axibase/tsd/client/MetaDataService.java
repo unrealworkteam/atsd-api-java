@@ -125,7 +125,7 @@ public class MetaDataService {
                                         TagAppender tagAppender,
                                         Integer limit) {
         QueryPart<Metric> query = new Query<Metric>("entities")
-                .path(entityName)
+                .path(entityName, true)
                 .path("metrics")
                 .param("active", active)
                 .param("expression", expression)
@@ -157,7 +157,7 @@ public class MetaDataService {
                                         TagAppender tagAppender,
                                         Integer limit) {
         QueryPart<Metric> query = new Query<Metric>("entities")
-                .path(entityName)
+                .path(entityName, true)
                 .path("metrics")
                 .param("expression", expression)
                 .param("minInsertDate", minInsertDate)
@@ -177,7 +177,7 @@ public class MetaDataService {
     public Metric retrieveMetric(String metricName) {
         checkMetricIsEmpty(metricName);
         return httpClientManager.requestMetaDataObject(Metric.class, new Query<Metric>("metrics")
-                .path(metricName));
+                .path(metricName, true));
     }
 
     /**
@@ -190,7 +190,7 @@ public class MetaDataService {
         String metricName = metric.getName();
         checkMetricIsEmpty(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
-                .path(metricName);
+                .path(metricName, true);
         return httpClientManager.updateMetaData(queryPart, put(metric));
     }
 
@@ -205,7 +205,7 @@ public class MetaDataService {
         String metricName = metric.getName();
         checkMetricIsEmpty(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
-                .path(metricName);
+                .path(metricName, true);
         return httpClientManager.updateMetaData(queryPart, patch(metric));
     }
 
@@ -220,7 +220,7 @@ public class MetaDataService {
         String metricName = metric.getName();
         checkMetricIsEmpty(metricName);
         QueryPart<Metric> queryPart = new Query<Metric>("metrics")
-                .path(metricName);
+                .path(metricName, true);
         return httpClientManager.updateMetaData(queryPart, delete());
     }
 
@@ -281,7 +281,7 @@ public class MetaDataService {
     public Entity retrieveEntity(String entityName) {
         checkEntityIsEmpty(entityName);
         QueryPart<Entity> query = new Query<Entity>("entities")
-                .path(entityName);
+                .path(entityName, true);
         return httpClientManager.requestMetaDataObject(Entity.class, query);
     }
 
@@ -293,7 +293,7 @@ public class MetaDataService {
     public Set<String> retrievePropertyTypes(String entityName, Long startTime) {
         checkEntityIsEmpty(entityName);
         QueryPart<String> query = new Query<>("entities");
-        query = query.path(entityName).path("property-types").param("startTime", startTime);
+        query = query.path(entityName, true).path("property-types").param("startTime", startTime);
         HashSet<String> result = new HashSet<>();
         result.addAll(httpClientManager.requestDataList(String.class, query, null));
         return result;
@@ -309,7 +309,7 @@ public class MetaDataService {
         String entityName = entity.getName();
         checkEntityIsEmpty(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
-                .path(entityName);
+                .path(entityName, true);
         return httpClientManager.updateMetaData(queryPart, put(entity));
     }
 
@@ -323,7 +323,7 @@ public class MetaDataService {
         String entityName = entity.getName();
         checkEntityIsEmpty(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
-                .path(entityName);
+                .path(entityName, true);
         return httpClientManager.updateMetaData(queryPart, patch(entity));
     }
 
@@ -337,7 +337,7 @@ public class MetaDataService {
         String entityName = entity.getName();
         checkEntityIsEmpty(entityName);
         QueryPart<Entity> queryPart = new Query<Entity>("entities")
-                .path(entityName);
+                .path(entityName, true);
         return httpClientManager.updateMetaData(queryPart, delete());
     }
 
@@ -349,7 +349,7 @@ public class MetaDataService {
     public List<EntityAndTags> retrieveEntityAndTags(String metricName, String entityName) {
         checkMetricIsEmpty(metricName);
         return httpClientManager.requestMetaDataList(EntityAndTags.class, new Query<EntityAndTags>("metrics")
-                .path(metricName)
+                .path(metricName, true)
                 .path("entity-and-tags")
                 .param("entity", entityName)
         );
@@ -369,7 +369,7 @@ public class MetaDataService {
     public EntityGroup retrieveEntityGroup(String entityGroupName) {
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
-                .path(entityGroupName);
+                .path(entityGroupName, true);
         return httpClientManager.requestMetaDataObject(EntityGroup.class, query);
     }
 
@@ -388,7 +388,7 @@ public class MetaDataService {
         String entityGroupName = entityGroup.getName();
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
-                .path(entityGroupName);
+                .path(entityGroupName, true);
         return httpClientManager.updateMetaData(query, put(entityGroup));
     }
 
@@ -406,7 +406,7 @@ public class MetaDataService {
         String entityGroupName = entityGroup.getName();
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
-                .path(entityGroupName);
+                .path(entityGroupName, true);
         return httpClientManager.updateMetaData(query, patch(entityGroup));
     }
 
@@ -420,7 +420,7 @@ public class MetaDataService {
         String entityGroupName = entityGroup.getName();
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
-                .path(entityGroupName);
+                .path(entityGroupName, true);
         return httpClientManager.updateMetaData(query, delete());
     }
 
@@ -442,7 +442,7 @@ public class MetaDataService {
                                               Integer limit) {
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities")
                 .param("active", active)
                 .param("expression", expression)
@@ -472,7 +472,7 @@ public class MetaDataService {
                                               Integer limit) {
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities")
                 .param("expression", expression)
                 .param("minInsertDate", minInsertDate)
@@ -493,7 +493,7 @@ public class MetaDataService {
     public List<Entity> retrieveGroupEntities(String entityGroupName) {
         checkEntityGroupIsEmpty(entityGroupName);
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities");
         query = query.param("tags", TagAppender.ALL.getTags());
         return httpClientManager.requestMetaDataList(Entity.class, query);
@@ -516,7 +516,7 @@ public class MetaDataService {
             entitiesNames.add(entity.getName());
         }
         QueryPart<EntityGroup> query = new Query<EntityGroup>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities/add")
                 .param("createEntities", createEntities);
         return httpClientManager.updateData(query, post(entitiesNames));
@@ -541,7 +541,7 @@ public class MetaDataService {
             entitiesNames.add(entity.getName());
         }
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities/set")
                 .param("createEntities", createEntities);
         return httpClientManager.updateMetaData(query, post(entitiesNames));
@@ -563,7 +563,7 @@ public class MetaDataService {
             entitiesNames.add(entity.getName());
         }
         QueryPart<Entity> query = new Query<Entity>("entity-groups")
-                .path(entityGroupName)
+                .path(entityGroupName, true)
                 .path("entities/delete");
         return httpClientManager.updateMetaData(query, post(entitiesNames));
     }

@@ -103,7 +103,7 @@ public class TestUtil {
             }
             prefix.append(Character.toLowerCase(ch));
         }
-        prefix.append("-");
+        prefix.append(":tst-");
         return prefix.toString();
     }
 

@@ -23,4 +23,6 @@ public interface QueryPart<T> {
     QueryPart<T> param(String name, Object value);
 
     QueryPart<T> path(String path);
+
+    QueryPart<T> path(String path, boolean encode);
 }
