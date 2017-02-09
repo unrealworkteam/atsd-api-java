@@ -15,8 +15,8 @@
 package com.axibase.tsd.util;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 
 import javax.ws.rs.core.MediaType;
 import java.text.ParseException;
@@ -32,7 +32,7 @@ public class AtsdUtil {
     public static final String PING_COMMAND = "ping\n";
 
     public static Map<String, String> toMap(String... tagNamesAndValues) {
-        if (tagNamesAndValues == null || tagNamesAndValues.length == 0) {
+        if (ArrayUtils.isEmpty(tagNamesAndValues)) {
             return Collections.emptyMap();
         }
 
@@ -48,7 +48,7 @@ public class AtsdUtil {
     }
 
     public static Map<String, Double> toValuesMap(Object... metricNamesAndValues) {
-        if (metricNamesAndValues == null || metricNamesAndValues.length == 0) {
+        if (ArrayUtils.isEmpty(metricNamesAndValues)) {
             return Collections.emptyMap();
         }
 
@@ -106,10 +106,15 @@ public class AtsdUtil {
         }
 
         public static String isoFormat(Date date, boolean withMillis, String timeZoneName) {
-            String pattern = (withMillis) ? "yyyy-MM-dd'T'HH:mm:ss.SSSZZ" : "yyyy-MM-dd'T'HH:mm:ssZZ";
-            FastDateFormat formatter = FastDateFormat.getInstance(pattern, TimeZone.getTimeZone(timeZoneName), Locale.US);
-            return formatter.format(date);
+            return ISO8601Utils.format(date, withMillis, TimeZone.getTimeZone(timeZoneName));
         }
+    }
+
+    public static String formatMetricValue(double value) {
+        if (Double.isNaN(value)) {
+            return "NaN";
+        }
+        return Double.toString(value);
     }
 
 }
