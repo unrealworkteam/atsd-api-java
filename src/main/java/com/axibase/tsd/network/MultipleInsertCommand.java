@@ -17,6 +17,8 @@ package com.axibase.tsd.network;
 
 import java.util.Map;
 
+import static com.axibase.tsd.util.AtsdUtil.formatMetricValue;
+
 
 public class MultipleInsertCommand extends AbstractInsertCommand {
     private final Map<String, Double> metricsAndValues;
@@ -31,7 +33,7 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
     protected void appendValues(StringBuilder sb) {
         for (Map.Entry<String, Double> metricNameAndValue : metricsAndValues.entrySet()) {
             sb.append(" m:").append(metricNameAndValue.getKey())
-                    .append('=').append(metricNameAndValue.getValue());
+                    .append('=').append(formatMetricValue(metricNameAndValue.getValue()));
         }
     }
 }
