@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.axibase.tsd.util.AtsdUtil.checkMetricIsEmpty;
-import static com.axibase.tsd.util.AtsdUtil.formatMetricValue;
 
 
 public class InsertCommand extends AbstractInsertCommand {
@@ -47,7 +46,7 @@ public class InsertCommand extends AbstractInsertCommand {
 
     @Override
     protected void appendValues(StringBuilder sb) {
-        sb.append(" m:").append(handleStringValue(metricName)).append('=').append(formatMetricValue(sample.getValue()));
+        sb.append(" m:").append(handleStringValue(metricName)).append('=').append(sample.getValue());
     }
 
 }
