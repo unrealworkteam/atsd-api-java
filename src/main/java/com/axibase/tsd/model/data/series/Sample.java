@@ -74,13 +74,16 @@ public class Sample {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
+        if (!(obj instanceof Sample)) {
             return false;
         }
 
         final Sample other = (Sample) obj;
-        return this.getValue() == other.getValue();
-
+        if (Double.isNaN(this.value)) {
+            return Double.isNaN(other.value);
+        } else {
+            return this.value == other.value;
+        }
     }
 
     @Override
