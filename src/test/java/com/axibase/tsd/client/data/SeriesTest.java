@@ -28,16 +28,14 @@ import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
 import com.axibase.tsd.model.system.Format;
 import com.axibase.tsd.network.InsertCommand;
+import com.axibase.tsd.network.MultipleInsertCommand;
 import com.axibase.tsd.network.PlainCommand;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.axibase.tsd.TestUtil.*;
 import static junit.framework.Assert.*;
@@ -292,9 +290,12 @@ public class SeriesTest {
         final String metricName = buildVariablePrefix() + "metric";
         long st = System.currentTimeMillis();
         final ArrayList<PlainCommand> commands = new ArrayList<>();
-        commands.add(new InsertCommand(entityName, metricName, new Sample(st, 1.0, "text1")));
-        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 1, 2.0, "text2")));
-        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 2, 3.0, "text3")));
+        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 1, 1.0)));
+        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 2, 2.0, "text1")));
+        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 3, 3.0, "text2"), Collections.singletonMap("tag1", "value1")));
+        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 4, 4.0, "text3"), "tag1", "value1"));
+        commands.add(new MultipleInsertCommand(entityName, st + 5, Collections.singletonMap("tag1", "value1"), Collections.singletonMap(metricName, 5.0)));
+        commands.add(new MultipleInsertCommand(entityName, st + 6, Collections.<String, String>emptyMap(), Collections.singletonMap(metricName, 6.0), Collections.singletonMap(metricName, "text4")));
         final BatchResponse batchResponse = dataService.sendBatch(commands);
         assertTrue(batchResponse.getResult().getFail() == 0);
 
@@ -302,9 +303,16 @@ public class SeriesTest {
 
         final GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName);
         getSeriesQuery.setStartTime(st);
-        getSeriesQuery.setEndTime(st + 2 + 1);
+        getSeriesQuery.setEndTime(st + 7);
         final List<Series> seriesResults = dataService.retrieveSeries(getSeriesQuery);
-        assertEquals(3, seriesResults.get(0).getData().size());
+        assertEquals(2, seriesResults.size());
+
+        Series series = seriesResults.get(0);
+        assertEquals(3, series.getData().size());
+        assertTrue(series.getTags().isEmpty());
+        series = seriesResults.get(1);
+        assertEquals(3, series.getData().size());
+        assertFalse(series.getTags().isEmpty());
     }
 
     @Test
@@ -314,6 +322,7 @@ public class SeriesTest {
         long st = System.currentTimeMillis();
         final ArrayList<PlainCommand> commands = new ArrayList<>();
         commands.add(new InsertCommand(entityName, metricName, new Sample(st, Double.NaN)));
+        commands.add(new MultipleInsertCommand(entityName, st + 1,  Collections.<String, String>emptyMap(), Collections.singletonMap(metricName, Double.NaN)));
         final BatchResponse batchResponse = dataService.sendBatch(commands);
         assertTrue(batchResponse.getResult().getFail() == 0);
 
@@ -321,10 +330,15 @@ public class SeriesTest {
 
         final GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName);
         getSeriesQuery.setStartTime(st);
-        getSeriesQuery.setEndTime(st + 2 + 1);
+        getSeriesQuery.setEndTime(st + 2);
         final List<Series> seriesResults = dataService.retrieveSeries(getSeriesQuery);
-        assertEquals(1, seriesResults.get(0).getData().size());
+        assertEquals(2, seriesResults.get(0).getData().size());
+
         Sample sample = seriesResults.get(0).getData().get(0);
+        assertEquals(Double.NaN, sample.getNumericValue());
+        assertNull(sample.getTextValue());
+
+        sample = seriesResults.get(0).getData().get(1);
         assertEquals(Double.NaN, sample.getNumericValue());
         assertNull(sample.getTextValue());
     }

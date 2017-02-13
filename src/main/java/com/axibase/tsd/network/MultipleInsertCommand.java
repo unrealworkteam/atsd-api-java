@@ -33,8 +33,8 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
     public MultipleInsertCommand(String entityName, long time, Map<String, String> tags,
                                  Map<String, Double> numericValues, Map<String, String> textValues) {
         super(InsertCommand.SERIES_COMMAND, entityName, time, tags);
-        this.numericValues = numericValues;
-        this.textValues = textValues;
+        this.numericValues = numericValues == null ? Collections.<String, Double>emptyMap() : numericValues;
+        this.textValues = textValues == null ? Collections.<String, String>emptyMap() : textValues;
     }
 
     @Override
@@ -44,9 +44,6 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
                     .append('=').append(formatMetricValue(metricNameAndValue.getValue()));
         }
 
-        for (Map.Entry<String, String> metricNameAndValue : textValues.entrySet()) {
-            sb.append(" x:").append(metricNameAndValue.getKey())
-                    .append('=').append(metricNameAndValue.getValue());
-        }
+        appendKeysAndValues(sb, " x:", textValues);
     }
 }
