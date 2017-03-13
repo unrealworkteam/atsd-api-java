@@ -50,7 +50,7 @@ public class CommandSeriesQuotesTest {
                 testSeries.getTags()
         );
         Sample testSample = testSeries.getData().get(0);
-        assertEquals("Commands is composing incorrectly",
+        assertEquals("Command is composing incorrectly",
                 String.format("series e:\"%s\" ms:%d t:tag=\"OFF- RAMP \"\" U\"\", I\" m:\"%s\"=%s x:\"%s\"=%s\n",
                         TEST_ENTITY, testSample.getTimeMillis(), TEST_METRIC, testSample.getNumericValue(), TEST_METRIC, testSample.getTextValue()),
                 command.compose()
@@ -78,5 +78,27 @@ public class CommandSeriesQuotesTest {
         assertEquals(testSeries.getData(), actualSeries.getData());
         assertEquals(testSeries.getTags(), actualSeries.getTags());
 
+    }
+
+    @Test
+    public void testComposeSeriesCommandWithSpaceInText() {
+        final long time = 1488800000000L;
+        PlainCommand command = new InsertCommand(
+                "test-entity",
+                "test-metric",
+                new Sample(time, Double.NaN, "Value With Space")
+        );
+        assertEquals("series e:\"test-entity\" ms:1488800000000 m:\"test-metric\"=NaN x:\"test-metric\"=\"Value With Space\"", command.compose().trim());
+    }
+
+    @Test
+    public void testCoposeSeriesCommandWithQuotesInText() {
+        final long time = 1488800000000L;
+        PlainCommand command = new InsertCommand(
+                "test-entity",
+                "test-metric",
+                new Sample(time, Double.NaN, "a \"Quoted\" value")
+        );
+        assertEquals("series e:\"test-entity\" ms:1488800000000 m:\"test-metric\"=NaN x:\"test-metric\"=\"a \"\"Quoted\"\" value\"", command.compose().trim());
     }
 }
