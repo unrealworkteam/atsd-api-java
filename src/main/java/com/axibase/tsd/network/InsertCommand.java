@@ -50,7 +50,7 @@ public class InsertCommand extends AbstractInsertCommand {
     protected void appendValues(StringBuilder sb) {
         sb.append(" m:").append(handleStringValue(metricName)).append('=').append(formatMetricValue(sample.getNumericValue()));
         if (StringUtils.isNotEmpty(sample.getTextValue())) {
-            sb.append(" x:").append(handleStringValue(metricName)).append('=').append(sample.getTextValue());
+            sb.append(" x:").append(handleStringValue(metricName)).append('=').append(handleStringValue(sample.getTextValue()));
         }
     }
 
