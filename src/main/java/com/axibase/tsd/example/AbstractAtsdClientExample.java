@@ -72,7 +72,8 @@ public abstract class AbstractAtsdClientExample {
                 3000, // readTimeout
                 600000, // pingTimeout
                 false, // ignoreSSLErrors
-                false // skipStreamingControl
+                false, // skipStreamingControl
+                false //enableGzipCompression
         );
         ClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
         logger.info("Connecting to ATSD: " + clientConfiguration.getMetadataUrl());

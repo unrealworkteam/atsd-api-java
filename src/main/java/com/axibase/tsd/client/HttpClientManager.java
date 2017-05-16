@@ -22,8 +22,6 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.List;
@@ -132,6 +130,16 @@ public class HttpClientManager {
         HttpClient httpClient = borrowClient();
         try {
             Response response = httpClient.request(query, requestProcessor);
+            return responseDataExtractor.extract(response);
+        } finally {
+            returnClient(httpClient);
+        }
+    }
+
+    public <T> T requestData(QueryPart<T> query, String data, ResponseDataExtractor<T> responseDataExtractor) {
+        HttpClient httpClient = borrowClient();
+        try {
+            Response response = httpClient.request(query, data);
             return responseDataExtractor.extract(response);
         } finally {
             returnClient(httpClient);

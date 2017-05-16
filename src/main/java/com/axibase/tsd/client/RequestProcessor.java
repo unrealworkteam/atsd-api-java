@@ -31,9 +31,9 @@ class RequestProcessor<T> {
 
     public Response process(Invocation.Builder request, String mediaType) {
         if (type == Type.DELETE) {
-            return request.accept(MediaType.APPLICATION_JSON, mediaType).delete();
+            return request.accept(MediaType.APPLICATION_JSON).delete();
         } else {
-            return request.accept(MediaType.APPLICATION_JSON, mediaType).method(type.name(), Entity.entity(command, mediaType));
+            return request.accept(MediaType.APPLICATION_JSON).method(type.name(), Entity.entity(command, mediaType));
         }
     }
 
