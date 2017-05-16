@@ -18,14 +18,16 @@ import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.core.MediaType;
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 
 public class AtsdUtil {
-    public static final String JSON = MediaType.APPLICATION_JSON;
     public static final String ADD_COMMAND = "add";
     public static final String DELETE_COMMAND = "delete";
     public static final String MARKER_KEYWORD = "marker ";

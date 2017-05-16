@@ -296,7 +296,7 @@ public class DataService {
             data.append(command.compose());
         }
 
-        BatchResponse result = httpClientManager.requestData(query, post(data), new BatchResponseExtractor());
+        BatchResponse result = httpClientManager.requestData(query, data.toString(), new BatchResponseExtractor());
 
         return result;
     }

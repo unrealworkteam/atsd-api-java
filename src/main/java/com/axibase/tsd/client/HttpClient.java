@@ -37,7 +37,9 @@ import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.client.filter.EncodingFilter;
 import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -64,7 +66,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.LogManager;
 
-import static com.axibase.tsd.util.AtsdUtil.JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 
 class HttpClient {
@@ -98,6 +100,12 @@ class HttpClient {
                 .register(RequestBodyLogger.class)
                 .register(HttpAuthenticationFeature.basic(clientConfiguration.getUsername(), clientConfiguration.getPassword()))
         ;
+
+        if (clientConfiguration.isEnableGzipCompression()) {
+            clientConfig.register(GZipEncoder.class);
+            clientConfig.register(EncodingFilter.class);
+            clientConfig.property(ClientProperties.USE_ENCODING, "gzip");
+        }
 
         if (log.isDebugEnabled()) {
             clientConfig.register(new LoggingFilter(legacyLogger, true));
@@ -174,6 +182,10 @@ class HttpClient {
     public <T, E> Response request(QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         String url = clientConfiguration.getDataUrl();
         return doRequest(url, query, requestProcessor);
+    }
+
+    public <T> Response request(QueryPart<T> query, String data) {
+        return doRequest(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN);
     }
 
     public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
@@ -263,7 +275,7 @@ class HttpClient {
     }
 
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
-        return doRequest(url, query, requestProcessor, JSON);
+        return doRequest(url, query, requestProcessor, APPLICATION_JSON);
     }
 
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor, String mediaType) {
@@ -277,7 +289,7 @@ class HttpClient {
             if (requestProcessor == null) {
                 response = request.get();
             } else {
-                response = requestProcessor.process(request, mediaType);
+                response =  requestProcessor.process(request, mediaType);
             }
         } catch (Throwable e) {
             throw new AtsdClientException("Error while processing the request", e);

@@ -55,6 +55,7 @@ public class ClientConfigurationFactory {
     private long pingTimeoutMillis;
     private boolean ignoreSSLErrors;
     private boolean skipStreamingControl;
+    private boolean enableGzipCompression;
 
     private ClientConfigurationFactory() {
     }
@@ -109,6 +110,8 @@ public class ClientConfigurationFactory {
                 , clientProperties, "false").toLowerCase().trim());
         configurationFactory.skipStreamingControl = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".streaming.control.skip"
                 , clientProperties, "false").toLowerCase().trim());
+        configurationFactory.enableGzipCompression = "true".equals(load(AXIBASE_TSD_API_DOMAIN + ".compression.gzip.enable"
+                , clientProperties, "false").toLowerCase().trim());
         return configurationFactory;
     }
 
@@ -118,7 +121,8 @@ public class ClientConfigurationFactory {
                                       int readTimeoutMillis,
                                       long pingTimeoutMillis,
                                       boolean ignoreSSLErrors,
-                                      boolean skipStreamingControl) {
+                                      boolean skipStreamingControl,
+                                      boolean enableGzipCompression) {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.username = username;
@@ -131,6 +135,7 @@ public class ClientConfigurationFactory {
         this.pingTimeoutMillis = pingTimeoutMillis;
         this.ignoreSSLErrors = ignoreSSLErrors;
         this.skipStreamingControl = skipStreamingControl;
+        this.enableGzipCompression = enableGzipCompression;
     }
 
     public ClientConfigurationFactory(String protocol, String serverName, int serverPort,
@@ -139,9 +144,10 @@ public class ClientConfigurationFactory {
                                       int readTimeoutMillis,
                                       long pingTimeoutMillis,
                                       boolean ignoreSSLErrors,
-                                      boolean skipStreamingControl) {
+                                      boolean skipStreamingControl,
+                                      boolean enableGzipCompression) {
         this(protocol, serverName, Integer.toString(serverPort), metadataPath, dataPath, username, password,
-                connectTimeoutMillis, readTimeoutMillis, pingTimeoutMillis, ignoreSSLErrors, skipStreamingControl);
+                connectTimeoutMillis, readTimeoutMillis, pingTimeoutMillis, ignoreSSLErrors, skipStreamingControl, enableGzipCompression);
     }
 
     public ClientConfiguration createClientConfiguration() {
@@ -154,6 +160,7 @@ public class ClientConfigurationFactory {
         clientConfiguration.setPingTimeoutMillis(pingTimeoutMillis);
         clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
         clientConfiguration.setSkipStreamingControl(skipStreamingControl);
+        clientConfiguration.setEnableGzipCompression(enableGzipCompression);
         return clientConfiguration;
     }
 
