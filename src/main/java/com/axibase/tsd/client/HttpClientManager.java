@@ -23,10 +23,11 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.ws.rs.core.Response;
 
 public class HttpClientManager {
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
