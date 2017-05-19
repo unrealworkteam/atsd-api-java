@@ -40,7 +40,7 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
     @Override
     protected void appendValues(StringBuilder sb) {
         for (Map.Entry<String, Double> metricNameAndValue : numericValues.entrySet()){
-            sb.append(" m:").append(metricNameAndValue.getKey())
+            sb.append(" m:").append(handleName(metricNameAndValue.getKey()))
                     .append('=').append(formatMetricValue(metricNameAndValue.getValue()));
         }
 

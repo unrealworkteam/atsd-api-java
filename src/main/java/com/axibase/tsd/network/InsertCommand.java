@@ -15,12 +15,12 @@
 
 package com.axibase.tsd.network;
 
+import java.util.Collections;
+import java.util.Map;
+
 import com.axibase.tsd.model.data.series.Sample;
 import com.axibase.tsd.util.AtsdUtil;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
-import java.util.Map;
 
 import static com.axibase.tsd.util.AtsdUtil.checkMetricIsEmpty;
 import static com.axibase.tsd.util.AtsdUtil.formatMetricValue;
@@ -48,9 +48,9 @@ public class InsertCommand extends AbstractInsertCommand {
 
     @Override
     protected void appendValues(StringBuilder sb) {
-        sb.append(" m:").append(handleStringValue(metricName)).append('=').append(formatMetricValue(sample.getNumericValue()));
+        sb.append(" m:").append(handleName(metricName)).append('=').append(formatMetricValue(sample.getNumericValue()));
         if (StringUtils.isNotEmpty(sample.getTextValue())) {
-            sb.append(" x:").append(handleStringValue(metricName)).append('=').append(handleStringValue(sample.getTextValue()));
+            sb.append(" x:").append(handleName(metricName)).append('=').append(handleStringValue(sample.getTextValue()));
         }
     }
 

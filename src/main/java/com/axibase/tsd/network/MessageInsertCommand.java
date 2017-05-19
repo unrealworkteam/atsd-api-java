@@ -15,9 +15,9 @@
 
 package com.axibase.tsd.network;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 
 public class MessageInsertCommand extends AbstractInsertCommand {
@@ -35,7 +35,7 @@ public class MessageInsertCommand extends AbstractInsertCommand {
     @Override
     protected void appendValues(StringBuilder sb) {
         //message e:<entity> s:<timestamp> t:<key-1>=<value-2> t:<key-2>=<value-2> m:<message>
-        if (StringUtils.isNotBlank(messageText)) {
+        if (StringUtils.isNotBlank(handleName(messageText))) {
             sb.append(" m:").append(handleStringValue(messageText));
         }
     }
