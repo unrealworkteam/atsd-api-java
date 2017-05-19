@@ -30,7 +30,7 @@ public class PropertyInsertCommand extends AbstractInsertCommand {
     public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> keys,
                                  Map<String, String> values) {
         super(PROPERTY_COMMAND, entityName, timeMillis, Collections.<String, String>emptyMap());
-        checkPropertyTypeIsEmpty(handleStringValue(typeName));
+        checkPropertyTypeIsEmpty(typeName);
         this.typeName = typeName;
         this.keys = (keys == null) ? Collections.<String, String>emptyMap() : keys;
         this.values = (values == null) ? Collections.<String, String>emptyMap() : values;

@@ -38,7 +38,7 @@ public abstract class AbstractInsertCommand implements PlainCommand {
     @Override
     public final String compose() {
         StringBuilder sb = new StringBuilder(commandName)
-                .append(' ').append("e:").append(handleStringValue(entityName));
+                .append(' ').append("e:").append(handleName(entityName));
         if (timeMillis != null) {
             sb.append(' ').append("ms:").append(timeMillis);
         }
@@ -50,7 +50,7 @@ public abstract class AbstractInsertCommand implements PlainCommand {
     protected static void appendKeysAndValues(StringBuilder sb, String prefix, Map<String, String> map) {
         for (Map.Entry<String, String> tagNameAndValue : map.entrySet()) {
             sb.append(prefix)
-                    .append(tagNameAndValue.getKey())
+                    .append(handleName(tagNameAndValue.getKey()))
                     .append('=')
                     .append(handleStringValue(tagNameAndValue.getValue()));
         }
@@ -61,6 +61,18 @@ public abstract class AbstractInsertCommand implements PlainCommand {
             return "null";
         } else {
             return '"' + value.replace("\"", "\"\"") + '"';
+        }
+    }
+
+    protected static String handleName(String key) {
+        if (key == null) {
+            return "null";
+        } else if (key.indexOf('"') != -1) {
+            return '"' + key.replace("\"", "\"\"") + '"';
+        } else if (key.indexOf('=') != -1 ) {
+            return '"' + key + '"';
+        } else {
+            return key;
         }
     }
 

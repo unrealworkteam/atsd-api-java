@@ -1,5 +1,9 @@
 package com.axibase.tsd.client.command;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
@@ -11,10 +15,6 @@ import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.util.AtsdUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 import static com.axibase.tsd.TestUtil.buildHttpClientManager;
 import static org.junit.Assert.assertEquals;
@@ -51,7 +51,7 @@ public class CommandSeriesQuotesTest {
         );
         Sample testSample = testSeries.getData().get(0);
         assertEquals("Command has been composed incorrectly",
-                String.format("series e:\"%s\" ms:%d t:tag=\"OFF- RAMP \"\" U\"\", I\" m:\"%s\"=%s x:\"%s\"=\"%s\"\n",
+                String.format("series e:%s ms:%d t:tag=\"OFF- RAMP \"\" U\"\", I\" m:%s=%s x:%s=\"%s\"\n",
                         TEST_ENTITY, testSample.getTimeMillis(), TEST_METRIC, testSample.getNumericValue(), TEST_METRIC, testSample.getTextValue()),
                 command.compose()
         );
@@ -88,7 +88,7 @@ public class CommandSeriesQuotesTest {
                 "test-metric",
                 new Sample(time, Double.NaN, "Value With Space")
         );
-        assertEquals("series e:\"test-entity\" ms:1488800000000 m:\"test-metric\"=NaN x:\"test-metric\"=\"Value With Space\"", command.compose().trim());
+        assertEquals("series e:test-entity ms:1488800000000 m:test-metric=NaN x:test-metric=\"Value With Space\"", command.compose().trim());
     }
 
     @Test
@@ -99,6 +99,29 @@ public class CommandSeriesQuotesTest {
                 "test-metric",
                 new Sample(time, Double.NaN, "a \"Quoted\" value")
         );
-        assertEquals("series e:\"test-entity\" ms:1488800000000 m:\"test-metric\"=NaN x:\"test-metric\"=\"a \"\"Quoted\"\" value\"", command.compose().trim());
+        assertEquals("series e:test-entity ms:1488800000000 m:test-metric=NaN x:test-metric=\"a \"\"Quoted\"\" value\"", command.compose().trim());
     }
+
+    @Test
+    public void testComposeSeriesCommandWithQuotesInNames() {
+        final long time = 1488800000000L;
+        PlainCommand command = new InsertCommand(
+                "test-entity\"",
+                "test-metric\"",
+                new Sample(time, Double.NaN, "Value With Space")
+        );
+        assertEquals("series e:\"test-entity\"\"\" ms:1488800000000 m:\"test-metric\"\"\"=NaN x:\"test-metric\"\"\"=\"Value With Space\"", command.compose().trim());
+    }
+
+    @Test
+    public void testComposeSeriesCommandWithEqualsSignInNames() {
+        final long time = 1488800000000L;
+        PlainCommand command = new InsertCommand(
+                "test=entity",
+                "test=metric",
+                new Sample(time, Double.NaN, "Value With Space")
+        );
+        assertEquals("series e:\"test=entity\" ms:1488800000000 m:\"test=metric\"=NaN x:\"test=metric\"=\"Value With Space\"", command.compose().trim());
+    }
+
 }
