@@ -11,7 +11,7 @@ Get started by downloading the zip file from [GitHub][atsd-zip] or by importing 
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>0.5.15</version>
+            <version>0.5.16</version>
         </dependency>
 ```
 
@@ -74,7 +74,7 @@ git clone https://github.com/axibase/atsd-api-java.git
 cd atsd-api-java
 mvn clean dependency:copy-dependencies compile jar:jar
 cd target
-java -cp "atsd-api-java-0.5.15.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
+java -cp "atsd-api-java-0.5.16.jar:dependency/*" -Daxibase.tsd.api.client.properties=./client.properties com.axibase.tsd.example.AtsdClientWriteExample
 ```
 
 ## Examples
