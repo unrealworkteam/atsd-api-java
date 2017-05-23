@@ -316,6 +316,20 @@ public class SeriesTest {
     }
 
     @Test
+    public void testSendBatchWithOutCompression() throws Exception {
+        httpClientManager.close();
+
+        httpClientManager = buildHttpClientManager(false);
+        httpClientManager.setCheckPeriodMillis(1000);
+        dataService = new DataService();
+        dataService.setHttpClientManager(httpClientManager);
+
+        waitWorkingServer(httpClientManager);
+
+        testSendBatch();
+    }
+
+    @Test
     public void testSendSeriesWithNaN() throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String metricName = buildVariablePrefix() + "metric";

@@ -37,9 +37,7 @@ import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.client.filter.EncodingFilter;
 import org.glassfish.jersey.filter.LoggingFilter;
-import org.glassfish.jersey.message.GZipEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -66,7 +64,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.LogManager;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 
 class HttpClient {
@@ -101,10 +99,8 @@ class HttpClient {
                 .register(HttpAuthenticationFeature.basic(clientConfiguration.getUsername(), clientConfiguration.getPassword()))
         ;
 
-        if (clientConfiguration.isEnableGzipCompression()) {
-            clientConfig.register(GZipEncoder.class);
-            clientConfig.register(EncodingFilter.class);
-            clientConfig.property(ClientProperties.USE_ENCODING, "gzip");
+        if (clientConfiguration.isEnableBatchCompression()) {
+            clientConfig.register(GZipWriterInterceptor.class);
         }
 
         if (log.isDebugEnabled()) {
@@ -176,7 +172,7 @@ class HttpClient {
     }
 
     public boolean updateData(QueryPart query, String data) {
-        return update(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN);
+        return update(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN_TYPE);
     }
     
     public <T, E> Response request(QueryPart<T> query, RequestProcessor<E> requestProcessor) {
@@ -185,7 +181,7 @@ class HttpClient {
     }
 
     public <T> Response request(QueryPart<T> query, String data) {
-        return doRequest(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN);
+        return doRequest(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN_TYPE);
     }
 
     public <T, E> List<T> requestDataList(Class<T> clazz, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
@@ -234,18 +230,15 @@ class HttpClient {
 
     private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
-        fixApacheHttpClientBlocking(response);
-        if (response.getStatus() == HTTP_STATUS_OK) {
-            return true;
-        } else if (response.getStatus() == HTTP_STATUS_FAIL) {
-            return false;
-        } else {
-            throw buildException(response);
-        }
+        return getUpdateResult(response);
     }
 
-    private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor, String mediaType) {
+    private <E> boolean update(String url, QueryPart query, RequestProcessor<E> requestProcessor, MediaType mediaType) {
         Response response = doRequest(url, query, requestProcessor, mediaType);
+        return getUpdateResult(response);
+    }
+
+    private boolean getUpdateResult(Response response) {
         fixApacheHttpClientBlocking(response);
         if (response.getStatus() == HTTP_STATUS_OK) {
             return true;
@@ -275,12 +268,14 @@ class HttpClient {
     }
 
     private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
-        return doRequest(url, query, requestProcessor, APPLICATION_JSON);
+        return doRequest(url, query, requestProcessor, APPLICATION_JSON_TYPE);
     }
 
-    private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor, String mediaType) {
+    private <T, E> Response doRequest(String url, QueryPart<T> query, RequestProcessor<E> requestProcessor, MediaType mediaType) {
         WebTarget target = client.target(url);
+
         target = query.fill(target);
+
         log.debug("url = {}", target.getUri());
         Invocation.Builder request = target.request(mediaType);
 
@@ -289,7 +284,7 @@ class HttpClient {
             if (requestProcessor == null) {
                 response = request.get();
             } else {
-                response =  requestProcessor.process(request, mediaType);
+                response =  requestProcessor.process(request, mediaType, "command".equals(query.getPath()) && clientConfiguration.isEnableBatchCompression());
             }
         } catch (Throwable e) {
             throw new AtsdClientException("Error while processing the request", e);

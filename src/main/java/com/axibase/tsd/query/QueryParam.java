@@ -41,4 +41,9 @@ public class QueryParam<T> extends AbstractQueryPart<T> {
         }
         return (previous.fill(target)).queryParam(name, paramValue);
     }
+
+    public String getPath() {
+        return null;
+    }
+
 }
