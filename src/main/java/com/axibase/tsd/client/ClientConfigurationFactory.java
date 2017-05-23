@@ -160,7 +160,7 @@ public class ClientConfigurationFactory {
         clientConfiguration.setPingTimeoutMillis(pingTimeoutMillis);
         clientConfiguration.setIgnoreSSLErrors(ignoreSSLErrors);
         clientConfiguration.setSkipStreamingControl(skipStreamingControl);
-        clientConfiguration.setEnableGzipCompression(enableGzipCompression);
+        clientConfiguration.setEnableBatchCompression(enableGzipCompression);
         return clientConfiguration;
     }
 

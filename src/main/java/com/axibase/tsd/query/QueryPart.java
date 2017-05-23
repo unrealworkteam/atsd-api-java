@@ -18,6 +18,7 @@ import javax.ws.rs.client.WebTarget;
 
 
 public interface QueryPart<T> {
+
     WebTarget fill(WebTarget target);
 
     QueryPart<T> param(String name, Object value);
@@ -25,4 +26,7 @@ public interface QueryPart<T> {
     QueryPart<T> path(String path);
 
     QueryPart<T> path(String path, boolean encode);
+
+    String getPath();
+
 }

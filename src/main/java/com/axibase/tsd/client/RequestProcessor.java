@@ -18,6 +18,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Variant;
 
 
 class RequestProcessor<T> {
@@ -29,11 +30,14 @@ class RequestProcessor<T> {
         this.command = command;
     }
 
-    public Response process(Invocation.Builder request, String mediaType) {
+    public Response process(Invocation.Builder request, MediaType mediaType, boolean useCompression) {
+        request = request.accept(MediaType.APPLICATION_JSON);
         if (type == Type.DELETE) {
-            return request.accept(MediaType.APPLICATION_JSON).delete();
+            return request.delete();
+        } else if (useCompression) {
+            return request.acceptEncoding("gzip").method(type.name(), Entity.entity(command, new Variant(mediaType, (String) null, "gzip")));
         } else {
-            return request.accept(MediaType.APPLICATION_JSON).method(type.name(), Entity.entity(command, mediaType));
+            return request.method(type.name(), Entity.entity(command, mediaType));
         }
     }
 

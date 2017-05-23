@@ -32,7 +32,7 @@ public class ClientConfiguration {
     private boolean ignoreSSLErrors = false;
     private long pingTimeoutMillis = DEFAULT_PING_TIMEOUT_MS;
     private boolean skipStreamingControl = false;
-    private boolean enableGzipCompression = false;
+    private boolean enableBatchCompression = false;
 
     /**
      * @param metadataUrl full URL to Metadata ATSD API
@@ -115,11 +115,11 @@ public class ClientConfiguration {
         this.skipStreamingControl = skipStreamingControl;
     }
 
-    public boolean isEnableGzipCompression() {
-        return enableGzipCompression;
+    public boolean isEnableBatchCompression() {
+        return enableBatchCompression;
     }
 
-    public void setEnableGzipCompression(boolean enableGzipCompression) {
-        this.enableGzipCompression = enableGzipCompression;
+    public void setEnableBatchCompression(boolean enableBatchCompression) {
+        this.enableBatchCompression = enableBatchCompression;
     }
 }

@@ -39,4 +39,8 @@ public class Query<T> extends AbstractQueryPart<T> {
         }
     }
 
+    public String getPath() {
+        return path;
+    }
+
 }
