@@ -288,8 +288,13 @@ public class DataService {
     }
 
     public BatchResponse sendBatch(Collection<PlainCommand> commands) {
+        return sendBatch(commands, false);
+    }
 
-        QueryPart<BatchResponse> query = new Query<BatchResponse>("command");
+    public BatchResponse sendBatch(Collection<PlainCommand> commands, boolean commit) {
+
+        QueryPart<BatchResponse> query = new Query<>("command");
+        query = query.param("commit", commit);
 
         StringBuilder data = new StringBuilder();
         for (PlainCommand command : commands) {
