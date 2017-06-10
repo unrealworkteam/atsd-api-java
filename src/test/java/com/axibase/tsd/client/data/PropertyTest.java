@@ -279,6 +279,7 @@ public class PropertyTest {
 
         final BatchResponse batchResponse = dataService.sendBatch(commands);
         assertTrue(batchResponse.getResult().getFail() == 0);
+        assertNull(batchResponse.getResult().getStored());
 
         Thread.sleep(WAIT_TIME);
 
