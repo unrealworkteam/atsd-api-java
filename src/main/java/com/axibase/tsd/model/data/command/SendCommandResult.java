@@ -12,6 +12,7 @@ public class SendCommandResult {
     private Integer success;
     private Integer total;
     private Integer stored;
+    private String error;
 
     public Integer getFail() {
         return fail;
@@ -45,10 +46,18 @@ public class SendCommandResult {
         this.stored = stored;
     }
 
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
     @Override
     public String toString() {
-        return String.format("{\"fail\":%s,\"success\":%s,\"total\":%s,\"stored\":%s}",
-                fail, success, total, stored
+        return String.format("{\"fail\":%s,\"success\":%s,\"total\":%s,\"stored\":%s,\"error\":%s}",
+                fail, success, total, stored, error
         );
     }
 }

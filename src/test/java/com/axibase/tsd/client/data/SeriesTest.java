@@ -307,6 +307,7 @@ public class SeriesTest {
         assertEquals(6, (int) sendCommandResult.getSuccess());
 
         if (commit) {
+            assertNull(sendCommandResult.getError());
             assertNotNull(sendCommandResult.getStored());
             assertEquals(sendCommandResult.getTotal(), sendCommandResult.getStored());
         } else {
