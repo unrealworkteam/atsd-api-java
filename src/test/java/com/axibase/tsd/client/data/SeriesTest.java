@@ -23,6 +23,7 @@ import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
 import com.axibase.tsd.model.data.command.BatchResponse;
 import com.axibase.tsd.model.data.command.GetSeriesQuery;
+import com.axibase.tsd.model.data.command.SendCommandResult;
 import com.axibase.tsd.model.data.command.SimpleAggregateMatcher;
 import com.axibase.tsd.model.data.series.*;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
@@ -286,6 +287,10 @@ public class SeriesTest {
 
     @Test
     public void testSendBatch() throws Exception {
+        testSendBatch(false);
+    }
+
+    private void testSendBatch(boolean commit) throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String metricName = buildVariablePrefix() + "metric";
         long st = System.currentTimeMillis();
@@ -296,8 +301,18 @@ public class SeriesTest {
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 4, 4.0, "text3"), "tag1", "value1"));
         commands.add(new MultipleInsertCommand(entityName, st + 5, Collections.singletonMap("tag1", "value1"), Collections.singletonMap(metricName, 5.0)));
         commands.add(new MultipleInsertCommand(entityName, st + 6, Collections.<String, String>emptyMap(), Collections.singletonMap(metricName, 6.0), Collections.singletonMap(metricName, "text4")));
-        final BatchResponse batchResponse = dataService.sendBatch(commands);
-        assertTrue(batchResponse.getResult().getFail() == 0);
+        final BatchResponse batchResponse = dataService.sendBatch(commands, commit);
+        final SendCommandResult sendCommandResult = batchResponse.getResult();
+        assertTrue(sendCommandResult.getFail() == 0);
+        assertEquals(6, (int) sendCommandResult.getSuccess());
+
+        if (commit) {
+            assertNull(sendCommandResult.getError());
+            assertNotNull(sendCommandResult.getStored());
+            assertEquals(sendCommandResult.getTotal(), sendCommandResult.getStored());
+        } else {
+            assertNull(sendCommandResult.getStored());
+        }
 
         Thread.sleep(WAIT_TIME);
 
@@ -326,7 +341,21 @@ public class SeriesTest {
 
         waitWorkingServer(httpClientManager);
 
-        testSendBatch();
+        testSendBatch(false);
+    }
+
+    @Test
+    public void testSendBatchWithCommitParameter() throws Exception {
+        httpClientManager.close();
+
+        httpClientManager = buildHttpClientManager(false);
+        httpClientManager.setCheckPeriodMillis(1000);
+        dataService = new DataService();
+        dataService.setHttpClientManager(httpClientManager);
+
+        waitWorkingServer(httpClientManager);
+
+        testSendBatch(true);
     }
 
     @Test
@@ -339,6 +368,7 @@ public class SeriesTest {
         commands.add(new MultipleInsertCommand(entityName, st + 1, Collections.<String, String>emptyMap(), Collections.singletonMap(metricName, Double.NaN)));
         final BatchResponse batchResponse = dataService.sendBatch(commands);
         assertTrue(batchResponse.getResult().getFail() == 0);
+        assertNull(batchResponse.getResult().getStored());
 
         Thread.sleep(WAIT_TIME);
 
