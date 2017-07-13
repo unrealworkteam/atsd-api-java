@@ -21,20 +21,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
+import java.util.TimeZone;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Entity {
-    @JsonProperty
     private String name;
-    @JsonProperty
     private String label;
-    @JsonProperty
     private Boolean enabled;
-    @JsonProperty
-    private Long lastInsertTime;
-    @JsonProperty
+    private Interpolate interpolate;
+    private TimeZone timeZone;
+    private String lastInsertDate;
     private Map<String, String> tags;
 
     public Entity() {
@@ -71,14 +69,24 @@ public class Entity {
 
     }
 
-    public Long getLastInsertTime() {
-        return lastInsertTime;
+    public String getLastInsertDate() {
+        return lastInsertDate;
     }
 
-    public Entity setLastInsertTime(Long lastInsertTime) {
-        this.lastInsertTime = lastInsertTime;
-        return this;
+    public Interpolate getInterpolate() {
+        return interpolate;
+    }
 
+    public void setInterpolate(Interpolate interpolate) {
+        this.interpolate = interpolate;
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
     }
 
     public Map<String, String> getTags() {
@@ -102,7 +110,9 @@ public class Entity {
                 "name='" + name + '\'' +
                 ", label='" + label + '\'' +
                 ", enabled=" + enabled +
-                ", lastInsertTime=" + lastInsertTime +
+                ", interpolate=" + interpolate +
+                ", timeZone=" + timeZone +
+                ", lastInsertDate='" + lastInsertDate + '\'' +
                 ", tags=" + tags +
                 '}';
     }

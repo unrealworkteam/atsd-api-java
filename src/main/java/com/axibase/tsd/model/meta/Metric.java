@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Map;
+import java.util.TimeZone;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,6 +29,9 @@ public class Metric {
     private String label;
     private Boolean enabled;
     private DataType dataType;
+    private String units;
+    private TimeZone timeZone;
+    private Interpolate interpolate;
     private TimePrecision timePrecision;
     private Boolean persistent;
     private String filter;
@@ -36,7 +40,7 @@ public class Metric {
     private InvalidAction invalidAction;
     private String description;
     private Integer retentionInterval;
-    private Long lastInsertTime;
+    private String lastInsertDate;
     private Map<String, String> tags;
 
     public Metric() {
@@ -84,6 +88,31 @@ public class Metric {
         this.dataType = dataType;
         return this;
 
+    }
+
+    public String getUnits() {
+        return units;
+    }
+
+    public Metric setUnits(String units) {
+        this.units = units;
+        return this;
+    }
+
+    public Interpolate getInterpolate() {
+        return interpolate;
+    }
+
+    public void setInterpolate(Interpolate interpolate) {
+        this.interpolate = interpolate;
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
     }
 
     public TimePrecision getTimePrecision() {
@@ -166,14 +195,8 @@ public class Metric {
 
     }
 
-    public Long getLastInsertTime() {
-        return lastInsertTime;
-    }
-
-    public Metric setLastInsertTime(Long lastInsertTime) {
-        this.lastInsertTime = lastInsertTime;
-        return this;
-
+    public String getLastInsertDate() {
+        return lastInsertDate;
     }
 
     public Map<String, String> getTags() {
@@ -198,6 +221,9 @@ public class Metric {
                 ", label='" + label + '\'' +
                 ", enabled=" + enabled +
                 ", dataType=" + dataType +
+                ", units='" + units + '\'' +
+                ", timeZone=" + timeZone +
+                ", interpolate=" + interpolate +
                 ", timePrecision=" + timePrecision +
                 ", persistent=" + persistent +
                 ", filter='" + filter + '\'' +
@@ -206,7 +232,7 @@ public class Metric {
                 ", invalidAction=" + invalidAction +
                 ", description='" + description + '\'' +
                 ", retentionInterval=" + retentionInterval +
-                ", lastInsertTime=" + lastInsertTime +
+                ", lastInsertDate=" + lastInsertDate +
                 ", tags=" + tags +
                 '}';
     }
