@@ -14,15 +14,27 @@
  */
 package com.axibase.tsd.model.data.series;
 
+import com.axibase.tsd.model.meta.Metric;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import sun.org.mozilla.javascript.json.JsonParser;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static com.axibase.tsd.util.AtsdUtil.DateTime.parseDate;
 
-
+@Data
+/* Use chained setters that return this instead of void */
+@Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Sample {
@@ -30,105 +42,58 @@ public class Sample {
     private Long timeMillis;
     @JsonProperty("d")
     private String date;
+    @JsonDeserialize(using = NanDeserializer.class)
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("v")
-    private double numericValue;
+    private BigDecimal numericValue;
     @JsonProperty("x")
     private String textValue;
 
-    public Sample() {
-    }
-
-    public Sample(long timeMillis, double value) {
-        setTimeMillis(timeMillis);
-        setNumericValue(value);
-    }
+    @JsonCreator
+    public Sample() {}
 
     public Sample(long timeMillis, double numericValue, String textValue) {
         setTimeMillis(timeMillis);
         setNumericValue(numericValue);
-        if (StringUtils.isNotEmpty(textValue)) {
-            setTextValue(textValue);
+        this.textValue = textValue;
+    }
+
+    public Sample(long timeMillis, double value) {
+        this(timeMillis, value, null);
+    }
+
+    @JsonIgnore
+    public void setNumericValue(double numericValue) {
+        if (Double.isNaN(numericValue) || Double.isInfinite(numericValue)) {
+            this.numericValue = null;
+        } else {
+            this.numericValue = new BigDecimal(numericValue);
         }
     }
 
-    public Long getTimeMillis() {
-        return timeMillis;
+    @JsonIgnore
+    public double getNumericValue() {
+        if (numericValue == null) {
+            return Double.NaN;
+        }
+        return numericValue.doubleValue();
     }
 
-    public void setTimeMillis(Long timeMillis) {
+    public Sample setTimeMillis(Long timeMillis) {
         if (date == null) {
             date = AtsdUtil.DateTime.isoFormat(new Date(timeMillis));
         }
         this.timeMillis = timeMillis;
+
+        return this;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
+    public Sample setDate(String date) {
         if (timeMillis == null) {
             timeMillis = parseDate(date).getTime();
         }
         this.date = date;
-    }
 
-    /**
-     * @deprecated use {@link #setNumericValue(double)} instead.
-     * @since 0.5.15
-     */
-    @JsonIgnore
-    @Deprecated
-    public double getValue() {
-        return numericValue;
-    }
-
-    /**
-     * @deprecated use {@link #getNumericValue()} instead.
-     * @since 0.5.15
-     */
-    @Deprecated
-    public void setValue(double value) {
-        this.numericValue = value;
-    }
-
-    public double getNumericValue() {
-        return numericValue;
-    }
-
-    public void setNumericValue(double value) {
-        this.numericValue = value;
-    }
-
-    public String getTextValue() {
-        return textValue;
-    }
-
-    public void setTextValue(String value) {
-        this.textValue = value;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Sample)) {
-            return false;
-        }
-
-        final Sample other = (Sample) obj;
-        if ((Double.isNaN(this.numericValue) && !Double.isNaN(other.numericValue))
-                || this.numericValue != other.numericValue) {
-            return false;
-        }
-        return this.textValue == null ? other.textValue == null : this.textValue.equals(other.textValue);
-    }
-
-    @Override
-    public String toString() {
-        return "Sample{" +
-                "timeMillis=" + timeMillis +
-                ", date='" + date + '\'' +
-                ", numericValue=" + numericValue +
-                ", textValue='" + textValue + '\'' +
-                '}';
+        return this;
     }
 }

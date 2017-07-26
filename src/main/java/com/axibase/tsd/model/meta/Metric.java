@@ -17,14 +17,22 @@ package com.axibase.tsd.model.meta;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.Map;
 import java.util.TimeZone;
 
-
+@Data
+/* Use chained setters that return this instead of void */
+@Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Metric {
+    @NonNull
     private String name;
     private String label;
     private Boolean enabled;
@@ -39,201 +47,17 @@ public class Metric {
     private Double maxValue;
     private InvalidAction invalidAction;
     private String description;
-    private Integer retentionInterval;
+    private Integer retentionDays;
+    /* This field can't be inserted, only queried
+     * Therefore, we prohibit setting this field
+     * */
+    @Setter(AccessLevel.NONE)
     private String lastInsertDate;
+    private Boolean versioned;
     private Map<String, String> tags;
-
-    public Metric() {
-    }
-
-    public Metric(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Metric setName(String name) {
-        this.name = name;
-        return this;
-
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public Metric setLabel(String label) {
-        this.label = label;
-        return this;
-
-    }
-
-    public Boolean isEnabled() {
-        return enabled;
-    }
-
-    public Metric setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-        return this;
-
-    }
-
-    public DataType getDataType() {
-        return dataType;
-    }
-
-    public Metric setDataType(DataType dataType) {
-        this.dataType = dataType;
-        return this;
-
-    }
-
-    public String getUnits() {
-        return units;
-    }
-
-    public Metric setUnits(String units) {
-        this.units = units;
-        return this;
-    }
-
-    public Interpolate getInterpolate() {
-        return interpolate;
-    }
-
-    public void setInterpolate(Interpolate interpolate) {
-        this.interpolate = interpolate;
-    }
-
-    public TimeZone getTimeZone() {
-        return timeZone;
-    }
-
-    public void setTimeZone(TimeZone timeZone) {
-        this.timeZone = timeZone;
-    }
-
-    public TimePrecision getTimePrecision() {
-        return timePrecision;
-    }
-
-    public Metric setTimePrecision(TimePrecision timePrecision) {
-        this.timePrecision = timePrecision;
-        return this;
-
-    }
-
-    public Boolean isPersistent() {
-        return persistent;
-    }
-
-    public Metric setPersistent(Boolean persistent) {
-        this.persistent = persistent;
-        return this;
-
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public Metric setFilter(String filter) {
-        this.filter = filter;
-        return this;
-
-    }
-
-    public Double getMinValue() {
-        return minValue;
-    }
-
-    public Metric setMinValue(Double minValue) {
-        this.minValue = minValue;
-        return this;
-
-    }
-
-    public Double getMaxValue() {
-        return maxValue;
-    }
-
-    public Metric setMaxValue(Double maxValue) {
-        this.maxValue = maxValue;
-        return this;
-
-    }
-
-    public InvalidAction getInvalidAction() {
-        return invalidAction;
-    }
-
-    public Metric setInvalidAction(InvalidAction invalidAction) {
-        this.invalidAction = invalidAction;
-        return this;
-
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Metric setDescription(String description) {
-        this.description = description;
-        return this;
-
-    }
-
-    public Integer getRetentionInterval() {
-        return retentionInterval;
-    }
-
-    public Metric setRetentionInterval(Integer retentionInterval) {
-        this.retentionInterval = retentionInterval;
-        return this;
-
-    }
-
-    public String getLastInsertDate() {
-        return lastInsertDate;
-    }
-
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
-    public Metric setTags(Map<String, String> tags) {
-        this.tags = tags;
-        return this;
-
-    }
 
     public Metric buildTags(String... tagNamesAndValues) {
         setTags(AtsdUtil.toMap(tagNamesAndValues));
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return "Metric{" +
-                "name='" + name + '\'' +
-                ", label='" + label + '\'' +
-                ", enabled=" + enabled +
-                ", dataType=" + dataType +
-                ", units='" + units + '\'' +
-                ", timeZone=" + timeZone +
-                ", interpolate=" + interpolate +
-                ", timePrecision=" + timePrecision +
-                ", persistent=" + persistent +
-                ", filter='" + filter + '\'' +
-                ", minValue=" + minValue +
-                ", maxValue=" + maxValue +
-                ", invalidAction=" + invalidAction +
-                ", description='" + description + '\'' +
-                ", retentionInterval=" + retentionInterval +
-                ", lastInsertDate=" + lastInsertDate +
-                ", tags=" + tags +
-                '}';
     }
 }

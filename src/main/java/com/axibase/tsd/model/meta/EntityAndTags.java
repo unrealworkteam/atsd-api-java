@@ -17,10 +17,14 @@ package com.axibase.tsd.model.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.Map;
 
-
+@Data
+/* Use chained setters that return this instead of void */
+@Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityAndTags {
     @JsonProperty("entity")
@@ -28,43 +32,4 @@ public class EntityAndTags {
     private Long lastInsertTime;
     @JsonProperty
     private Map<String, String> tags;
-    
-
-    public String getEntityName() {
-        return entityName;
-    }
-
-    public EntityAndTags setEntityName(String entityName) {
-        this.entityName = entityName;
-        return this;
-
-    }
-
-    public Long getLastInsertTime() {
-        return lastInsertTime;
-    }
-
-    public EntityAndTags setLastInsertTime(Long lastInsertTime) {
-        this.lastInsertTime = lastInsertTime;
-        return this;
-
-    }
-
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
-    public EntityAndTags setTags(Map<String, String> tags) {
-        this.tags = tags;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "EntityAndTags{" +
-                "entityName='" + entityName + '\'' +
-                ", lastInsertTime=" + lastInsertTime +
-                ", tags=" + tags +
-                '}';
-    }
 }
