@@ -124,7 +124,7 @@ public class SeriesTest {
 
         Sample s = sampleList.get(0);
         assertTrue(StringUtils.isNoneBlank(s.getDate()));
-        assertEquals(MOCK_SERIE_NUMERIC_VALUE, s.getNumericValue());
+        assertEquals(MOCK_SERIE_NUMERIC_VALUE, s.getNumericValueAsDouble());
         assertEquals(MOCK_SERIE_TEXT_VALUE, s.getTextValue());
     }
 
@@ -278,7 +278,7 @@ public class SeriesTest {
 
             assertTrue(seriesList.get(0) instanceof Series);
             assertEquals(1, ((Series) seriesList.get(0)).getData().size());
-            assertEquals(MOCK_SERIE_NUMERIC_VALUE, ((Series) seriesList.get(0)).getData().get(0).getNumericValue());
+            assertEquals(MOCK_SERIE_NUMERIC_VALUE, ((Series) seriesList.get(0)).getData().get(0).getNumericValueAsDouble());
             assertEquals(MOCK_SERIE_TEXT_VALUE, ((Series) seriesList.get(0)).getData().get(0).getTextValue());
             assertEquals(timestamp, ((Series) seriesList.get(0)).getData().get(0).getTimeMillis());
         }
@@ -379,11 +379,11 @@ public class SeriesTest {
         assertEquals(2, seriesResults.get(0).getData().size());
 
         Sample sample = seriesResults.get(0).getData().get(0);
-        assertEquals(Double.NaN, sample.getNumericValue());
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble());
         assertNull(sample.getTextValue());
 
         sample = seriesResults.get(0).getData().get(1);
-        assertEquals(Double.NaN, sample.getNumericValue());
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble());
         assertNull(sample.getTextValue());
     }
 

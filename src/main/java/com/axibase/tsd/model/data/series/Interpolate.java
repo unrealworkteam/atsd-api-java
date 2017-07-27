@@ -21,23 +21,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Interpolate {
-    public static final Interpolate NONE = new Interpolate(InterpolateType.NONE);
-    private InterpolateType type = InterpolateType.NONE;
+    public static final Interpolate NONE = new Interpolate(InterpolationType.NONE);
+    private InterpolationType type = InterpolationType.NONE;
     private double value;
     private boolean extend;
 
     public Interpolate() {
     }
 
-    public Interpolate(InterpolateType type) {
+    public Interpolate(InterpolationType type) {
         this.type = type;
     }
 
-    public InterpolateType getType() {
+    public InterpolationType getType() {
         return type;
     }
 
-    public void setType(InterpolateType type) {
+    public void setType(InterpolationType type) {
         this.type = type;
     }
 

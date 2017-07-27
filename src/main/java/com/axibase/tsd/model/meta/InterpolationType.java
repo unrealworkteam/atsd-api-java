@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Axibase Corporation or its affiliates. All Rights Reserved.
+ * Copyright 2017 Axibase Corporation or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.axibase.tsd.model.meta;
 
 
-public enum Interpolate {
+public enum InterpolationType {
     LINEAR,
     PREVIOUS
 }

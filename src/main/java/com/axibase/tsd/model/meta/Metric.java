@@ -39,7 +39,7 @@ public class Metric {
     private DataType dataType;
     private String units;
     private TimeZone timeZone;
-    private Interpolate interpolate;
+    private InterpolationType interpolationType;
     private TimePrecision timePrecision;
     private Boolean persistent;
     private String filter;

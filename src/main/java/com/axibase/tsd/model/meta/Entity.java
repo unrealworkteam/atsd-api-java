@@ -37,7 +37,7 @@ public class Entity {
     private String name;
     private String label;
     private Boolean enabled;
-    private Interpolate interpolate;
+    private InterpolationType interpolationType;
     private TimeZone timeZone;
     private String lastInsertDate;
     private Map<String, String> tags;

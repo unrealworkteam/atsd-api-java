@@ -14,23 +14,12 @@
  */
 package com.axibase.tsd.model.data.series;
 
-import com.axibase.tsd.model.meta.Metric;
-import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
-import sun.org.mozilla.javascript.json.JsonParser;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
-
-import static com.axibase.tsd.util.AtsdUtil.DateTime.parseDate;
 
 @Data
 /* Use chained setters that return this instead of void */
@@ -42,7 +31,7 @@ public class Sample {
     private Long timeMillis;
     @JsonProperty("d")
     private String date;
-    @JsonDeserialize(using = NanDeserializer.class)
+    @JsonDeserialize(using = BigDecimalDeserializer.class)
     @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("v")
     private BigDecimal numericValue;
@@ -54,7 +43,7 @@ public class Sample {
 
     public Sample(long timeMillis, double numericValue, String textValue) {
         setTimeMillis(timeMillis);
-        setNumericValue(numericValue);
+        setNumericValueFromDouble(numericValue);
         this.textValue = textValue;
     }
 
@@ -63,35 +52,30 @@ public class Sample {
     }
 
     @JsonIgnore
-    public void setNumericValue(double numericValue) {
+    public double getNumericValueAsDouble() {
+        return numericValue == null ? Double.NaN : numericValue.doubleValue();
+    }
+
+    @JsonIgnore
+    public Sample setNumericValueFromDouble(double numericValue) {
         if (Double.isNaN(numericValue) || Double.isInfinite(numericValue)) {
             this.numericValue = null;
         } else {
             this.numericValue = new BigDecimal(numericValue);
         }
-    }
 
-    @JsonIgnore
-    public double getNumericValue() {
-        if (numericValue == null) {
-            return Double.NaN;
-        }
-        return numericValue.doubleValue();
+        return this;
     }
 
     public Sample setTimeMillis(Long timeMillis) {
-        if (date == null) {
-            date = AtsdUtil.DateTime.isoFormat(new Date(timeMillis));
-        }
+        this.date = null;
         this.timeMillis = timeMillis;
 
         return this;
     }
 
     public Sample setDate(String date) {
-        if (timeMillis == null) {
-            timeMillis = parseDate(date).getTime();
-        }
+        this.timeMillis = null;
         this.date = date;
 
         return this;
