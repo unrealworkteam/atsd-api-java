@@ -32,7 +32,7 @@ public class CommandSeriesQuotesTest {
 
     @BeforeClass
     public static void prepareData() {
-        Sample testSample = new Sample(TestUtil.parseDate("2016-06-03T09:24:00.000Z").getTime(), -31.1, "txt");
+        Sample testSample = Sample.ofIsoDoubleText("2016-06-03T09:24:00.000Z", -31.1, "txt");
         Map<String, String> tags = Collections.singletonMap("tag", "OFF- RAMP \" U\", I");
         testSeries = new Series();
         testSeries.setEntityName(TEST_ENTITY);
@@ -86,7 +86,7 @@ public class CommandSeriesQuotesTest {
         PlainCommand command = new InsertCommand(
                 "test-entity",
                 "test-metric",
-                new Sample(time, Double.NaN, "Value With Space")
+                Sample.ofTimeText(time, "Value With Space")
         );
         assertEquals("series e:test-entity ms:1488800000000 m:test-metric=NaN x:test-metric=\"Value With Space\"", command.compose().trim());
     }
@@ -97,7 +97,7 @@ public class CommandSeriesQuotesTest {
         PlainCommand command = new InsertCommand(
                 "test-entity",
                 "test-metric",
-                new Sample(time, Double.NaN, "a \"Quoted\" value")
+                Sample.ofTimeText(time, "a \"Quoted\" value")
         );
         assertEquals("series e:test-entity ms:1488800000000 m:test-metric=NaN x:test-metric=\"a \"\"Quoted\"\" value\"", command.compose().trim());
     }
@@ -108,7 +108,7 @@ public class CommandSeriesQuotesTest {
         PlainCommand command = new InsertCommand(
                 "test-entity\"",
                 "test-metric\"",
-                new Sample(time, Double.NaN, "Value With Space")
+                Sample.ofTimeText(time, "Value With Space")
         );
         assertEquals("series e:\"test-entity\"\"\" ms:1488800000000 m:\"test-metric\"\"\"=NaN x:\"test-metric\"\"\"=\"Value With Space\"", command.compose().trim());
     }
@@ -119,7 +119,7 @@ public class CommandSeriesQuotesTest {
         PlainCommand command = new InsertCommand(
                 "test=entity",
                 "test=metric",
-                new Sample(time, Double.NaN, "Value With Space")
+                Sample.ofTimeText(time, "Value With Space")
         );
         assertEquals("series e:\"test=entity\" ms:1488800000000 m:\"test=metric\"=NaN x:\"test=metric\"=\"Value With Space\"", command.compose().trim());
     }

@@ -123,7 +123,7 @@ public class SeriesTest {
         assertFalse(sampleList.isEmpty());
 
         Sample s = sampleList.get(0);
-        assertTrue(StringUtils.isNoneBlank(s.getDate()));
+        assertTrue(StringUtils.isNoneBlank(s.getIsoDate()));
         assertEquals(MOCK_SERIE_NUMERIC_VALUE, s.getNumericValueAsDouble());
         assertEquals(MOCK_SERIE_TEXT_VALUE, s.getTextValue());
     }
@@ -295,7 +295,7 @@ public class SeriesTest {
         final String metricName = buildVariablePrefix() + "metric";
         long st = System.currentTimeMillis();
         final ArrayList<PlainCommand> commands = new ArrayList<>();
-        commands.add(new InsertCommand(entityName, metricName, new Sample(st + 1, 1.0)));
+        commands.add(new InsertCommand(entityName, metricName, Sample.ofTimeDouble(st + 1, 1.0)));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 2, 2.0, "text1")));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 3, 3.0, "text2"), Collections.singletonMap("tag1", "value1")));
         commands.add(new InsertCommand(entityName, metricName, new Sample(st + 4, 4.0, "text3"), "tag1", "value1"));
@@ -364,7 +364,7 @@ public class SeriesTest {
         final String metricName = buildVariablePrefix() + "metric";
         long st = System.currentTimeMillis();
         final ArrayList<PlainCommand> commands = new ArrayList<>();
-        commands.add(new InsertCommand(entityName, metricName, new Sample(st, Double.NaN)));
+        commands.add(new InsertCommand(entityName, metricName, Sample.ofTimeDouble(st, Double.NaN)));
         commands.add(new MultipleInsertCommand(entityName, st + 1, Collections.<String, String>emptyMap(), Collections.singletonMap(metricName, Double.NaN)));
         final BatchResponse batchResponse = dataService.sendBatch(commands);
         assertTrue(batchResponse.getResult().getFail() == 0);

@@ -195,7 +195,7 @@ public class MetricTest {
         final Long timestamp = MOCK_TIMESTAMP;
         if (metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1).isEmpty()) {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
-            addSeriesCommand.addSeries(new Sample(timestamp, 1));
+            addSeriesCommand.addSeries(Sample.ofTimeDouble(timestamp, 1));
             assertTrue(dataService.addSeries(addSeriesCommand));
         }
         List metrics = metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1);
