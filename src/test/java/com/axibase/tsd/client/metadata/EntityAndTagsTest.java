@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Dmitry Korchagin.
@@ -67,16 +67,12 @@ public class EntityAndTagsTest {
     public void testRetrieveEntityAndTagsByMetric() throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String metricName = buildVariablePrefix() + "metric";
-        final Long timestamp = MOCK_TIMESTAMP;
+
         Map<String, String> tags = new HashMap<>();
         tags.put("test-tag1", "test-tag1-val");
         tags.put("test-tag2", "test-tag2-val");
 
-        if (metaDataService.retrieveEntity(entityName) == null) {
-            AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
-            addSeriesCommand.addSeries(new Sample(timestamp, 1));
-            assertTrue(dataService.addSeries(addSeriesCommand));
-        }
+        addSeries(entityName, metricName, MOCK_TIMESTAMP);
 
         List entityAndTagsList = metaDataService.retrieveEntityAndTags(metricName, null);
 
@@ -92,13 +88,8 @@ public class EntityAndTagsTest {
     public void testRetrieveEntityAndTagsByMetricAndEntity() throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String metricName = buildVariablePrefix() + "metric";
-        final Long timestamp = MOCK_TIMESTAMP;
 
-        if (metaDataService.retrieveEntity(entityName) == null) {
-            AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
-            addSeriesCommand.addSeries(new Sample(timestamp, 1));
-            assertTrue(dataService.addSeries(addSeriesCommand));
-        }
+        addSeries(entityName, metricName, MOCK_TIMESTAMP);
 
         List entityAndTagsList = metaDataService.retrieveEntityAndTags(metricName, entityName);
 
@@ -113,4 +104,14 @@ public class EntityAndTagsTest {
             // OK
         }
     }
+
+    private void addSeries(String entityName, String metricName, long timestamp) throws InterruptedException {
+        if (metaDataService.retrieveEntity(entityName) == null) {
+            AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
+            addSeriesCommand.addSeries(new Sample(timestamp, 1));
+            assertTrue(dataService.addSeries(addSeriesCommand));
+            Thread.sleep(WAIT_TIME);
+        }
+    }
+
 }

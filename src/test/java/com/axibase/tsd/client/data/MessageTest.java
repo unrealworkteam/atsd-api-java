@@ -17,43 +17,24 @@
 package com.axibase.tsd.client.data;
 
 import com.axibase.tsd.RerunRule;
-import com.axibase.tsd.client.DataService;
-import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.model.data.Message;
 import com.axibase.tsd.model.data.Severity;
 import com.axibase.tsd.model.data.command.BatchResponse;
 import com.axibase.tsd.model.data.command.GetMessagesQuery;
 import com.axibase.tsd.network.MessageInsertCommand;
 import com.axibase.tsd.network.PlainCommand;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.*;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
-public class MessageTest {
-
-    private DataService dataService;
-    private HttpClientManager httpClientManager;
+public class MessageTest extends BaseDataTest {
 
     @Rule
     public RerunRule rerunRule = new RerunRule();
-
-    @Before
-    public void setUp() throws Exception {
-        httpClientManager = buildHttpClientManager();
-        httpClientManager.setCheckPeriodMillis(1000);
-//        httpClientManager.setCheckPeriodMillis(30); // to extreme tests
-        dataService = new DataService();
-        dataService.setHttpClientManager(httpClientManager);
-
-        waitWorkingServer(httpClientManager);
-    }
-
 
     @Test
     public void testInsertMessages() throws Exception {
@@ -113,7 +94,7 @@ public class MessageTest {
     public void testRetrieveMessagesByEntityName() throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String messageTextUnknown = "message txt 1";
-        final long timestamp = MOCK_TIMESTAMP;
+        final long timestamp = System.currentTimeMillis();
         final long delta = 1L;
 
         GetMessagesQuery getMessagesQuery = new GetMessagesQuery(entityName).setStartDate(new Date(timestamp - delta)).setEndDate(new Date(timestamp + delta));
@@ -121,6 +102,7 @@ public class MessageTest {
         if (dataService.retrieveMessages(getMessagesQuery).isEmpty()) {
             Message message = new Message(entityName, messageTextUnknown).setSeverity(Severity.UNKNOWN).setTimestamp(timestamp);
             assertTrue(dataService.insertMessages(message));
+            Thread.sleep(WAIT_TIME);
         }
 
         List messages = dataService.retrieveMessages(getMessagesQuery);
@@ -132,7 +114,7 @@ public class MessageTest {
     @Test
     public void testRetrieveMessagesByEntitiesName() throws Exception {
         final String messageTextUnknown = "message txt 1";
-        final long timestamp = MOCK_TIMESTAMP;
+        final long timestamp = System.currentTimeMillis();
         buildVariablePrefix();
         final List<String> entitiesName = Arrays.asList(buildVariablePrefix() + "entity-first", buildVariablePrefix() + "entity-second");
 
@@ -179,12 +161,6 @@ public class MessageTest {
         getMessagesQuery.setEndDate(new Date(st + 4));
         final List<Message> messageResults = dataService.retrieveMessages(getMessagesQuery);
         assertEquals(3, messageResults.size());
-    }
-
-
-    @After
-    public void tearDown() throws Exception {
-        httpClientManager.close();
     }
 
 }

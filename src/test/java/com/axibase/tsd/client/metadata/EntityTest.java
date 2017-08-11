@@ -18,7 +18,6 @@
 package com.axibase.tsd.client.metadata;
 
 import com.axibase.tsd.RerunRule;
-import com.axibase.tsd.TestUtil;
 import com.axibase.tsd.client.AtsdServerException;
 import com.axibase.tsd.client.DataService;
 import com.axibase.tsd.client.HttpClientManager;
@@ -30,13 +29,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Dmitry Korchagin.
