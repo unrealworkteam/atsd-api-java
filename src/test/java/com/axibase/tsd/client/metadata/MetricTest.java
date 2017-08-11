@@ -197,6 +197,7 @@ public class MetricTest {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
             addSeriesCommand.addSeries(new Sample(timestamp, 1));
             assertTrue(dataService.addSeries(addSeriesCommand));
+            Thread.sleep(WAIT_TIME);
         }
         List metrics = metaDataService.retrieveMetrics(entityName, (Boolean) null, "name like '*'", null, 1);
         assertEquals(1, metrics.size());
@@ -211,7 +212,7 @@ public class MetricTest {
 
 
     @Test
-    public void testRetrieveMetricSeries() {
+    public void testRetrieveMetricSeries() throws Exception {
         String testPrefix = TestUtil.buildVariablePrefix();
         Series series = new Series();
         series.setMetricName(testPrefix + "-metric");
@@ -219,8 +220,8 @@ public class MetricTest {
         series.setData(Collections.singletonList(new Sample(MOCK_TIMESTAMP, MOCK_SERIE_NUMERIC_VALUE, MOCK_SERIE_TEXT_VALUE)));
         AddSeriesCommand command = new AddSeriesCommand(series.getEntityName(), series.getMetricName(), null);
         command.addSeries(series.getData());
-        dataService.addSeries(command);
-        TestUtil.waitWorkingServer(httpClientManager);
+        assertTrue(dataService.addSeries(command));
+        Thread.sleep(WAIT_TIME);
 
         List<Series> seriesList = metaDataService.retrieveMetricSeries(series.getMetricName());
 

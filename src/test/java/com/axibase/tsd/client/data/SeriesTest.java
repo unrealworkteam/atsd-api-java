@@ -60,6 +60,7 @@ public class SeriesTest extends BaseDataTest {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName);
             addSeriesCommand.addSeries(new Sample(System.currentTimeMillis(), MOCK_SERIE_NUMERIC_VALUE, MOCK_SERIE_TEXT_VALUE));
             assertTrue(dataService.addSeries(addSeriesCommand));
+            Thread.sleep(WAIT_TIME);
         }
 
         getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
@@ -95,6 +96,7 @@ public class SeriesTest extends BaseDataTest {
         AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName);
         addSeriesCommand.addSeries(new Sample(timestamp, MOCK_SERIE_NUMERIC_VALUE, MOCK_SERIE_TEXT_VALUE));
         assertTrue(dataService.addSeries(addSeriesCommand));
+        Thread.sleep(WAIT_TIME);
 
         GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
                 .setTimeFormat(TimeFormat.ISO)
