@@ -18,16 +18,12 @@ package com.axibase.tsd.client.data;
 
 import com.axibase.tsd.RerunRule;
 import com.axibase.tsd.client.AtsdServerException;
-import com.axibase.tsd.client.DataService;
-import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.model.data.Property;
 import com.axibase.tsd.model.data.command.BatchResponse;
 import com.axibase.tsd.model.data.command.GetPropertiesQuery;
 import com.axibase.tsd.model.data.filters.DeletePropertyFilter;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.network.PropertyInsertCommand;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -36,31 +32,13 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
-public class PropertyTest {
+public class PropertyTest extends BaseDataTest {
     private Logger logger = LoggerFactory.getLogger(Property.class);
-    private DataService dataService;
-    private HttpClientManager httpClientManager;
 
     @Rule
     public RerunRule rerunRule = new RerunRule();
-
-    @Before
-    public void setUp() throws Exception {
-        httpClientManager = buildHttpClientManager();
-        httpClientManager.setCheckPeriodMillis(1000);
-        dataService = new DataService();
-        dataService.setHttpClientManager(httpClientManager);
-
-        waitWorkingServer(httpClientManager);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        httpClientManager.close();
-    }
-
 
     @Test
     public void testRetrievePropertiesByPropertiesQuery() throws Exception {

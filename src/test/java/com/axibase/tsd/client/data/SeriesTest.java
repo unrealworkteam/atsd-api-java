@@ -17,7 +17,6 @@ package com.axibase.tsd.client.data;
 import com.axibase.tsd.RerunRule;
 import com.axibase.tsd.client.AtsdServerException;
 import com.axibase.tsd.client.DataService;
-import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.client.SeriesCommandPreparer;
 import com.axibase.tsd.model.data.TimeFormat;
 import com.axibase.tsd.model.data.command.AddSeriesCommand;
@@ -39,24 +38,12 @@ import java.io.InputStream;
 import java.util.*;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
-public class SeriesTest {
+public class SeriesTest extends BaseDataTest {
 
     @Rule
     public RerunRule rerunRule = new RerunRule();
-    private DataService dataService;
-    private HttpClientManager httpClientManager;
-
-    @Before
-    public void setUp() throws Exception {
-        httpClientManager = buildHttpClientManager();
-        httpClientManager.setCheckPeriodMillis(1000);
-        dataService = new DataService();
-        dataService.setHttpClientManager(httpClientManager);
-
-        waitWorkingServer(httpClientManager);
-    }
 
     @Test
     public void testRetrieveSeries() throws Exception {
@@ -124,7 +111,7 @@ public class SeriesTest {
 
         Sample s = sampleList.get(0);
         assertTrue(StringUtils.isNoneBlank(s.getDate()));
-        assertEquals(MOCK_SERIE_NUMERIC_VALUE, s.getNumericValue());
+        assertEquals(MOCK_SERIE_NUMERIC_VALUE, s.getNumericValue(), 0);
         assertEquals(MOCK_SERIE_TEXT_VALUE, s.getTextValue());
     }
 
@@ -278,7 +265,7 @@ public class SeriesTest {
 
             assertTrue(seriesList.get(0) instanceof Series);
             assertEquals(1, ((Series) seriesList.get(0)).getData().size());
-            assertEquals(MOCK_SERIE_NUMERIC_VALUE, ((Series) seriesList.get(0)).getData().get(0).getNumericValue());
+            assertEquals(MOCK_SERIE_NUMERIC_VALUE, ((Series) seriesList.get(0)).getData().get(0).getNumericValue(), 0);
             assertEquals(MOCK_SERIE_TEXT_VALUE, ((Series) seriesList.get(0)).getData().get(0).getTextValue());
             assertEquals(timestamp, ((Series) seriesList.get(0)).getData().get(0).getTimeMillis());
         }
@@ -379,16 +366,12 @@ public class SeriesTest {
         assertEquals(2, seriesResults.get(0).getData().size());
 
         Sample sample = seriesResults.get(0).getData().get(0);
-        assertEquals(Double.NaN, sample.getNumericValue());
+        assertEquals(Double.NaN, sample.getNumericValue(), 0);
         assertNull(sample.getTextValue());
 
         sample = seriesResults.get(0).getData().get(1);
-        assertEquals(Double.NaN, sample.getNumericValue());
+        assertEquals(Double.NaN, sample.getNumericValue(), 0);
         assertNull(sample.getTextValue());
     }
 
-    @After
-    public void tearDown() throws Exception {
-        httpClientManager.close();
-    }
 }
