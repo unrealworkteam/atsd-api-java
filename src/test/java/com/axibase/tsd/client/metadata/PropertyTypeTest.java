@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.axibase.tsd.TestUtil.*;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Dmitry Korchagin.

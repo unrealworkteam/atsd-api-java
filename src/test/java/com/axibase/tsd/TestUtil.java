@@ -94,8 +94,8 @@ public class TestUtil {
                 .setDataType(DataType.INTEGER)
                 .setDescription("test")
                 .setEnabled(false)
-                .setMaxValue(1D)
-                .setMinValue(3D)
+                .setMinValue(1D)
+                .setMaxValue(3D)
                 .buildTags(
                         "nnn-tag-1", "nnn-tag-value-1",
                         "nnn-tag-2", "nnn-tag-value-2"
