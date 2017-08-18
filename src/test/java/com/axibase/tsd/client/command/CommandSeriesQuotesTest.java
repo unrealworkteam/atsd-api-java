@@ -51,8 +51,8 @@ public class CommandSeriesQuotesTest {
         );
         Sample testSample = testSeries.getData().get(0);
         assertEquals("Command has been composed incorrectly",
-                String.format("series e:%s ms:%d t:tag=\"OFF- RAMP \"\" U\"\", I\" m:%s=%s x:%s=\"%s\"\n",
-                        TEST_ENTITY, testSample.getTimeMillis(), TEST_METRIC, testSample.getNumericValueAsDouble(), TEST_METRIC, testSample.getTextValue()),
+                String.format("series e:%s d:%s t:tag=\"OFF- RAMP \"\" U\"\", I\" m:%s=%s x:%s=\"%s\"\n",
+                        TEST_ENTITY, testSample.getIsoDate(), TEST_METRIC, testSample.getNumericValueAsDouble(), TEST_METRIC, testSample.getTextValue()),
                 command.compose()
         );
     }

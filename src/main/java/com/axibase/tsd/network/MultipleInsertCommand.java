@@ -32,7 +32,7 @@ public class MultipleInsertCommand extends AbstractInsertCommand {
 
     public MultipleInsertCommand(String entityName, long time, Map<String, String> tags,
                                  Map<String, Double> numericValues, Map<String, String> textValues) {
-        super(InsertCommand.SERIES_COMMAND, entityName, time, tags);
+        super(InsertCommand.SERIES_COMMAND, entityName, time, null, tags);
         this.numericValues = numericValues == null ? Collections.<String, Double>emptyMap() : numericValues;
         this.textValues = textValues == null ? Collections.<String, String>emptyMap() : textValues;
     }

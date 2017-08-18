@@ -25,13 +25,16 @@ public abstract class AbstractInsertCommand implements PlainCommand {
     private final String commandName;
     protected final String entityName;
     private final Long timeMillis;
+    private final String isoDate;
     protected final Map<String, String> tags;
 
-    public AbstractInsertCommand(String commandName, String entityName, Long timeMillis, Map<String, String> tags) {
+    public AbstractInsertCommand(String commandName, String entityName, Long timeMillis, String isoDate,
+                                 Map<String, String> tags) {
         this.commandName = commandName;
         checkEntityIsEmpty(entityName);
         this.entityName = entityName;
         this.timeMillis = timeMillis;
+        this.isoDate = isoDate;
         this.tags = tags == null ? Collections.<String, String>emptyMap() : tags;
     }
 
@@ -41,6 +44,9 @@ public abstract class AbstractInsertCommand implements PlainCommand {
                 .append(' ').append("e:").append(handleName(entityName));
         if (timeMillis != null) {
             sb.append(' ').append("ms:").append(timeMillis);
+        }
+        if (isoDate != null) {
+            sb.append(' ').append("d:").append(isoDate);
         }
         appendKeysAndValues(sb, " t:", tags);
         appendValues(sb);

@@ -144,7 +144,7 @@ public class Sample {
         if (Double.isNaN(numericValue) || Double.isInfinite(numericValue)) {
             this.numericValue = null;
         } else {
-            this.numericValue = new BigDecimal(numericValue);
+            this.numericValue = BigDecimal.valueOf(numericValue);
         }
 
         return this;

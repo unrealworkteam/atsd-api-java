@@ -32,7 +32,7 @@ public class InsertCommand extends AbstractInsertCommand {
     private final Sample sample;
 
     public InsertCommand(String entityName, String metricName, Sample sample, Map<String, String> tags) {
-        super(SERIES_COMMAND, entityName, sample.getTimeMillis(), tags);
+        super(SERIES_COMMAND, entityName, sample.getTimeMillis(), sample.getIsoDate(), tags);
         checkMetricIsEmpty(metricName);
         this.metricName = metricName;
         this.sample = sample;
