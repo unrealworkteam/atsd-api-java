@@ -22,9 +22,6 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 
-/**
- *
- */
 @Data
 /* Use chained setters that return this instead of void */
 @Accessors(chain = true)
