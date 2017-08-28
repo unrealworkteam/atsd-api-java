@@ -24,12 +24,16 @@ public class MessageInsertCommand extends AbstractInsertCommand {
     public static final String MESSAGE_COMMAND = "message";
     private final String messageText;
 
-    public MessageInsertCommand(String entityName, Long timeMillis, Map<String, String> tags, String messageText) {
-        super(MESSAGE_COMMAND, entityName, timeMillis, null, tags);
+    public MessageInsertCommand(String entityName, Long timeMillis, String isoDate, Map<String, String> tags, String messageText) {
+        super(MESSAGE_COMMAND, entityName, timeMillis, isoDate, tags);
         this.messageText = messageText;
         if ((tags == null || tags.isEmpty()) && StringUtils.isBlank(messageText)) {
             throw new IllegalArgumentException("Either message text or one of the tags is required");
         }
+    }
+
+    public MessageInsertCommand(String entityName, Long timeMillis, Map<String, String> tags, String messageText) {
+        this(entityName, timeMillis, null, tags, messageText);
     }
 
     @Override
