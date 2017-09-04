@@ -73,31 +73,16 @@ public class Sample {
         this.date = date;
     }
 
-    /**
-     * @deprecated use {@link #setNumericValue(double)} instead.
-     * @since 0.5.15
-     */
-    @JsonIgnore
-    @Deprecated
-    public double getValue() {
-        return numericValue;
-    }
-
-    /**
-     * @deprecated use {@link #getNumericValue()} instead.
-     * @since 0.5.15
-     */
-    @Deprecated
-    public void setValue(double value) {
-        this.numericValue = value;
-    }
-
     public double getNumericValue() {
         return numericValue;
     }
 
-    public void setNumericValue(double value) {
-        this.numericValue = value;
+    public void setNumericValue(Double value) {
+        if (value == null) {
+            this.numericValue = Double.NaN;
+        } else {
+            this.numericValue = value;
+        }
     }
 
     public String getTextValue() {
