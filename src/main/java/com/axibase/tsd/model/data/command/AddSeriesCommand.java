@@ -42,7 +42,7 @@ public class AddSeriesCommand {
 
     public static AddSeriesCommand createSingle(String entityName, String metricName, long time, double value, String... tagNamesAndValues) {
         AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, tagNamesAndValues);
-        addSeriesCommand.addSeries(new Sample(time, value));
+        addSeriesCommand.addSeries(Sample.ofTimeDouble(time, value));
         return addSeriesCommand;
     }
 

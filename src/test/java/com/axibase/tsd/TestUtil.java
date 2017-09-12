@@ -90,8 +90,7 @@ public class TestUtil {
     }
 
     public static Metric createNewTestMetric(String metricName) {
-        return new Metric()
-                .setName(metricName)
+        return new Metric(metricName)
                 .setDataType(DataType.INTEGER)
                 .setDescription("test")
                 .setEnabled(false)

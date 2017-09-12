@@ -108,7 +108,7 @@ public class EntityAndTagsTest {
     private void addSeries(String entityName, String metricName, long timestamp) throws InterruptedException {
         if (metaDataService.retrieveEntity(entityName) == null) {
             AddSeriesCommand addSeriesCommand = new AddSeriesCommand(entityName, metricName, "test-tag1", "test-tag1-val", "test-tag2", "test-tag2-val");
-            addSeriesCommand.addSeries(new Sample(timestamp, 1));
+            addSeriesCommand.addSeries(Sample.ofTimeDouble(timestamp, 1));
             assertTrue(dataService.addSeries(addSeriesCommand));
             Thread.sleep(WAIT_TIME);
         }

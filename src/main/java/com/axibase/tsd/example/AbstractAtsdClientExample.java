@@ -115,7 +115,7 @@ public abstract class AbstractAtsdClientExample {
         List<Sample> data = series.getData();
         for (Sample sample : data) {
             long ts = sample.getTimeMillis();
-            logger.info(toISODate(ts) + "\t" + sample.getNumericValue() + (StringUtils.isNotEmpty(sample.getTextValue()) ? "\t" + sample.getTextValue() : ""));
+            logger.info(toISODate(ts) + "\t" + sample.getNumericValueAsDouble() + (StringUtils.isNotEmpty(sample.getTextValue()) ? "\t" + sample.getTextValue() : ""));
         }
     }
 }

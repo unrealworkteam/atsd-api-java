@@ -32,7 +32,7 @@ public class InsertCommand extends AbstractInsertCommand {
     private final Sample sample;
 
     public InsertCommand(String entityName, String metricName, Sample sample, Map<String, String> tags) {
-        super(SERIES_COMMAND, entityName, sample.getTimeMillis(), tags);
+        super(SERIES_COMMAND, entityName, sample.getTimeMillis(), sample.getIsoDate(), tags);
         checkMetricIsEmpty(metricName);
         this.metricName = metricName;
         this.sample = sample;
@@ -48,7 +48,7 @@ public class InsertCommand extends AbstractInsertCommand {
 
     @Override
     protected void appendValues(StringBuilder sb) {
-        sb.append(" m:").append(handleName(metricName)).append('=').append(formatMetricValue(sample.getNumericValue()));
+        sb.append(" m:").append(handleName(metricName)).append('=').append(formatMetricValue(sample.getNumericValueAsDouble()));
         if (StringUtils.isNotEmpty(sample.getTextValue())) {
             sb.append(" x:").append(handleName(metricName)).append('=').append(handleStringValue(sample.getTextValue()));
         }

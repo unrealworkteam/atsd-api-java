@@ -17,13 +17,21 @@ package com.axibase.tsd.model.meta;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 import java.util.Map;
 
-
+@Data
+/* Use chained setters that return this instead of void */
+@Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntityGroup {
+    @NonNull
     @JsonProperty
     private String name;
     @JsonProperty
@@ -31,64 +39,8 @@ public class EntityGroup {
     @JsonProperty
     private Map<String, String> tags;
 
-    public EntityGroup() {
-    }
-
-    public EntityGroup(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return Entity group name (unique).
-     */
-    public String getName() {
-        return name;
-    }
-
-    public EntityGroup setName(String name) {
-        this.name = name;
-        return this;
-
-    }
-
-    /**
-     * @return Entity group expression.
-     */
-    public String getExpression() {
-        return expression;
-    }
-
-    public EntityGroup setExpression(String expression) {
-        this.expression = expression;
-        return this;
-
-    }
-
-    /**
-     * @return Entity group tags.
-     */
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
-    public EntityGroup setTags(Map<String, String> tags) {
-        this.tags = tags;
-        return this;
-
-    }
-
     @JsonIgnore
-    public EntityGroup setTags(String... tagNamesAndValues) {
-        setTags(AtsdUtil.toMap(tagNamesAndValues));
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "EntityGroup{" +
-                "name='" + name + '\'' +
-                ", expression='" + expression + '\'' +
-                ", tags=" + tags +
-                '}';
+    public EntityGroup buildTags(String... tagNamesAndValues) {
+        return this.setTags(AtsdUtil.toMap(tagNamesAndValues));
     }
 }

@@ -16,94 +16,34 @@ package com.axibase.tsd.model.meta;
 
 
 import com.axibase.tsd.util.AtsdUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.TimeZone;
 
-
+@Data
+/* Use chained setters that return this instead of void */
+@Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Entity {
-    @JsonProperty
+    /* This field is required */
+    @NonNull
     private String name;
-    @JsonProperty
     private String label;
-    @JsonProperty
     private Boolean enabled;
-    @JsonProperty
-    private Long lastInsertTime;
-    @JsonProperty
+    private InterpolationType interpolationType;
+    private TimeZone timeZone;
+    private String lastInsertDate;
     private Map<String, String> tags;
 
-    public Entity() {
-    }
-
-    public Entity(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Entity setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public Boolean isEnabled() {
-        return enabled;
-    }
-
-    public Entity setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-        return this;
-
-    }
-
-    public Long getLastInsertTime() {
-        return lastInsertTime;
-    }
-
-    public Entity setLastInsertTime(Long lastInsertTime) {
-        this.lastInsertTime = lastInsertTime;
-        return this;
-
-    }
-
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
-    public Entity setTags(Map<String, String> tags) {
-        this.tags = tags;
-        return this;
-
-    }
-
+    @JsonIgnore
     public Entity buildTags(String... tagNamesAndValues) {
-        setTags(AtsdUtil.toMap(tagNamesAndValues));
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "Entity{" +
-                "name='" + name + '\'' +
-                ", label='" + label + '\'' +
-                ", enabled=" + enabled +
-                ", lastInsertTime=" + lastInsertTime +
-                ", tags=" + tags +
-                '}';
+        return setTags(AtsdUtil.toMap(tagNamesAndValues));
     }
 }

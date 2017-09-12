@@ -27,13 +27,18 @@ public class PropertyInsertCommand extends AbstractInsertCommand {
     private final Map<String, String> keys;
     private final Map<String, String> values;
 
-    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> keys,
-                                 Map<String, String> values) {
-        super(PROPERTY_COMMAND, entityName, timeMillis, Collections.<String, String>emptyMap());
+    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, String isoDate,
+                                 Map<String, String> keys, Map<String, String> values) {
+        super(PROPERTY_COMMAND, entityName, timeMillis, isoDate, Collections.<String, String>emptyMap());
         checkPropertyTypeIsEmpty(typeName);
         this.typeName = typeName;
         this.keys = (keys == null) ? Collections.<String, String>emptyMap() : keys;
         this.values = (values == null) ? Collections.<String, String>emptyMap() : values;
+    }
+
+    public PropertyInsertCommand(String entityName, String typeName, Long timeMillis, Map<String, String> keys,
+                                 Map<String, String> values) {
+        this(entityName, typeName, timeMillis, null, keys, values);
     }
 
     @Override
