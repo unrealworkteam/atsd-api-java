@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -90,7 +91,7 @@ class TcpClient {
         }
 
         writer = new PrintWriter(
-                socket.getOutputStream(),
+                    new OutputStreamWriter(socket.getOutputStream(), "UTF8"),
                 clientConfiguration.isAutoflush());
 
         return writer;
