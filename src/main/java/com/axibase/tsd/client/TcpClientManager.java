@@ -1,5 +1,6 @@
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.model.system.TcpClientConfiguration;
 import com.axibase.tsd.network.PlainCommand;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;

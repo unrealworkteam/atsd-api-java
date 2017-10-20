@@ -14,11 +14,14 @@
  */
 package com.axibase.tsd.model.system;
 
+import lombok.Data;
+
 /**
  * Contains client configuration parameters.
  *
  * @author Nikolay Malevanny.
  */
+@Data
 public class ClientConfiguration {
     public static final int DEFAULT_TIMEOUT_MS = 1000;
     public static final long DEFAULT_PING_TIMEOUT_MS = 600000L;
@@ -57,69 +60,5 @@ public class ClientConfiguration {
         this.dataUrl = url;
         this.username = username;
         this.password = password;
-    }
-
-    public String getMetadataUrl() {
-        return metadataUrl;
-    }
-
-    public String getDataUrl() {
-        return dataUrl;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
-
-    public int getReadTimeoutMillis() {
-        return readTimeoutMillis;
-    }
-
-    public boolean isIgnoreSSLErrors() {
-        return ignoreSSLErrors;
-    }
-
-    public boolean isSkipStreamingControl() {
-        return skipStreamingControl;
-    }
-
-    public long getPingTimeoutMillis() {
-        return pingTimeoutMillis;
-    }
-
-    public void setConnectTimeoutMillis(int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
-    }
-
-    public void setReadTimeoutMillis(int readTimeoutMillis) {
-        this.readTimeoutMillis = readTimeoutMillis;
-    }
-
-    public void setIgnoreSSLErrors(boolean ignoreSSLErrors) {
-        this.ignoreSSLErrors = ignoreSSLErrors;
-    }
-
-    public void setPingTimeoutMillis(long pingTimeoutMillis) {
-        this.pingTimeoutMillis = pingTimeoutMillis;
-    }
-
-    public void setSkipStreamingControl(boolean skipStreamingControl) {
-        this.skipStreamingControl = skipStreamingControl;
-    }
-
-    public boolean isEnableBatchCompression() {
-        return enableBatchCompression;
-    }
-
-    public void setEnableBatchCompression(boolean enableBatchCompression) {
-        this.enableBatchCompression = enableBatchCompression;
     }
 }

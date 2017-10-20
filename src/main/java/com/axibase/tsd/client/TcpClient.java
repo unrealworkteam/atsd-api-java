@@ -1,69 +1,56 @@
 package com.axibase.tsd.client;
 
+import com.axibase.tsd.model.system.TcpClientConfiguration;
 import com.axibase.tsd.network.PlainCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.net.Socket;
 
+@Slf4j
 class TcpClient {
-    private static final Logger log = LoggerFactory.getLogger(TcpClient.class);
     private TcpClientConfiguration clientConfiguration;
     private Socket socket;
-    private PrintWriter writer;
+    private OutputStream socketStream;
 
     TcpClient(TcpClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
     }
 
-    public void send(PlainCommand command) {
-        if (writer == null) {
+    synchronized public void send(PlainCommand command) {
+        if (socket == null) {
             try {
                 socket = recreateSocket();
-                writer = recreateWriter(socket);
+                socketStream = socket.getOutputStream();
             } catch (IOException e) {
                 throw new AtsdClientException("Error while connecting to ATSD", e);
             }
         }
 
         try {
-            if (!writer.checkError()) {
-                writer.println(command.compose());
-                if (clientConfiguration.isAutoflush()) {
-                    writer.flush();
-                }
-                return;
-            } else {
-                log.warn("Error while sending commands to ATSD. Trying to reconnect");
+            socketStream.write(command.compose().getBytes("UTF8"));
+            if (clientConfiguration.isAutoflush()) {
+                socketStream.flush();
             }
+            return;
         } catch (Exception e) {
             log.warn("Error while sending commands to ATSD. Trying to reconnect", e);
         }
 
         try {
             socket = recreateSocket();
-            writer = recreateWriter(socket);
-            writer.println(command.compose());
+            socketStream = socket.getOutputStream();
+            socketStream.write(command.compose().getBytes("UTF8"));
             if (clientConfiguration.isAutoflush()) {
-                writer.flush();
+                socketStream.flush();
             }
         } catch (Exception e) {
             throw new AtsdClientException("Error while sending command to ATSD", e);
         }
-
-        if (writer.checkError()) {
-            throw new AtsdClientException("Error while sending command to ATSD");
-        }
     }
 
-    public void close() {
-        if (writer != null) {
-            writer.close();
-        }
-
+    synchronized public void close() {
         if (socket != null) {
             try {
                 socket.close();
@@ -82,18 +69,5 @@ class TcpClient {
         return new Socket(
                 clientConfiguration.getServerName(),
                 clientConfiguration.getPort());
-    }
-
-    private PrintWriter recreateWriter(Socket socket) throws IOException {
-        if (writer != null) {
-            writer.close();
-            writer = null;
-        }
-
-        writer = new PrintWriter(
-                    new OutputStreamWriter(socket.getOutputStream(), "UTF8"),
-                clientConfiguration.isAutoflush());
-
-        return writer;
     }
 }

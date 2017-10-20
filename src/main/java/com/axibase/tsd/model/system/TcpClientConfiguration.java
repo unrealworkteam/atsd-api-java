@@ -1,5 +1,8 @@
-package com.axibase.tsd.client;
+package com.axibase.tsd.model.system;
 
+import lombok.Data;
+
+@Data
 public class TcpClientConfiguration {
     private final String serverName;
     private final int port;
@@ -9,17 +12,5 @@ public class TcpClientConfiguration {
         this.serverName = serverName;
         this.port = port;
         this.autoflush = autoflush;
-    }
-
-    public String getServerName() {
-        return serverName;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public boolean isAutoflush() {
-        return autoflush;
     }
 }

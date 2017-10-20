@@ -41,7 +41,6 @@ import static com.axibase.tsd.util.AtsdUtil.*;
  * @author Nikolay Malevanny.
  */
 public class DataService {
-    private static final Logger logger = LoggerFactory.getLogger(DataService.class);
     private static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();
 
     private HttpClientManager httpClientManager;

@@ -20,6 +20,8 @@ import com.axibase.tsd.query.QueryPart;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -65,9 +67,8 @@ import java.util.logging.LogManager;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
-
+@Slf4j
 class HttpClient {
-    private static final Logger log = LoggerFactory.getLogger(HttpClient.class);
     private final static java.util.logging.Logger legacyLogger = java.util.logging.Logger.getLogger(HttpClient.class.getName());
     public static final int HTTP_STATUS_OK = 200;
     public static final int HTTP_STATUS_FAIL = 400;
