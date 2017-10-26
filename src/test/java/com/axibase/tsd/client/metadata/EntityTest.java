@@ -24,6 +24,8 @@ import com.axibase.tsd.client.HttpClientManager;
 import com.axibase.tsd.client.MetaDataService;
 import com.axibase.tsd.model.meta.Entity;
 import com.axibase.tsd.model.meta.TagAppender;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -204,6 +206,17 @@ public class EntityTest {
 
         assertTrue(metaDataService.deleteEntity(entity));
         assertNull(metaDataService.retrieveEntity(entityName));
+    }
+
+    @Test
+    public void testDeleteNonexistentEntity() throws Exception {
+        final String entityName = buildVariablePrefix();
+        try {
+            assertFalse(metaDataService.deleteEntity(createEntity(entityName)));
+        } catch (AtsdServerException exc) {
+            assertTrue(StringUtils.contains(exc.getMessage(), entityName));
+            assertEquals(HttpStatus.SC_NOT_FOUND, exc.getStatus());
+        }
     }
 
     private static Entity createEntity(String entityName) {

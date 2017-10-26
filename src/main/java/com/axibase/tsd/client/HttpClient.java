@@ -20,7 +20,6 @@ import com.axibase.tsd.query.QueryPart;
 import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -239,21 +238,23 @@ class HttpClient {
     }
 
     private boolean getUpdateResult(Response response) {
-        fixApacheHttpClientBlocking(response);
-        if (response.getStatus() == HTTP_STATUS_OK) {
-            return true;
-        } else if (response.getStatus() == HTTP_STATUS_FAIL) {
-            return false;
-        } else {
-            throw buildException(response);
+        try {
+            if (response.getStatus() == HTTP_STATUS_OK) {
+                return true;
+            } else if (response.getStatus() == HTTP_STATUS_FAIL) {
+                return false;
+            } else {
+                throw buildException(response);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
     private AtsdServerException buildException(Response response) {
         ServerError serverError = buildAndLogServerError(response);
         return new AtsdServerException(response.getStatusInfo().getReasonPhrase() + " (" + response.getStatus() + ")" +
-                ((serverError == null) ? "" : (", " + serverError.getMessage()))
-        );
+                ((serverError == null) ? "" : (", " + serverError.getMessage())), response.getStatus());
     }
 
     public static ServerError buildAndLogServerError(Response response) {
@@ -316,10 +317,13 @@ class HttpClient {
         }
     }
 
-    private static void fixApacheHttpClientBlocking(Response response) {
-        Object entity = response.getEntity();
-        if (entity instanceof InputStream) {
-            IOUtils.closeQuietly((InputStream) entity);
+    private static void closeResponse(Response response) {
+        try {
+            if (response != null) {
+                response.close();
+            }
+        } catch (Throwable e) {
+            log.warn("Couldn't close response", e);
         }
     }
 }
