@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Axibase Corporation or its affiliates. All Rights Reserved.
+ * Copyright 2017 Axibase Corporation or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
  */
 package com.axibase.tsd.client;
 
+import lombok.Getter;
+
 /**
  * Thrown if an error is returned from the ATSD server.
- *
- * @author Nikolay Malevanny.
  */
 public class AtsdServerException extends RuntimeException {
-    public AtsdServerException(String message) {
+
+    @Getter
+    private final int status;
+
+    public AtsdServerException(String message, int status) {
         super(message);
+        this.status = status;
     }
 
-    public AtsdServerException(String message, Throwable cause) {
+    public AtsdServerException(String message, int status, Throwable cause) {
         super(message, cause);
+        this.status = status;
     }
+
 }
