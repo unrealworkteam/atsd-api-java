@@ -24,9 +24,6 @@ import java.util.*;
 
 import static com.axibase.tsd.util.AtsdUtil.DateTime.*;
 
-/**
- * @author Korchagin Dmitry.
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetMessagesQuery {
     //TODO: entity and date filter

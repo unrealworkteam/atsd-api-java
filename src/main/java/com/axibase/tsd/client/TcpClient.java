@@ -4,70 +4,125 @@ import com.axibase.tsd.model.system.TcpClientConfiguration;
 import com.axibase.tsd.network.PlainCommand;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Collection;
 
 @Slf4j
 class TcpClient {
-    private TcpClientConfiguration clientConfiguration;
+    private final String serverName;
+    private final int port;
+    private final boolean autoflush;
+    private final int connectionTimeoutMs;
+    private final int readTimeoutMs;
     private Socket socket;
-    private OutputStream socketStream;
+    private OutputStreamWriter writer;
+    private final int BUFFER_SIZE = 16*1024;
 
     TcpClient(TcpClientConfiguration clientConfiguration) {
-        this.clientConfiguration = clientConfiguration;
+        this.serverName = clientConfiguration.getServerName();
+        this.port = clientConfiguration.getPort();
+        this.autoflush = clientConfiguration.isAutoflush();
+        this.connectionTimeoutMs = clientConfiguration.getConnectionTimeoutMs();
+        this.readTimeoutMs = clientConfiguration.getReadTimeoutMs();
     }
 
     synchronized public void send(PlainCommand command) {
+        send(command.compose());
+    }
+
+    synchronized public void send(Collection<PlainCommand> commands) {
+        if (autoflush) {
+            for (PlainCommand command : commands) {
+                send(command);
+            }
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (PlainCommand command : commands) {
+            builder.append(command.compose());
+            builder.append("\n");
+        }
+
+        send(builder.toString());
+    }
+
+    private void send(String data) {
         if (socket == null) {
             try {
+                log.info(String.format("Connecting to ATSD at %s:%s", serverName, port));
                 socket = recreateSocket();
-                socketStream = socket.getOutputStream();
+                writer = recreateWriter(socket);
             } catch (IOException e) {
-                throw new AtsdClientException("Error while connecting to ATSD", e);
+                throw new AtsdClientException(
+                        String.format("Error while connecting to ATSD at %s:%s", serverName, port), e);
             }
         }
 
         try {
-            socketStream.write(command.compose().getBytes("UTF8"));
-            if (clientConfiguration.isAutoflush()) {
-                socketStream.flush();
-            }
+            writer.write(data);
+            writer.flush();
             return;
         } catch (Exception e) {
-            log.warn("Error while sending commands to ATSD. Trying to reconnect", e);
+            log.warn(String.format(
+                    "Error while sending commands to ATSD at %s:%s. Trying to reconnect", serverName, port), e);
         }
 
         try {
             socket = recreateSocket();
-            socketStream = socket.getOutputStream();
-            socketStream.write(command.compose().getBytes("UTF8"));
-            if (clientConfiguration.isAutoflush()) {
-                socketStream.flush();
-            }
+            writer = recreateWriter(socket);
+            writer.write(data);
+            writer.flush();
         } catch (Exception e) {
-            throw new AtsdClientException("Error while sending command to ATSD", e);
+            throw new AtsdClientException(
+                    String.format("Error while sending command to ATSD at %s:%s", serverName, port), e);
         }
     }
 
     synchronized public void close() {
-        if (socket != null) {
+        if (writer != null) {
             try {
-                socket.close();
+                writer.close();
             } catch (IOException e) {
-                log.warn("Error while closing tcp stream", e);
+                log.warn(String.format("Error while closing tcp stream %s:%s", serverName, port), e);
             }
+            writer = null;
+        }
+
+        if (socket != null) {
+            if (!socket.isClosed()) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    log.warn(String.format("Error while closing tcp stream %s:%s", serverName, port), e);
+                }
+            }
+            socket = null;
         }
     }
 
     private Socket recreateSocket() throws IOException {
-        if (socket != null) {
-            socket.close();
-            socket = null;
+        close();
+
+        Socket socket = new Socket();
+        socket.setSoTimeout(readTimeoutMs);
+        socket.connect(new InetSocketAddress(serverName, port), connectionTimeoutMs);
+        return socket;
+    }
+
+    private OutputStreamWriter recreateWriter(Socket socket) throws IOException {
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                log.warn(String.format("Error while closing tcp stream %s:%s", serverName, port), e);
+            }
+            writer = null;
         }
 
-        return new Socket(
-                clientConfiguration.getServerName(),
-                clientConfiguration.getPort());
+        BufferedOutputStream stream = new BufferedOutputStream(socket.getOutputStream(), BUFFER_SIZE);
+        return new OutputStreamWriter(stream, "UTF8");
     }
 }

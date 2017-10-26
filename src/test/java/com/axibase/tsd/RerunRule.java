@@ -25,9 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.axibase.tsd.TestUtil.RERUN_COUNT;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class RerunRule implements TestRule {
     private static final Logger log = LoggerFactory.getLogger(RerunRule.class);
 

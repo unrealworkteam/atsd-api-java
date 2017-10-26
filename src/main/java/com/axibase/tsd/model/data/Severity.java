@@ -14,9 +14,6 @@
  */
 package com.axibase.tsd.model.data;
 
-/**
- * @author Alexander Tokarev.
- */
 public enum Severity {
     UNDEFINED(0, "undefined"),
     UNKNOWN(1, "unknown"),

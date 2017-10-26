@@ -32,9 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class TestUtil {
     public static final String ALERTS_METRIC = "alerts-metric";
     public static final Long MOCK_TIMESTAMP = 1456489150000L;

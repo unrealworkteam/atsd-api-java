@@ -22,8 +22,6 @@ import java.util.Properties;
 
 /**
  * Utility class to simplify client configuration. Recommend to use Spring IOC features instead of it.
- *
- * @author Nikolay Malevanny.
  */
 public class ClientConfigurationFactory {
     private static final String DEFAULT_PROTOCOL = "http";

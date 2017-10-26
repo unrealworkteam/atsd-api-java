@@ -19,9 +19,6 @@ import org.junit.Test;
 import static com.axibase.tsd.TestUtil.buildHttpClientManager;
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author Igor Shmagrinskiy
- */
 public class CommandSeriesQuotesTest {
     private final static String TEST_PREFIX = "command-series-quotes-test-";
     private final static String TEST_ENTITY = TEST_PREFIX + "entity";

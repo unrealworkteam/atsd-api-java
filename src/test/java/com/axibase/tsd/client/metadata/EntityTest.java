@@ -38,9 +38,6 @@ import java.util.Map;
 import static com.axibase.tsd.TestUtil.*;
 import static org.junit.Assert.*;
 
-/**
- * @author Dmitry Korchagin.
- */
 public class EntityTest {
     private MetaDataService metaDataService;
     private DataService dataService;

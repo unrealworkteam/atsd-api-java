@@ -16,8 +16,6 @@ package com.axibase.tsd.client;
 
 /**
  * Thrown if an error occurs during the formation or processing of the ATSD API calls.
- *
- * @author Nikolay Malevanny.
  */
 public class AtsdClientException extends RuntimeException {
     public AtsdClientException(String message) {

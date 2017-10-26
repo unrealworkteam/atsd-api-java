@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * System class to parse server errors.
- *
- * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ServerError {

@@ -2,9 +2,6 @@ package com.axibase.tsd.model.data.command;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * @author Igor Shmagrinskiy
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SendCommandResult {
 

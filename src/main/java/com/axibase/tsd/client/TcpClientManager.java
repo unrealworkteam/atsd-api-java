@@ -8,12 +8,13 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TcpClientManager {
     private static final int DEFAULT_BORROW_MAX_TIME_MS = 3000;
-    private static final int DEFAULT_MAX_TOTAL = 100;
-    private static final int DEFAULT_MAX_IDLE = 100;
+    private static final int DEFAULT_MAX_TOTAL = 8;
+    private static final int DEFAULT_MAX_IDLE = 8;
 
     private GenericObjectPoolConfig objectPoolConfig;
 
@@ -46,6 +47,15 @@ public class TcpClientManager {
     }
 
     public void send(PlainCommand plainCommand) {
+        TcpClient tcpClient = borrowClient();
+        try {
+            tcpClient.send(plainCommand);
+        } finally {
+            returnClient(tcpClient);
+        }
+    }
+
+    public void send(Collection<PlainCommand> plainCommand) {
         TcpClient tcpClient = borrowClient();
         try {
             tcpClient.send(plainCommand);

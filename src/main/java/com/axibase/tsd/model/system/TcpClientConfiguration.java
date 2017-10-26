@@ -1,16 +1,16 @@
 package com.axibase.tsd.model.system;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TcpClientConfiguration {
-    private final String serverName;
-    private final int port;
-    private final boolean autoflush;
-
-    public TcpClientConfiguration(String serverName, int port, boolean autoflush) {
-        this.serverName = serverName;
-        this.port = port;
-        this.autoflush = autoflush;
-    }
+    private String serverName;
+    private int port;
+    private boolean autoflush;
+    private int connectionTimeoutMs;
+    private int readTimeoutMs;
 }

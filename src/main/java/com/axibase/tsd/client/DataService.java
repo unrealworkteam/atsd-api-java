@@ -37,8 +37,6 @@ import static com.axibase.tsd.util.AtsdUtil.*;
 
 /**
  * Provides high-level API to retrieve and update ATSD Data Objects (time-series, alerts, properties).
- *
- * @author Nikolay Malevanny.
  */
 public class DataService {
     private static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();

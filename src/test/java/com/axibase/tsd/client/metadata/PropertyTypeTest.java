@@ -34,9 +34,6 @@ import java.util.Set;
 import static com.axibase.tsd.TestUtil.*;
 import static org.junit.Assert.*;
 
-/**
- * @author Dmitry Korchagin.
- */
 public class PropertyTypeTest {
     private MetaDataService metaDataService;
     private DataService dataService;

@@ -18,8 +18,6 @@ import lombok.Data;
 
 /**
  * Contains client configuration parameters.
- *
- * @author Nikolay Malevanny.
  */
 @Data
 public class ClientConfiguration {
