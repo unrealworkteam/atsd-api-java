@@ -268,6 +268,60 @@ public class SeriesTest extends BaseDataTest {
     }
 
     @Test
+    public void testStreamingSendInsertCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        assertTrue(dataService.canSendPlainCommand());
+
+        for (int i = 0; i < commandsCount; i++) {
+            dataService.sendPlainCommand(new InsertCommand(
+                    entityName,
+                    metricName,
+                    new Sample(timestamp + i, 1.0, "text")));
+        }
+
+        Thread.sleep(3000);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testStreamingSendSimpleCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        assertTrue(dataService.canSendPlainCommand());
+
+        for (int i = 0; i < commandsCount; i++) {
+            dataService.sendPlainCommand(new SimpleCommand(
+                    String.format("series e:%s m:%s=1 ms:%s", entityName, metricName, timestamp + i)));
+        }
+
+        Thread.sleep(3000);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
     public void testInsertSeriesCsv() throws Exception {
         final String entityName = buildVariablePrefix() + "entity";
         final String metricName = buildVariablePrefix() + "metric";
