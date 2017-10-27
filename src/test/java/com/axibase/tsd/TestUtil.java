@@ -16,10 +16,13 @@ package com.axibase.tsd;
 
 import com.axibase.tsd.client.ClientConfigurationFactory;
 import com.axibase.tsd.client.HttpClientManager;
+import com.axibase.tsd.client.TcpClientConfigurationFactory;
+import com.axibase.tsd.client.TcpClientManager;
 import com.axibase.tsd.model.meta.DataType;
 import com.axibase.tsd.model.meta.Metric;
 import com.axibase.tsd.model.meta.TimePrecision;
 import com.axibase.tsd.model.system.ClientConfiguration;
+import com.axibase.tsd.model.system.TcpClientConfiguration;
 import com.axibase.tsd.util.AtsdUtil;
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -66,6 +69,19 @@ public class TestUtil {
         httpClientManager.setObjectPoolConfig(objectPoolConfig);
         httpClientManager.setBorrowMaxWaitMillis(10000);
         return httpClientManager;
+    }
+
+    public static TcpClientManager buildTcpClientManager() {
+        TcpClientConfigurationFactory configurationFactory = TcpClientConfigurationFactory.createInstance();
+        TcpClientConfiguration clientConfiguration = configurationFactory.createClientConfiguration();
+        TcpClientManager tcpClientManager = new TcpClientManager();
+        tcpClientManager.setClientConfiguration(clientConfiguration);
+        GenericObjectPoolConfig objectPoolConfig = new GenericObjectPoolConfig();
+        objectPoolConfig.setMaxTotal(8);
+        objectPoolConfig.setMaxIdle(8);
+        tcpClientManager.setObjectPoolConfig(objectPoolConfig);
+        tcpClientManager.setBorrowMaxWaitMillis(10000);
+        return tcpClientManager;
     }
 
     public static MultivaluedMap<String, String> toMVM(String... tagNamesAndValues) {
