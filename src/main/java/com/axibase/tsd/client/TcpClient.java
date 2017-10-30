@@ -55,7 +55,7 @@ class TcpClient {
     private void send(String data) {
         if (socket == null) {
             try {
-                log.info("Connecting to ATSD at %s:%s", serverName, port);
+                log.info("Connecting to ATSD at {}:{}", serverName, port);
                 socket = recreateSocket();
                 writer = recreateWriter(socket);
             } catch (IOException e) {
@@ -65,25 +65,28 @@ class TcpClient {
         }
 
         try {
-            writer.write(data);
-            if (!data.endsWith("\n")) {
-                writer.write('\n');
-            }
-            writer.flush();
+            writeData(data);
             return;
         } catch (Exception e) {
-            log.warn("Error while sending commands to ATSD at %s:%s. Trying to reconnect", serverName, port, e);
+            log.warn("Error while sending commands to ATSD at {}:{}. Trying to reconnect", serverName, port, e);
         }
 
         try {
             socket = recreateSocket();
             writer = recreateWriter(socket);
-            writer.write(data);
-            writer.flush();
+            writeData(data);
         } catch (Exception e) {
             throw new AtsdClientException(
                     String.format("Error while sending command to ATSD at %s:%s", serverName, port), e);
         }
+    }
+
+    private void writeData(String data) throws IOException {
+        writer.write(data);
+        if (!data.endsWith("\n")) {
+            writer.write('\n');
+        }
+        writer.flush();
     }
 
     synchronized public void close() {
@@ -96,7 +99,7 @@ class TcpClient {
             try {
                 writer.close();
             } catch (IOException e) {
-                log.warn("Error while closing tcp stream %s:%s", serverName, port, e);
+                log.warn("Error while closing tcp stream {}:{}", serverName, port, e);
             }
             writer = null;
         }
@@ -108,7 +111,7 @@ class TcpClient {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    log.warn("Error while closing tcp stream %s:%s", serverName, port, e);
+                    log.warn("Error while closing tcp stream {}:{}", serverName, port, e);
                 }
             }
             socket = null;
@@ -121,6 +124,7 @@ class TcpClient {
         Socket socket = new Socket();
         socket.setSoTimeout(readTimeoutMs);
         socket.connect(new InetSocketAddress(serverName, port), connectionTimeoutMs);
+
         return socket;
     }
 
