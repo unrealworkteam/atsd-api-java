@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Contains data to compute statistics for the specified time intervals.
- *
- * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Aggregate {

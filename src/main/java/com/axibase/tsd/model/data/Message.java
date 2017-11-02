@@ -23,8 +23,6 @@ import java.util.Map;
 
 /**
  * http://axibase.com/atsd/api/#messages:-insert
- *
- * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)

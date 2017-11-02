@@ -26,8 +26,6 @@ import static com.axibase.tsd.util.AtsdUtil.*;
 
 /**
  * Provides high-level API to retrieve and update ATSD Metadata Objects (entities, entity groups, metrics).
- *
- * @author Nikolay Malevanny.
  */
 public class MetaDataService {
     private HttpClientManager httpClientManager;

@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * Contains data to compute statistics for the specified time intervals.
- *
- * @author Nikolay Malevanny.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SimpleAggregateMatcher {

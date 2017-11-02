@@ -20,8 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  * Contains data to compute difference between consecutive samples per unit of time (rate interval).
  * Used to compute rate of change when the underlying metric measures a continuously incrementing counter.
- *
- * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)

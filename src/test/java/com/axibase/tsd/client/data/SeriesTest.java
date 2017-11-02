@@ -30,6 +30,7 @@ import com.axibase.tsd.model.system.Format;
 import com.axibase.tsd.network.InsertCommand;
 import com.axibase.tsd.network.MultipleInsertCommand;
 import com.axibase.tsd.network.PlainCommand;
+import com.axibase.tsd.network.SimpleCommand;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
@@ -165,6 +166,159 @@ public class SeriesTest extends BaseDataTest {
             assertEquals(1, getSeriesResultList.size());
             assertEquals(10, ((Series) getSeriesResultList.get(0)).getData().size());
         }
+    }
+
+    @Test
+    public void testTcpInsertSimpleCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+
+        PlainCommand command = new SimpleCommand(
+                String.format("series e:%s m:%s=1 ms:%s", entityName, metricName, timestamp));
+
+        tcpClientManager.send(command);
+
+        Thread.sleep(500);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName).setStartTime(timestamp).setEndTime(timestamp + 1);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(1, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testTcpInsertMultipleSimpleCommands() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        List<PlainCommand> commands = new ArrayList<>(commandsCount);
+        for (int i = 0; i < commandsCount; i++) {
+            commands.add(new SimpleCommand(
+                    String.format("series e:%s m:%s=1 ms:%s", entityName, metricName, timestamp + i)));
+        }
+        tcpClientManager.send(commands);
+
+        Thread.sleep(500);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testTcpInsertCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+
+        PlainCommand command = new InsertCommand(
+                entityName,
+                metricName,
+                new Sample(timestamp, 1.0, "text"));
+
+        tcpClientManager.send(command);
+
+        Thread.sleep(500);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName).setStartTime(timestamp).setEndTime(timestamp + 1);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(1, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testTcpInsertMultipleCommands() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        List<PlainCommand> commands = new ArrayList<>(commandsCount);
+        for (int i = 0; i < commandsCount; i++) {
+            commands.add(new InsertCommand(
+                    entityName,
+                    metricName,
+                    new Sample(timestamp + i, 1.0, "text")));
+        }
+
+        tcpClientManager.send(commands);
+
+        Thread.sleep(500);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testStreamingSendInsertCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        assertTrue(dataService.canSendPlainCommand());
+
+        for (int i = 0; i < commandsCount; i++) {
+            dataService.sendPlainCommand(new InsertCommand(
+                    entityName,
+                    metricName,
+                    new Sample(timestamp + i, 1.0, "text")));
+        }
+
+        Thread.sleep(3000);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
+    }
+
+    @Test
+    public void testStreamingSendSimpleCommand() throws InterruptedException {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        final long timestamp = System.currentTimeMillis();
+        final int commandsCount = 10;
+
+        assertTrue(dataService.canSendPlainCommand());
+
+        for (int i = 0; i < commandsCount; i++) {
+            dataService.sendPlainCommand(new SimpleCommand(
+                    String.format("series e:%s m:%s=1 ms:%s", entityName, metricName, timestamp + i)));
+        }
+
+        Thread.sleep(3000);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName)
+                .setStartTime(timestamp)
+                .setEndTime(timestamp + commandsCount);
+        List getSeriesResultList = dataService.retrieveSeries(getSeriesQuery);
+        assertFalse(getSeriesResultList.isEmpty());
+        assertTrue(getSeriesResultList.get(0) instanceof Series);
+        assertEquals(1, getSeriesResultList.size());
+        assertEquals(commandsCount, ((Series) getSeriesResultList.get(0)).getData().size());
     }
 
     @Test

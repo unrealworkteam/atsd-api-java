@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Contains data to merge multiple time series into one series.
- *
- * @author Nikolay Malevanny.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)

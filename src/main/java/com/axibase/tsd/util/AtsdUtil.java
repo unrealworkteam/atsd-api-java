@@ -15,14 +15,23 @@
 package com.axibase.tsd.util;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.*;
 
+@Slf4j
 public class AtsdUtil {
+    private static final String CLASSPATH_PREFIX = "classpath:";
     public static final String ADD_COMMAND = "add";
     public static final String DELETE_COMMAND = "delete";
     public static final String MARKER_KEYWORD = "marker ";
@@ -112,6 +121,63 @@ public class AtsdUtil {
             return "NaN";
         }
         return Double.toString(value);
+    }
+
+    public static Properties loadProperties(String clientPropertiesFileName) {
+        log.debug("Load client properties from file: {}", clientPropertiesFileName);
+        Properties clientProperties = new Properties();
+        InputStream stream = null;
+        try {
+            if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
+                String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
+                log.info("Load properties from classpath: {}", resourcePath);
+                stream = AtsdUtil.class.getResourceAsStream(resourcePath);
+            } else {
+                File file = new File(clientPropertiesFileName);
+                log.info("Load properties from file: {}", file.getAbsolutePath());
+                stream = new FileInputStream(file);
+            }
+            clientProperties.load(stream);
+        } catch (Throwable e) {
+            log.warn("Could not load client properties", e);
+        } finally {
+            IOUtils.closeQuietly(stream);
+        }
+
+        return clientProperties;
+    }
+
+    public static String getPropertyStringValue(String name, Properties clientProperties, String defaultValue) {
+        String value = System.getProperty(name);
+        if (value == null) {
+            value = clientProperties.getProperty(name);
+            if (value == null) {
+                if (defaultValue == null) {
+                    log.error("Could not find required property: {}", name);
+                    throw new IllegalStateException(name + " property is null");
+                } else {
+                    value = defaultValue;
+                }
+            }
+        }
+        return value;
+    }
+
+    public static Integer getPropertyIntValue(String name, Properties clientProperties, Integer defaultValue) {
+        return NumberUtils.toInt(getPropertyStringValue(name, clientProperties, ""), defaultValue);
+    }
+
+    public static Long getPropertyLongValue(String name, Properties clientProperties, Long defaultValue) {
+        return NumberUtils.toLong(getPropertyStringValue(name, clientProperties, ""), defaultValue);
+    }
+
+    public static Boolean getPropertyBoolValue(String name, Properties clientProperties, Boolean defaultValue) {
+        String value = getPropertyStringValue(name, clientProperties, "");
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+
+        return BooleanUtils.toBoolean(value);
     }
 
 }
