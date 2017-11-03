@@ -30,7 +30,7 @@ public class TcpClientManager {
     }
 
     public TcpClientManager(TcpClientConfiguration clientConfiguration) {
-        super();
+        this();
         this.clientConfiguration = clientConfiguration;
     }
 
