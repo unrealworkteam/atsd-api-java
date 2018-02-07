@@ -117,7 +117,7 @@ public class AtsdUtil {
     }
 
     public static String formatMetricValue(double value) {
-        if (Double.isNaN(value)) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
             return "NaN";
         }
         return Double.toString(value);
