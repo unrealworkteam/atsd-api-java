@@ -530,4 +530,51 @@ public class SeriesTest extends BaseDataTest {
         assertNull(sample.getTextValue());
     }
 
+    @Test
+    public void testSendSeriesWithInfinity() throws Exception {
+        final String entityName = buildVariablePrefix() + "entity";
+        final String metricName = buildVariablePrefix() + "metric";
+        long st = System.currentTimeMillis();
+        final ArrayList<PlainCommand> commands = new ArrayList<>();
+        commands.add(new InsertCommand(entityName, metricName, Sample.ofTimeDouble(st, Double.POSITIVE_INFINITY)));
+        commands.add(new InsertCommand(entityName, metricName, Sample.ofTimeDouble(st + 1, Double.NEGATIVE_INFINITY)));
+        Map<String, Double> values = new HashMap<>();
+        values.put(metricName, Double.POSITIVE_INFINITY);
+        values.put(metricName + "_1", Double.NEGATIVE_INFINITY);
+        commands.add(new MultipleInsertCommand(entityName, st + 2, Collections.<String, String>emptyMap(), values));
+        final BatchResponse batchResponse = dataService.sendBatch(commands);
+        assertTrue(batchResponse.getResult().getFail() == 0);
+        assertNull(batchResponse.getResult().getStored());
+
+        Thread.sleep(WAIT_TIME);
+
+        GetSeriesQuery getSeriesQuery = new GetSeriesQuery(entityName, metricName);
+        getSeriesQuery.setStartTime(st);
+        getSeriesQuery.setEndTime(st + 3);
+        List<Series> seriesResults = dataService.retrieveSeries(getSeriesQuery);
+        assertEquals(3, seriesResults.get(0).getData().size());
+
+        Sample sample = seriesResults.get(0).getData().get(0);
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble(), 0);
+        assertNull(sample.getTextValue());
+
+        sample = seriesResults.get(0).getData().get(1);
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble(), 0);
+        assertNull(sample.getTextValue());
+
+        sample = seriesResults.get(0).getData().get(2);
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble(), 0);
+        assertNull(sample.getTextValue());
+
+        getSeriesQuery = new GetSeriesQuery(entityName, metricName + "_1");
+        getSeriesQuery.setStartTime(st + 2);
+        getSeriesQuery.setEndTime(st + 3);
+        seriesResults = dataService.retrieveSeries(getSeriesQuery);
+        assertEquals(1, seriesResults.get(0).getData().size());
+
+        sample = seriesResults.get(0).getData().get(0);
+        assertEquals(Double.NaN, sample.getNumericValueAsDouble(), 0);
+        assertNull(sample.getTextValue());
+    }
+
 }
