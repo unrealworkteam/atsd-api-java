@@ -11,7 +11,7 @@ Get started by downloading the zip file from [GitHub][atsd-zip] or by importing 
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>atsd-api-java</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
 ```
 
