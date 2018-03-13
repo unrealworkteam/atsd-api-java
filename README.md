@@ -5,7 +5,7 @@
 The **ATSD Client for Java** enables Java developers to build reporting, analytical, and alerting applications that read and write data and metadata from the
 [Axibase Time Series Database][atsd].
 
-Get started by downloading the zip file from [GitHub][atsd-zip] or by importing this API client with **Maven**:
+Get started by importing the client with **Maven**:
 
 ```xml
         <dependency>
