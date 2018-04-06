@@ -16,12 +16,21 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
-       default-autowire="byName">
-    <bean id="example" class="com.axibase.tsd.example.AtsdClientWriteExample"/>
-    <bean id="dataService" class="com.axibase.tsd.client.DataService"/>
-    <bean id="metaDataService" class="com.axibase.tsd.client.MetaDataService"/>
-    <bean id="httpClientManager" class="com.axibase.tsd.client.HttpClientManager"/>
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+    <bean id="example" class="com.axibase.tsd.example.AtsdClientWriteExample">
+        <property name="dataService" ref="dataService"/>
+        <property name="metaDataService" ref="metaDataService"/>
+    </bean>
+    <bean id="dataService" class="com.axibase.tsd.client.DataService">
+        <property name="httpClientManager" ref="httpClientManager"/>
+    </bean>
+    <bean id="metaDataService" class="com.axibase.tsd.client.MetaDataService">
+        <property name="httpClientManager" ref="httpClientManager"/>
+    </bean>
+    <bean id="httpClientManager" class="com.axibase.tsd.client.HttpClientManager">
+        <property name="clientConfiguration" ref="clientConfiguration"/>
+        <property name="objectPoolConfig" ref="genericObjectPoolConfig"/>
+    </bean>
     <bean id="genericObjectPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
         <property name="maxTotal" value="3"/>
     </bean>
