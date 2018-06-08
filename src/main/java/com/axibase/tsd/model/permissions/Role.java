@@ -22,7 +22,7 @@ public enum Role {
     public static final String ROLE_PREFIX = "ROLE_";
 
     /**
-     * How deserilize the Role object from JSON.
+     * How deserialize the Role object from JSON.
      *
      * @param value string representation.
      * @return Role instance.
