@@ -28,12 +28,14 @@ public class AccessPermission {
     private List<String> portals;
     private Map<String, EntityPermission> entityGroups;
     private List<Role> roles;
+    private String ipFilter;
 
     /**
-     * Nesseccary for serialization and deserialization process with
+     * Necessary for serialization and deserialization process with
      * custom {@link PropertyNamingStrategy}.
      */
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public void init() {
+        // Necessary for kebab case deserialization
     }
 }
