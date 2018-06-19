@@ -20,6 +20,7 @@ import com.axibase.tsd.network.MarkerCommand;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
+@Slf4j
 public class DefaultStreamingManager implements StreamingManager {
-    private static final Logger log = LoggerFactory.getLogger(DefaultStreamingManager.class);
     public static final String CHECK = "check";
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
     public static final String SENDER_IS_NULL_MESSAGE = "Sender is null";
@@ -227,7 +227,7 @@ public class DefaultStreamingManager implements StreamingManager {
                     return false;
                 }
             } else {
-                log.warn("Sender {} is null", plainSender);
+                log.warn(SENDER_IS_NULL_MESSAGE);
                 return false;
             }
         } catch (Exception e) {
