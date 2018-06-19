@@ -290,6 +290,7 @@ public class DefaultStreamingManager implements StreamingManager {
         }
     }
 
+    // Stable work is not guaranteed
     @Override
     public List<String> removeSavedPlainCommands() {
         if (saved.isEmpty()) {
