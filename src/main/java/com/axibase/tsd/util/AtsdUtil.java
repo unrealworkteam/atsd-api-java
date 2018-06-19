@@ -146,7 +146,7 @@ public class AtsdUtil {
 
     private static InputStream propertiesStream(final String clientPropertiesFileName) throws FileNotFoundException {
         if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
-            String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
+            String resourcePath = StringUtils.substringAfter(clientPropertiesFileName, CLASSPATH_PREFIX);
             log.info("Load properties from classpath: {}", resourcePath);
             return AtsdUtil.class.getResourceAsStream(resourcePath);
         } else {

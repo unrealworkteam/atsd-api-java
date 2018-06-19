@@ -298,7 +298,7 @@ public class DefaultStreamingManager implements StreamingManager {
         synchronized (saved) {
             List<String> result = new ArrayList<>(saved);
             saved.removeAll(result);
-            if (result.isEmpty()) {
+            if (!result.isEmpty()) {
                 log.info("{} commands are removed from saved list", result.size());
             }
             return result;
