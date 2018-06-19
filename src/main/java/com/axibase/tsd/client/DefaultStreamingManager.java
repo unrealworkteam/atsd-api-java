@@ -38,12 +38,13 @@ public class DefaultStreamingManager implements StreamingManager {
     private static final Logger log = LoggerFactory.getLogger(DefaultStreamingManager.class);
     public static final String CHECK = "check";
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
+    public static final String SENDER_IS_NULL_MESSAGE = "Sender is null";
     private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
     private PlainStreamingSender plainSender = null;
     private final AtomicLong lastPingTime = new AtomicLong(0);
-    private final AtomicReference<String> marker = new AtomicReference<String>();
+    private final AtomicReference<String> marker = new AtomicReference<>();
     private boolean lastPingResult = false;
-    private final List<String> saved = new ArrayList<String>();
+    private final List<String> saved = new ArrayList<>();
     private final HttpClientManager httpClientManager;
     private Future<?> senderFuture;
     private ExecutorService checkExecutor;
@@ -66,7 +67,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
     @Override
     public void close() {
-        log.info("Close streaming manager");
+        log.info("Closing streaming manager {}", this);
         PlainStreamingSender sender = plainSender;
         if (sender != null) {
             sender.close();
@@ -85,7 +86,7 @@ public class DefaultStreamingManager implements StreamingManager {
         try {
             PlainStreamingSender sender = plainSender;
             if (sender == null) {
-                throw new IllegalStateException("Sender is null");
+                throw new IllegalStateException(SENDER_IS_NULL_MESSAGE);
             } else if (!sender.isWorking()) {
                 throw new IllegalStateException("Sender is in the wrong state");
             }
@@ -111,7 +112,7 @@ public class DefaultStreamingManager implements StreamingManager {
                                 if (beforeLastResult && lastPingResult) {
                                     saved.clear();
                                 }
-                            } catch (Throwable e) {
+                            } catch (Exception e) {
                                 log.error("Could not prepare sender: ", e);
                             }
                         }
@@ -141,7 +142,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
                     PlainStreamingSender newSender = new PlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
                     if (plainSender != null) {
-                        log.info("Prepare new sender, close old");
+                        log.info("Prepare new sende {}r, close old {}", newSender, plainSender);
                         plainSender.close();
                     }
                     if (senderFuture != null) {
@@ -177,7 +178,7 @@ public class DefaultStreamingManager implements StreamingManager {
                     MarkerState markerState = askMarkerState(CHECK);
                     boolean checkResult = markerState != null && CHECK.equals(markerState.getMarker());
                     if (!checkResult) {
-                        log.warn("Bad check result, close sender");
+                        log.warn("Bad check result: {}, close sender", markerState);
                         needClosing = true;
                     }
                     return checkResult;
@@ -226,10 +227,10 @@ public class DefaultStreamingManager implements StreamingManager {
                     return false;
                 }
             } else {
-                log.warn("Sender is null");
+                log.warn("Sender {} is null", plainSender);
                 return false;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.warn("Ping error: ", e);
             return false;
         } finally {
@@ -254,7 +255,7 @@ public class DefaultStreamingManager implements StreamingManager {
             markerState = httpClientManager.requestData(MarkerState.class, query, null);
             log.debug("From server {} received the following state of marker ({}): {}",
                     httpClientManager.getClientConfiguration().getDataUrl(), marker, markerState);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.error("Error while checking marker count: ", e);
         }
         return markerState;
@@ -275,7 +276,7 @@ public class DefaultStreamingManager implements StreamingManager {
             readLock.lock();
             try {
                 if (plainSender == null) {
-                    throw new IllegalStateException("Sender is null");
+                    throw new IllegalStateException(SENDER_IS_NULL_MESSAGE);
                 } else if (!plainSender.isWorking()) {
                     throw new IllegalStateException("Sender is incorrect");
                 } else {
@@ -285,7 +286,7 @@ public class DefaultStreamingManager implements StreamingManager {
                 readLock.unlock();
             }
         } else {
-            log.warn("Current marker:{} is already replaced by another marker:", current, marker.get());
+            log.warn("Current marker:{} is already replaced by another marker: {}", current, marker.get());
         }
     }
 
@@ -295,9 +296,9 @@ public class DefaultStreamingManager implements StreamingManager {
             return Collections.emptyList();
         }
         synchronized (saved) {
-            List<String> result = new ArrayList<String>(saved);
+            List<String> result = new ArrayList<>(saved);
             saved.removeAll(result);
-            if (result.size() > 0) {
+            if (result.isEmpty()) {
                 log.info("{} commands are removed from saved list", result.size());
             }
             return result;

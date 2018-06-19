@@ -15,8 +15,8 @@
 package com.axibase.tsd.util;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,12 +24,19 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TimeZone;
 
 @Slf4j
+@UtilityClass
 public class AtsdUtil {
     private static final String CLASSPATH_PREFIX = "classpath:";
     public static final String ADD_COMMAND = "add";
@@ -46,7 +53,7 @@ public class AtsdUtil {
             throw new IllegalArgumentException("Key without value");
         }
 
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         for (int i = 0; i < tagNamesAndValues.length; i++) {
             result.put(tagNamesAndValues[i], tagNamesAndValues[++i]);
         }
@@ -62,7 +69,7 @@ public class AtsdUtil {
             throw new IllegalArgumentException("Key without value");
         }
 
-        Map<String, Double> result = new HashMap<String, Double>();
+        Map<String, Double> result = new HashMap<>();
         for (int i = 0; i < metricNamesAndValues.length; i++) {
             result.put((String) metricNamesAndValues[i], (Double) metricNamesAndValues[++i]);
         }
@@ -91,6 +98,7 @@ public class AtsdUtil {
         check(metricName, "Metric name is empty");
     }
 
+    @UtilityClass
     public static class DateTime {
         public static final String MIN_QUERIED_DATE_TIME = "1000-01-01T00:00:00.000Z";
         public static final String MAX_QUERIED_DATE_TIME = "9999-12-31T23:59:59.999Z";
@@ -123,28 +131,29 @@ public class AtsdUtil {
         return Double.toString(value);
     }
 
-    public static Properties loadProperties(String clientPropertiesFileName) {
+
+    public static Properties loadProperties(final String clientPropertiesFileName) {
         log.debug("Load client properties from file: {}", clientPropertiesFileName);
         Properties clientProperties = new Properties();
-        InputStream stream = null;
-        try {
-            if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
-                String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
-                log.info("Load properties from classpath: {}", resourcePath);
-                stream = AtsdUtil.class.getResourceAsStream(resourcePath);
-            } else {
-                File file = new File(clientPropertiesFileName);
-                log.info("Load properties from file: {}", file.getAbsolutePath());
-                stream = new FileInputStream(file);
-            }
+        try (InputStream stream = propertiesStream(clientPropertiesFileName)) {
             clientProperties.load(stream);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.warn("Could not load client properties", e);
-        } finally {
-            IOUtils.closeQuietly(stream);
         }
 
         return clientProperties;
+    }
+
+    private static InputStream propertiesStream(final String clientPropertiesFileName) throws FileNotFoundException {
+        if (clientPropertiesFileName.startsWith(CLASSPATH_PREFIX)) {
+            String resourcePath = clientPropertiesFileName.split(CLASSPATH_PREFIX)[1];
+            log.info("Load properties from classpath: {}", resourcePath);
+            return AtsdUtil.class.getResourceAsStream(resourcePath);
+        } else {
+            File file = new File(clientPropertiesFileName);
+            log.info("Load properties from file: {}", file.getAbsolutePath());
+            return new FileInputStream(file);
+        }
     }
 
     public static String getPropertyStringValue(String name, Properties clientProperties, String defaultValue) {

@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
 public class AtsdServerExceptionFactoryTest {
@@ -37,6 +38,7 @@ public class AtsdServerExceptionFactoryTest {
         Response response = Mockito.mock(Response.class);
         Mockito.when(response.getStatus())
                 .thenReturn(HttpStatus.SC_OK);
+        Mockito.when(response.readEntity(ServerError.class)).thenThrow(ProcessingException.class);
         AtsdServerExceptionFactory.fromResponse(response);
     }
 
