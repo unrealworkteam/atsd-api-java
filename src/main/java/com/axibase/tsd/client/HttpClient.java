@@ -21,7 +21,7 @@ import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -39,12 +39,11 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.filter.LoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -69,10 +68,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 @Slf4j
 class HttpClient {
-    private final static java.util.logging.Logger legacyLogger = java.util.logging.Logger.getLogger(HttpClient.class.getName());
-    public static final int HTTP_STATUS_OK = 200;
-    public static final int HTTP_STATUS_FAIL = 400;
-    public static final int HTTP_STATUS_NOT_FOUND = 404;
+    private static final java.util.logging.Logger LEGACY_LOGGER = java.util.logging.Logger.getLogger(HttpClient.class.getName());
+
     static {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         LogManager.getLogManager().reset();
@@ -94,7 +91,7 @@ class HttpClient {
         clientConfig
                 .register(JsonMappingExceptionMapper.class)
                 .register(JsonParseExceptionMapper.class)
-                .register(JacksonJaxbJsonProvider.class, new Class[]{MessageBodyReader.class, MessageBodyWriter.class})
+                .register(JacksonJaxbJsonProvider.class, MessageBodyReader.class, MessageBodyWriter.class)
                 .register(RequestBodyLogger.class)
                 .register(HttpAuthenticationFeature.basic(clientConfiguration.getUsername(), clientConfiguration.getPassword()))
         ;
@@ -104,7 +101,7 @@ class HttpClient {
         }
 
         if (log.isDebugEnabled()) {
-            clientConfig.register(new LoggingFilter(legacyLogger, true));
+            clientConfig.register(new LoggingFilter(LEGACY_LOGGER, true));
         }
 
         configureHttps(clientConfiguration, clientConfig);
@@ -147,7 +144,7 @@ class HttpClient {
 
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
         try {
-            sslContext.init(null, new TrustManager[]{
+            sslContext.init(null, new TrustManager[] {
                     new IgnoringTrustManager()
             }, new SecureRandom());
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
@@ -174,7 +171,7 @@ class HttpClient {
     public boolean updateData(QueryPart query, String data) {
         return update(clientConfiguration.getDataUrl(), query, RequestProcessor.post(data), MediaType.TEXT_PLAIN_TYPE);
     }
-    
+
     public <T, E> Response request(QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         String url = clientConfiguration.getDataUrl();
         return doRequest(url, query, requestProcessor);
@@ -196,24 +193,24 @@ class HttpClient {
 
     private <T, E> List<T> requestList(String url, Class<T> resultClass, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
-        if (response.getStatus() == HTTP_STATUS_OK) {
+        if (response.getStatus() == HttpStatus.SC_OK) {
             return response.readEntity(listType(resultClass));
-        } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {
+        } else if (response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return Collections.emptyList();
         } else {
-            throw buildException(response);
+            throw AtsdServerExceptionFactory.fromResponse(response);
         }
     }
 
     private <T, E> T requestObject(String url, Class<T> resultClass, QueryPart<T> query, RequestProcessor<E> requestProcessor) {
         Response response = doRequest(url, query, requestProcessor);
-        if (response.getStatus() == HTTP_STATUS_OK) {
+        if (response.getStatus() == HttpStatus.SC_OK) {
             return response.readEntity(resultClass);
-        } else if (response.getStatus() == HTTP_STATUS_NOT_FOUND) {
+        } else if (response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             buildAndLogServerError(response);
             return null;
         } else {
-            throw buildException(response);
+            throw AtsdServerExceptionFactory.fromResponse(response);
         }
     }
 
@@ -221,10 +218,10 @@ class HttpClient {
         String url = clientConfiguration.getDataUrl();
         Response response = doRequest(url, query, requestProcessor);
         Object entity = response.getEntity();
-        if (response.getStatus() == HTTP_STATUS_OK && entity instanceof InputStream) {
+        if (response.getStatus() == HttpStatus.SC_OK && entity instanceof InputStream) {
             return (InputStream) entity;
         } else {
-            throw buildException(response);
+            throw AtsdServerExceptionFactory.fromResponse(response);
         }
     }
 
@@ -240,30 +237,25 @@ class HttpClient {
 
     private boolean getUpdateResult(Response response) {
         try {
-            if (response.getStatus() == HTTP_STATUS_OK) {
+            if (response.getStatus() == HttpStatus.SC_OK) {
                 return true;
-            } else if (response.getStatus() == HTTP_STATUS_FAIL) {
+            } else if (response.getStatus() == HttpStatus.SC_BAD_REQUEST) {
                 return false;
             } else {
-                throw buildException(response);
+                throw AtsdServerExceptionFactory.fromResponse(response);
             }
         } finally {
             closeResponse(response);
         }
     }
 
-    private AtsdServerException buildException(Response response) {
-        ServerError serverError = buildAndLogServerError(response);
-        return new AtsdServerException(response.getStatusInfo().getReasonPhrase() + " (" + response.getStatus() + ")" +
-                ((serverError == null) ? "" : (", " + serverError.getMessage())), response.getStatus());
-    }
 
     public static ServerError buildAndLogServerError(Response response) {
         ServerError serverError = null;
         try {
             serverError = response.readEntity(ServerError.class);
             log.warn("Server error: {}", serverError);
-        } catch (Throwable e) {
+        } catch (ProcessingException e) {
             log.warn("Couldn't read error message", e);
         }
         return serverError;
@@ -286,9 +278,9 @@ class HttpClient {
             if (requestProcessor == null) {
                 response = request.get();
             } else {
-                response =  requestProcessor.process(request, mediaType, "command".equals(query.getPath()) && clientConfiguration.isEnableBatchCompression());
+                response = requestProcessor.process(request, mediaType, "command".equals(query.getPath()) && clientConfiguration.isEnableBatchCompression());
             }
-        } catch (Throwable e) {
+        } catch (ProcessingException e) {
             throw new AtsdClientException("Error while processing the request", e);
         }
         return response;
@@ -297,7 +289,7 @@ class HttpClient {
     private <T> GenericType<List<T>> listType(final Class<T> clazz) {
         ParameterizedType genericType = new ParameterizedType() {
             public Type[] getActualTypeArguments() {
-                return new Type[]{clazz};
+                return new Type[] {clazz};
             }
 
             public Type getRawType() {
@@ -318,13 +310,17 @@ class HttpClient {
         }
     }
 
-    private static void closeResponse(Response response) {
+    private static void closeResponse(final Response response) {
         try {
             if (response != null) {
                 response.close();
             }
-        } catch (Throwable e) {
+        } catch (ProcessingException e) {
             log.warn("Couldn't close response", e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 }
