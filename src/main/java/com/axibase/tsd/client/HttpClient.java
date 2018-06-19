@@ -317,10 +317,6 @@ class HttpClient {
             }
         } catch (ProcessingException e) {
             log.warn("Couldn't close response", e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 }
