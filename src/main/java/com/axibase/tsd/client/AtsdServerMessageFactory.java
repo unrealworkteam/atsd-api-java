@@ -1,6 +1,7 @@
 package com.axibase.tsd.client;
 
 import com.axibase.tsd.model.system.ServerError;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +19,7 @@ final class AtsdServerMessageFactory {
 
     static String from(final ServerError serverError) {
         final String message = serverError.getMessage();
-        if (AUTH_DICT.containsKey(message)) {
-            return AUTH_DICT.get(message);
-        } else {
-            return message;
-        }
+        return StringUtils.defaultString(AUTH_DICT.get(message), message);
     }
 
     private static Map<String, String> authDictionary() {
