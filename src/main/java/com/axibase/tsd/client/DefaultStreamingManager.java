@@ -142,7 +142,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
                     PlainStreamingSender newSender = new PlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
                     if (plainSender != null) {
-                        log.info("Prepare new sende {}r, close old {}", newSender, plainSender);
+                        log.info("Prepare new sender {}, close old {}", newSender, plainSender);
                         plainSender.close();
                     }
                     if (senderFuture != null) {
