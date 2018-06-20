@@ -20,6 +20,7 @@ import com.axibase.tsd.network.MarkerCommand;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +34,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
+@Slf4j
 public class DefaultStreamingManager implements StreamingManager {
-    private static final Logger log = LoggerFactory.getLogger(DefaultStreamingManager.class);
     public static final String CHECK = "check";
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
+    public static final String SENDER_IS_NULL_MESSAGE = "Sender is null";
     private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
     private PlainStreamingSender plainSender = null;
     private final AtomicLong lastPingTime = new AtomicLong(0);
-    private final AtomicReference<String> marker = new AtomicReference<String>();
+    private final AtomicReference<String> marker = new AtomicReference<>();
     private boolean lastPingResult = false;
-    private final List<String> saved = new ArrayList<String>();
+    private final List<String> saved = new ArrayList<>();
     private final HttpClientManager httpClientManager;
     private Future<?> senderFuture;
     private ExecutorService checkExecutor;
@@ -66,7 +67,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
     @Override
     public void close() {
-        log.info("Close streaming manager");
+        log.info("Closing streaming manager {}", this);
         PlainStreamingSender sender = plainSender;
         if (sender != null) {
             sender.close();
@@ -85,7 +86,7 @@ public class DefaultStreamingManager implements StreamingManager {
         try {
             PlainStreamingSender sender = plainSender;
             if (sender == null) {
-                throw new IllegalStateException("Sender is null");
+                throw new IllegalStateException(SENDER_IS_NULL_MESSAGE);
             } else if (!sender.isWorking()) {
                 throw new IllegalStateException("Sender is in the wrong state");
             }
@@ -111,7 +112,7 @@ public class DefaultStreamingManager implements StreamingManager {
                                 if (beforeLastResult && lastPingResult) {
                                     saved.clear();
                                 }
-                            } catch (Throwable e) {
+                            } catch (Exception e) {
                                 log.error("Could not prepare sender: ", e);
                             }
                         }
@@ -141,7 +142,7 @@ public class DefaultStreamingManager implements StreamingManager {
 
                     PlainStreamingSender newSender = new PlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
                     if (plainSender != null) {
-                        log.info("Prepare new sender, close old");
+                        log.info("Prepare new sender {}, close old {}", newSender, plainSender);
                         plainSender.close();
                     }
                     if (senderFuture != null) {
@@ -177,7 +178,7 @@ public class DefaultStreamingManager implements StreamingManager {
                     MarkerState markerState = askMarkerState(CHECK);
                     boolean checkResult = markerState != null && CHECK.equals(markerState.getMarker());
                     if (!checkResult) {
-                        log.warn("Bad check result, close sender");
+                        log.warn("Bad check result: {}, close sender", markerState);
                         needClosing = true;
                     }
                     return checkResult;
@@ -226,10 +227,10 @@ public class DefaultStreamingManager implements StreamingManager {
                     return false;
                 }
             } else {
-                log.warn("Sender is null");
+                log.warn(SENDER_IS_NULL_MESSAGE);
                 return false;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.warn("Ping error: ", e);
             return false;
         } finally {
@@ -254,7 +255,7 @@ public class DefaultStreamingManager implements StreamingManager {
             markerState = httpClientManager.requestData(MarkerState.class, query, null);
             log.debug("From server {} received the following state of marker ({}): {}",
                     httpClientManager.getClientConfiguration().getDataUrl(), marker, markerState);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.error("Error while checking marker count: ", e);
         }
         return markerState;
@@ -275,7 +276,7 @@ public class DefaultStreamingManager implements StreamingManager {
             readLock.lock();
             try {
                 if (plainSender == null) {
-                    throw new IllegalStateException("Sender is null");
+                    throw new IllegalStateException(SENDER_IS_NULL_MESSAGE);
                 } else if (!plainSender.isWorking()) {
                     throw new IllegalStateException("Sender is incorrect");
                 } else {
@@ -285,23 +286,22 @@ public class DefaultStreamingManager implements StreamingManager {
                 readLock.unlock();
             }
         } else {
-            log.warn("Current marker:{} is already replaced by another marker:", current, marker.get());
+            log.warn("Current marker:{} is already replaced by another marker: {}", current, marker.get());
         }
     }
 
+    // Stable work is not guaranteed
     @Override
     public List<String> removeSavedPlainCommands() {
         if (saved.isEmpty()) {
             return Collections.emptyList();
         }
-        synchronized (saved) {
-            List<String> result = new ArrayList<String>(saved);
-            saved.removeAll(result);
-            if (result.size() > 0) {
-                log.info("{} commands are removed from saved list", result.size());
-            }
-            return result;
+        List<String> result = new ArrayList<>(saved);
+        saved.clear();
+        if (!result.isEmpty()) {
+            log.info("{} commands are removed from saved list", result.size());
         }
+        return result;
     }
 
 }

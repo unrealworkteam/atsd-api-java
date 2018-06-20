@@ -14,8 +14,21 @@
  */
 package com.axibase.tsd.client;
 
-import com.axibase.tsd.model.data.*;
-import com.axibase.tsd.model.data.command.*;
+import com.axibase.tsd.model.data.Alert;
+import com.axibase.tsd.model.data.AlertHistory;
+import com.axibase.tsd.model.data.Message;
+import com.axibase.tsd.model.data.Property;
+import com.axibase.tsd.model.data.TimeFormat;
+import com.axibase.tsd.model.data.command.AddSeriesCommand;
+import com.axibase.tsd.model.data.command.BatchAlertCommand;
+import com.axibase.tsd.model.data.command.BatchQuery;
+import com.axibase.tsd.model.data.command.BatchResponse;
+import com.axibase.tsd.model.data.command.GetAlertHistoryQuery;
+import com.axibase.tsd.model.data.command.GetAlertQuery;
+import com.axibase.tsd.model.data.command.GetMessagesQuery;
+import com.axibase.tsd.model.data.command.GetPropertiesQuery;
+import com.axibase.tsd.model.data.command.GetSeriesQuery;
+import com.axibase.tsd.model.data.command.SendCommandResult;
 import com.axibase.tsd.model.data.filters.DeletePropertyFilter;
 import com.axibase.tsd.model.data.series.Series;
 import com.axibase.tsd.model.data.series.aggregate.AggregateType;
@@ -24,22 +37,31 @@ import com.axibase.tsd.model.system.ServerError;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.HttpStatus;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.axibase.tsd.client.RequestProcessor.patch;
 import static com.axibase.tsd.client.RequestProcessor.post;
-import static com.axibase.tsd.util.AtsdUtil.*;
+import static com.axibase.tsd.util.AtsdUtil.check;
+import static com.axibase.tsd.util.AtsdUtil.checkEntityIsEmpty;
+import static com.axibase.tsd.util.AtsdUtil.checkMetricIsEmpty;
+import static com.axibase.tsd.util.AtsdUtil.checkPropertyTypeIsEmpty;
 
 /**
  * Provides high-level API to retrieve and update ATSD Data Objects (time-series, alerts, properties).
  */
 public class DataService {
     private static final SeriesCommandPreparer LAST_PREPARER = new LastPreparer();
+    public static final String SERIES_KEYWORD = "series";
+    public static final String INSERT_KEYWORD = "insert";
 
     private HttpClientManager httpClientManager;
 
@@ -82,8 +104,8 @@ public class DataService {
             checkEntityIsEmpty(addSeriesCommand.getEntityName());
             checkMetricIsEmpty(addSeriesCommand.getMetricName());
         }
-        QueryPart<Series> query = new Query<Series>("series")
-                .path("insert");
+        QueryPart<Series> query = new Query<Series>(SERIES_KEYWORD)
+                .path(INSERT_KEYWORD);
         return httpClientManager.updateData(query,
                 post(Arrays.asList(addSeriesCommands)));
     }
@@ -97,7 +119,7 @@ public class DataService {
     public boolean addSeriesCsv(String entityName, String data, String... tagNamesAndValues) {
         checkEntityIsEmpty(entityName);
         check(data, "Data is empty");
-        QueryPart<Series> query = new Query<Series>("series")
+        QueryPart<Series> query = new Query<Series>(SERIES_KEYWORD)
                 .path("csv")
                 .path(entityName, true);
         if (tagNamesAndValues != null) {
@@ -146,7 +168,7 @@ public class DataService {
                                        Integer limit,
                                        Boolean last,
                                        String columns) {
-        QueryPart seriesQuery = new Query("series")
+        QueryPart seriesQuery = new Query(SERIES_KEYWORD)
                 .path(format.name().toLowerCase())
                 .path(entityName, true)
                 .path(metricName, true)
@@ -199,7 +221,7 @@ public class DataService {
             checkPropertyTypeIsEmpty(property.getType());
         }
         QueryPart<Property> query = new Query<Property>("properties")
-                .path("insert");
+                .path(INSERT_KEYWORD);
         return httpClientManager.updateData(query, post(Arrays.asList(properties)));
     }
 
@@ -219,7 +241,7 @@ public class DataService {
             checkEntityIsEmpty(message.getEntityName());
         }
         QueryPart<Message> query = new Query<Message>("messages")
-                .path("insert");
+                .path(INSERT_KEYWORD);
         return httpClientManager.updateData(query, post(Arrays.asList(messages)));
     }
 
@@ -298,9 +320,7 @@ public class DataService {
             data.append(command.compose());
         }
 
-        BatchResponse result = httpClientManager.requestData(query, data.toString(), new BatchResponseExtractor());
-
-        return result;
+        return httpClientManager.requestData(query, data.toString(), new BatchResponseExtractor());
     }
 
     public boolean canSendPlainCommand() {
@@ -323,7 +343,7 @@ public class DataService {
         @Override
         public BatchResponse extract(Response response) {
             BatchResponse batchResponse = new BatchResponse(response.getStatusInfo());
-            if (response.getStatus() == HttpClient.HTTP_STATUS_OK) {
+            if (response.getStatus() == HttpStatus.SC_OK) {
                 SendCommandResult sendCommandResult = response.readEntity(SendCommandResult.class);
                 batchResponse.setResult(sendCommandResult);
             } else {
