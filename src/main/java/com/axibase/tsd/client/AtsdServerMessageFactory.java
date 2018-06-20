@@ -3,6 +3,7 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.system.ServerError;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,27 +24,22 @@ final class AtsdServerMessageFactory {
     }
 
     private static Map<String, String> authDictionary() {
-        final String[] authMessages = {
-                "General Server Error",
-                "Username Not Found",
-                "Bad Credentials",
-                "Disabled LDAP Service",
-                "Corrupted Configuration",
-                "MS Active Directory",
-                "Account Disabled",
-                "Account Expired",
-                "Account Locked",
-                "Logon Not Permitted At Time",
-                "Logon Not Permitted At Workstation",
-                "Password Expired",
-                "Password Reset Required",
-                "Wrong IP Address",
-                "Access Denied"
-        };
         final Map<String, String> dict = new HashMap<>();
-        for (int i = 0; i < authMessages.length; i++) {
-            dict.put(String.format("code %02d", i + 1), authMessages[i]);
-        }
-        return dict;
+        dict.put("code 01", "General Server Error");
+        dict.put("code 02", "Username Not Found");
+        dict.put("code 03", "Bad Credentials");
+        dict.put("code 04", "Disabled LDAP Service");
+        dict.put("code 05", "Corrupted Configuration");
+        dict.put("code 06", "MS Active Directory");
+        dict.put("code 07", "Account Disabled");
+        dict.put("code 08", "Account Expired");
+        dict.put("code 09", "Account Locked");
+        dict.put("code 10", "Logon Not Permitted At Time");
+        dict.put("code 11", "Logon Not Permitted At Workstation");
+        dict.put("code 12", "Password Expired");
+        dict.put("code 13", "Password Reset Required");
+        dict.put("code 14", "Wrong IP Address");
+        dict.put("code 15", "Access Denied");
+        return Collections.unmodifiableMap(dict);
     }
 }
