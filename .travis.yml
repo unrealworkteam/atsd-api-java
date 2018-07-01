@@ -6,7 +6,7 @@ services:
   - docker
 before_install:
 install:
-  - mvn clean compile sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
+  - mvn clean package sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
 test:
 cache:
   directories:
