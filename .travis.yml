@@ -5,12 +5,12 @@ jdk:
 services:
   - docker
 before_install:
-install:
-  - mvn clean test sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
+install:: true
 cache:
   directories:
     - $HOME/.m2
-script: false
+script:
+  - mvn clean package sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
 branches:
   only:
     - master
