@@ -7,11 +7,10 @@ services:
 before_install:
 install:
   - mvn clean package sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
-test:
 cache:
   directories:
     - $HOME/.m2
-script:
+script: false
 branches:
   only:
     - master
