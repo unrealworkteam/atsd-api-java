@@ -2,15 +2,14 @@ sudo: required
 language: java
 jdk:
   - openjdk8
-services:
-  - docker
 before_install:
-install: false
+install:
+  - mvn clean compile
 cache:
   directories:
     - $HOME/.m2
 script:
-  - mvn clean compile sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
+  - mvn  sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
 branches:
   only:
     - master
