@@ -9,7 +9,7 @@ cache:
   directories:
     - $HOME/.m2
 script:
-  - mvn  sonar:sonar -DskipTests=true -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_TOKEN}
+  - ./travis.sh
 branches:
   only:
     - master
