@@ -145,7 +145,7 @@ class HttpClient {
     private static void ignoreSslCertificateErrorInit(SSLContext sslContext) {
         try {
             sslContext.init(null, new TrustManager[] {
-                    new IgnoringTrustManager()
+                    new SelfSignedTrustManager()
             }, new SecureRandom());
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             log.warn("SSL context initialization error: ", e);
@@ -197,7 +197,7 @@ class HttpClient {
             return response.readEntity(listType(resultClass));
         } else if (response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return Collections.emptyList();
-        } else {
+        } else  {
             throw AtsdServerExceptionFactory.fromResponse(response);
         }
     }
@@ -315,7 +315,7 @@ class HttpClient {
             if (response != null) {
                 response.close();
             }
-        } catch (ProcessingException e) {
+        }   catch (ProcessingException e) {
             log.warn("Couldn't close response", e);
         }
     }
