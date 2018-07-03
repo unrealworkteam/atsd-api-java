@@ -16,6 +16,7 @@ import java.security.cert.X509Certificate;
 
 @Slf4j
 public class SelfSignedTrustManager implements X509TrustManager, Serializable, Cloneable {
+    private final static  String CONSTANT = "message";
 
     public SelfSignedTrustManager() throws NoSuchAlgorithmException, KeyStoreException {
     }
@@ -54,7 +55,7 @@ public class SelfSignedTrustManager implements X509TrustManager, Serializable, C
 
             return super.hashCode();
         } catch (Throwable e) {
-            log.info("Bla bla");
+            log.info(CONSTANT);
             throw new RuntimeException(e);
         }
     }

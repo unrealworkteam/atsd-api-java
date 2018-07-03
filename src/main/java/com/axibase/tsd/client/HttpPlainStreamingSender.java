@@ -44,8 +44,8 @@ import java.util.concurrent.*;
 import static com.axibase.tsd.util.AtsdUtil.MARKER_KEYWORD;
 
 
-class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger(PlainStreamingSender.class);
+class HttpPlainStreamingSender extends AbstractHttpEntity implements Runnable {
+    private static final Logger log = LoggerFactory.getLogger(HttpPlainStreamingSender.class);
     private static final int SMALL = 64;
 
     private String url;
@@ -60,7 +60,7 @@ class PlainStreamingSender extends AbstractHttpEntity implements Runnable {
     private final ClientConfiguration clientConfiguration;
     private PoolingHttpClientConnectionManager connectionManager;
 
-    public PlainStreamingSender(ClientConfiguration clientConfiguration, PlainStreamingSender old) {
+    public HttpPlainStreamingSender(ClientConfiguration clientConfiguration, HttpPlainStreamingSender old) {
         this.clientConfiguration = clientConfiguration;
         this.url = clientConfiguration.getDataUrl();
         this.pingTimeoutMillis = clientConfiguration.getPingTimeoutMillis();
