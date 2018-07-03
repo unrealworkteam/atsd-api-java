@@ -17,8 +17,10 @@ package com.axibase.tsd.client;
 import com.axibase.tsd.model.system.ClientConfiguration;
 import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.QueryPart;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -37,7 +39,7 @@ public class HttpClientManager {
     private ClientConfiguration clientConfiguration;
     private GenericObjectPoolConfig objectPoolConfig;
 
-    private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReference = new AtomicReference<GenericObjectPool<HttpClient>>();
+    private AtomicReference<GenericObjectPool<HttpClient>> objectPoolAtomicReferenc = new AtomicReference<GenericObjectPool<HttpClient>>();
     private int borrowMaxWaitMillis = DEFAULT_BORROW_MAX_TIME_MS;
     private StreamingManager streamingManager = new DefaultStreamingManager(this);
 
@@ -176,20 +178,20 @@ public class HttpClientManager {
     }
 
     private void returnClient(HttpClient httpClient) {
-        objectPoolAtomicReference.get().returnObject(httpClient);
+        objectPoolAtomicReferenc.get().returnObject(httpClient);
     }
 
     private GenericObjectPool<HttpClient> createObjectPool() {
-        GenericObjectPool<HttpClient> httpClientGenericObjectPool = objectPoolAtomicReference.get();
+        GenericObjectPool<HttpClient> httpClientGenericObjectPool = objectPoolAtomicReferenc.get();
         if (httpClientGenericObjectPool == null) {
             httpClientGenericObjectPool = new GenericObjectPool<HttpClient>(new HttpClientBasePooledObjectFactory(), objectPoolConfig);
-            objectPoolAtomicReference.compareAndSet(null, httpClientGenericObjectPool);
+            objectPoolAtomicReferenc.compareAndSet(null, httpClientGenericObjectPool);
         }
-        return objectPoolAtomicReference.get();
+        return objectPoolAtomicReferenc.get();
     }
 
     public void close() {
-        GenericObjectPool<HttpClient> pool = objectPoolAtomicReference.get();
+        GenericObjectPool<HttpClient> pool = objectPoolAtomicReferenc.get();
         if (pool != null) {
             pool.close();
         }
