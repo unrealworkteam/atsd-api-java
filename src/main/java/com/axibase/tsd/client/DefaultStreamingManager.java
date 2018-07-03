@@ -21,8 +21,6 @@ import com.axibase.tsd.network.PlainCommand;
 import com.axibase.tsd.query.Query;
 import com.axibase.tsd.query.QueryPart;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +38,7 @@ public class DefaultStreamingManager implements StreamingManager {
     private static final int DEFAULT_CHECK_PERIOD_MS = 5000;
     public static final String SENDER_IS_NULL_MESSAGE = "Sender is null";
     private long checkPeriodMillis = DEFAULT_CHECK_PERIOD_MS;
-    private PlainStreamingSender plainSender = null;
+    private HttpPlainStreamingSender plainSender = null;
     private final AtomicLong lastPingTime = new AtomicLong(0);
     private final AtomicReference<String> marker = new AtomicReference<>();
     private boolean lastPingResult = false;
@@ -68,7 +66,7 @@ public class DefaultStreamingManager implements StreamingManager {
     @Override
     public void close() {
         log.info("Closing streaming manager {}", this);
-        PlainStreamingSender sender = plainSender;
+        HttpPlainStreamingSender sender = plainSender;
         if (sender != null) {
             sender.close();
         }
@@ -84,7 +82,7 @@ public class DefaultStreamingManager implements StreamingManager {
         Lock readLock = senderLock.readLock();
         readLock.lock();
         try {
-            PlainStreamingSender sender = plainSender;
+            HttpPlainStreamingSender sender = plainSender;
             if (sender == null) {
                 throw new IllegalStateException(SENDER_IS_NULL_MESSAGE);
             } else if (!sender.isWorking()) {
@@ -140,7 +138,7 @@ public class DefaultStreamingManager implements StreamingManager {
             try {
                 if (plainSender == null || plainSender.isClosed()) {
 
-                    PlainStreamingSender newSender = new PlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
+                    HttpPlainStreamingSender newSender = new HttpPlainStreamingSender(httpClientManager.getClientConfiguration(), plainSender);
                     if (plainSender != null) {
                         log.info("Prepare new sender {}, close old {}", newSender, plainSender);
                         plainSender.close();
